@@ -1,14 +1,17 @@
 # Dockerfile
 FROM python:3.11-slim
 
-ENV PYTHONUNBUFFERED=1
-ENV PORT=8000
 WORKDIR /app
 
+# Install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir gunicorn
 
+# Copy code
 COPY . .
 
-EXPOSE 8000
-CMD ["python", "server.py"]
+# Expose port
+ENV PYTHONUNBUFFERED=1
+
+# Start the Flask app with gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:${PORT}", "server:app"]
