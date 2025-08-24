@@ -2,28 +2,9 @@ services:
   - type: web
     name: purdue-mbb-api
     env: docker
-    plan: free  # change to 'starter' if you want always-on, no sleeping
+    plan: free  # change to 'starter' later if you want always-on, no sleeping
     autoDeploy: true
     healthCheckPath: /healthz
-    envVars:
-      - key: REDDIT_CLIENT_ID
-        sync: false
-      - key: REDDIT_CLIENT_SECRET
-        sync: false
-      - key: REDDIT_USERNAME
-        sync: false
-      - key: REDDIT_PASSWORD
-        sync: false
-      - key: REDDIT_USER_AGENT
-        value: PurdueMBBBot/1.0 by YOUR_REDDIT_USERNAME
-      - key: REDDIT_SUBS
-        value: Boilermakers,Purdue,CollegeBasketball
-
-cronJobs:
-  - name: purdue-mbb-collector
-    schedule: "*/5 * * * *"  # every 5 minutes
-    env: docker
-    command: python -m app.collect && python -m app.reddit_collect
     envVars:
       - key: REDDIT_CLIENT_ID
         sync: false
