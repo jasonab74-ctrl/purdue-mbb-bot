@@ -6,11 +6,10 @@
   <title>Purdue Men's Basketball News</title>
   <style>
     :root{--gold:#c79a26;--ink:#1a1a1a;--muted:#6c6c6c;--bg:#f6f7f8;--card:#fff;--ring:#d9dbe0}
-    *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--ink);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
     a{color:inherit;text-decoration:none}
-    header{position:sticky;top:0;background:#fff;border-bottom:3px solid var(--gold);
-      display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;z-index:10}
+    header{position:sticky;top:0;background:#fff;border-bottom:3px solid var(--gold);display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;z-index:10}
     .logo{height:26px;width:auto}
     h1{margin:0;font-size:1.35rem;color:var(--gold);font-weight:800;letter-spacing:.2px}
     .actions{margin-left:auto;display:flex;gap:.5rem;align-items:center}
@@ -49,64 +48,43 @@
   </main>
 
   <script>
-    const $ = (sel) => document.querySelector(sel);
-
+    const $ = (s)=>document.querySelector(s);
     function esc(s){const d=document.createElement("div");d.innerText=s||"";return d.innerHTML;}
-
     function render(list){
       const box=$("#articles");
-      if(!list || list.length===0){ box.innerHTML = `<p class="center">No articles found.</p>`; return; }
-      box.innerHTML = "";
+      if(!list||list.length===0){ box.innerHTML=`<p class="center">No articles found.</p>`; return; }
+      box.innerHTML="";
       for(const a of list){
         const el=document.createElement("article");
         el.className="card";
-        el.innerHTML = `
+        el.innerHTML=`
           <h2><a href="${a.link}" target="_blank" rel="noopener">${esc(a.title)}</a></h2>
           <p>${esc(a.summary||"")}</p>
-          <div class="meta">
-            <span>${esc(a.source||"")}</span>
-            <span>${a.published ? new Date(a.published).toLocaleString() : ""}</span>
-          </div>`;
+          <div class="meta"><span>${esc(a.source||"")}</span><span>${a.published?new Date(a.published).toLocaleString():""}</span></div>
+        `;
         box.appendChild(el);
       }
     }
-
-    async function getJSON(url){
-      const r = await fetch(url, {cache:"no-store"});
-      if(!r.ok) throw new Error("HTTP "+r.status);
-      return await r.json();
-    }
-
+    async function getJSON(url){const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); return await r.json();}
     async function load(q=""){
-      $("#status").textContent = q ? `Searching “${q}”…` : "Loading…";
+      $("#status").textContent = q?`Searching “${q}”…`:"Loading…";
       try{
-        // Force a backend refresh the first time the page loads (idempotent)
-        if(!window.__refreshedOnce){
-          window.__refreshedOnce = true;
-          try{ await getJSON("/api/refresh-now"); }catch{}
-        }
-        const endpoint = q ? `/api/search?q=${encodeURIComponent(q)}` : "/api/articles";
-        const data = await getJSON(endpoint);
+        if(!window.__refreshedOnce){ window.__refreshedOnce=true; try{ await getJSON("/api/refresh-now"); }catch{} }
+        const endpoint=q?`/api/search?q=${encodeURIComponent(q)}`:"/api/articles";
+        const data=await getJSON(endpoint);
         render(data.articles||[]);
         try{
-          const h = await getJSON("/api/health");
-          $("#status").textContent = `Loaded ${data.articles?.length||0} • Last refresh ${h.last_refresh ? new Date(h.last_refresh).toLocaleTimeString() : "–"}`;
-        }catch{
-          $("#status").textContent = `Loaded ${data.articles?.length||0}`;
-        }
+          const h=await getJSON("/api/health");
+          $("#status").textContent=`Loaded ${data.articles?.length||0} • Last refresh ${h.last_refresh?new Date(h.last_refresh).toLocaleTimeString():"–"}`;
+        }catch{ $("#status").textContent=`Loaded ${data.articles?.length||0}`; }
       }catch(e){
         console.error(e);
-        $("#articles").innerHTML = `<p class="center error">Failed to load. Try Refresh.</p>`;
-        $("#status").textContent = "Error";
+        $("#articles").innerHTML=`<p class="center error">Failed to load. Try Refresh.</p>`;
+        $("#status").textContent="Error";
       }
     }
-
-    $("#refreshBtn").addEventListener("click", ()=>load($("#q").value.trim()));
-    $("#q").addEventListener("input", ()=>{
-      clearTimeout(window.__deb); window.__deb = setTimeout(()=>load($("#q").value.trim()), 250);
-    });
-
-    // Kick off
+    $("#refreshBtn").addEventListener("click",()=>load($("#q").value.trim()));
+    $("#q").addEventListener("input",()=>{clearTimeout(window.__deb); window.__deb=setTimeout(()=>load($("#q").value.trim()),250);});
     load();
   </script>
 </body>
