@@ -2,7 +2,7 @@ services:
   - type: web
     name: purdue-mbb-api
     env: docker
-    plan: starter
+    plan: free  # change to 'starter' if you want always-on, no sleeping
     autoDeploy: true
     healthCheckPath: /healthz
     envVars:
@@ -19,12 +19,11 @@ services:
       - key: REDDIT_SUBS
         value: Boilermakers,Purdue,CollegeBasketball
 
-  - type: worker
-    name: purdue-mbb-worker
+cronJobs:
+  - name: purdue-mbb-collector
+    schedule: "*/5 * * * *"  # every 5 minutes
     env: docker
-    plan: starter
-    autoDeploy: true
-    dockerCommand: python -m app.schedule
+    command: python -m app.collect && python -m app.reddit_collect
     envVars:
       - key: REDDIT_CLIENT_ID
         sync: false
