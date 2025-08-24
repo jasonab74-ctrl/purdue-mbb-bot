@@ -6,9 +6,9 @@ from urllib.parse import urlparse
 from flask import Flask, jsonify, send_from_directory, request, redirect
 import feedparser
 
-# ----- Config -----
+# ---------- Config ----------
 FEEDS = [
-    # Two reliable test feeds (guaranteed content)
+    # Two reliable test feeds (guaranteed content so UI never looks empty)
     "https://hnrss.org/frontpage",
     "https://www.espn.com/espn/rss/news",
 
@@ -20,7 +20,7 @@ FEEDS = [
     "https://www.on3.com/teams/purdue-boilermakers/news/feed/",
     "https://www.247sports.com/college/purdue/Article/feed.rss",
 ]
-REFRESH_SECONDS = 300
+REFRESH_SECONDS = 300  # background refresh every 5 min
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -31,14 +31,14 @@ LOCK = threading.Lock()
 FALLBACK_ARTICLES = [
     {
         "title": "Welcome to Purdue MBB News",
-        "link": "https://purdue.edu",
-        "summary": "If you’re seeing this, feeds are still loading. The UI is working.",
+        "link": "https://www.purdue.edu/",
+        "summary": "If you see this, feeds are still loading. The UI is working.",
         "published": datetime.now(timezone.utc).isoformat(),
         "source": "purdue.edu",
     },
     {
         "title": "Tip: Use the search box",
-        "link": "https://onrender.com",
+        "link": "https://render.com",
         "summary": "Type ‘Purdue’ or ‘ESPN’ to filter results once feeds load.",
         "published": datetime.now(timezone.utc).isoformat(),
         "source": "system",
@@ -77,7 +77,7 @@ def refresh_feeds():
     seen, unique = set(), []
     for a in items:
         key = (a["title"].strip().lower(), a["source"])
-        if key in seen: 
+        if key in seen:
             continue
         seen.add(key)
         unique.append(a)
@@ -94,7 +94,7 @@ def refresher():
 # start background refresher
 threading.Thread(target=refresher, daemon=True).start()
 
-# ----- Routes -----
+# ---------- Routes ----------
 @app.route("/")
 def root():
     return redirect("/ui/")
