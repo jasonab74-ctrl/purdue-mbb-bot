@@ -1,27 +1,23 @@
-# Dockerfile
+# Use a lightweight Python base image
 FROM python:3.11-slim
 
-# Prevents Python buffering logs
+# Prevent Python from buffering logs (so logs stream in Render)
 ENV PYTHONUNBUFFERED=1
-# Render provides $PORT; default to 8000 for local
+# Render provides $PORT at runtime (default to 8000 for local dev)
 ENV PORT=8000
 
-# System basics (optional, but useful)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl && \
-    rm -rf /var/lib/apt/lists/*
-
+# Set working directory
 WORKDIR /app
 
-# Install deps first (better layer caching)
+# Install dependencies first for better build caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app code
+# Copy the rest of the app code
 COPY . .
 
-# Flask app listens on 0.0.0.0:PORT from app/api.py
+# Expose the port Flask will run on
 EXPOSE 8000
 
-# Start the app. Using module form so Python can find the package.
+# Start the Flask app (runs app/api.py as a module)
 CMD ["python", "-m", "app.api"]
