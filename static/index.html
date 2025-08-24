@@ -54,3 +54,115 @@
     }
     .title{
       font-size:17px; line-height:1.35; margin:0;
+    }
+    .title a{ color:inherit; text-decoration:none; }
+    .title a:active, .title a:hover{ text-decoration:underline; }
+
+    .meta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:12px; color:#111; background:var(--gold); border-radius:999px; padding:6px 10px; font-weight:700;
+    }
+    .time{ color:var(--muted); font-size:12px; }
+
+    footer{
+      text-align:center; color:var(--muted); padding:16px; font-size:13px;
+    }
+
+    /* Large tap targets */
+    .card a{ padding:2px; margin:-2px; }
+  </style>
+</head>
+<body>
+  <header>
+    <img alt="Purdue" src="https://upload.wikimedia.org/wikipedia/commons/8/89/Purdue_Boilermakers_logo.svg" loading="lazy">
+    <h1>Purdue Men's Basketball News</h1>
+    <div class="actions">
+      <button id="refreshBtn" class="btn">Refresh</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="status">Loading…</div>
+    <section id="grid" class="grid"></section>
+  </main>
+
+  <footer>🚂 Boiler Up — auto-updates every 5 min</footer>
+
+  <script>
+    const API = location.origin;
+
+    const sourceBadge = (source) => {
+      const s = (source||'').toLowerCase();
+      let label = source || 'Source';
+      if (s.includes('reddit')) label = 'Reddit';
+      else if (s.includes('espn')) label = 'ESPN';
+      else if (s.includes('247')) label = '247Sports';
+      else if (s.includes('yahoo')) label = 'Yahoo Sports';
+      else if (s.includes('hammer')) label = 'Hammer & Rails';
+      else if (s.includes('purdue')) label = 'PurdueSports';
+      else if (s.includes('ncaa')) label = 'NCAA';
+      return `<span class="badge">${label}</span>`;
+    };
+
+    const fmtTime = (iso) => {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        const now = new Date();
+        const diff = (now - d) / 1000;
+        if (diff < 90) return 'just now';
+        if (diff < 3600) return Math.floor(diff/60) + ' min ago';
+        if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
+        return d.toLocaleString();
+      } catch(e){ return ''; }
+    };
+
+    async function loadLatest() {
+      const status = document.getElementById('status');
+      const grid = document.getElementById('grid');
+      try {
+        status.textContent = 'Loading…';
+        const r = await fetch(`${API}/latest?limit=36`, { cache: 'no-store' });
+        const data = await r.json();
+        grid.innerHTML = '';
+        if (!Array.isArray(data) || data.length === 0) {
+          status.textContent = 'No stories yet. Check back soon.';
+          return;
+        }
+        status.textContent = `Updated • ${new Date().toLocaleTimeString()}`;
+        for (const item of data) {
+          const card = document.createElement('article');
+          card.className = 'card';
+          const title = (item.title || '').replace(/"/g,'&quot;');
+          const url = item.url || '#';
+          card.innerHTML = `
+            <h2 class="title"><a href="${url}" target="_blank" rel="noopener">${title}</a></h2>
+            <div class="meta">
+              ${sourceBadge(item.source)}
+              <span class="time">${fmtTime(item.published_at)}</span>
+            </div>
+          `;
+          grid.appendChild(card);
+        }
+      } catch (e) {
+        status.textContent = 'Failed to load. Pull down to refresh.';
+      }
+    }
+
+    // Pull-to-refresh (iOS-friendly)
+    let startY = 0, pulling = false;
+    window.addEventListener('touchstart', (e) => { if (window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; } });
+    window.addEventListener('touchmove', (e) => {
+      if (!pulling) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy > 80) { loadLatest(); pulling = false; }
+    }, {passive:true});
+    window.addEventListener('touchend', () => pulling = false);
+
+    document.getElementById('refreshBtn').addEventListener('click', loadLatest);
+    loadLatest();
+    setInterval(loadLatest, 300000); // every 5 minutes
+  </script>
+</body>
+</html>
