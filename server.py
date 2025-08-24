@@ -1,76 +1,65 @@
-# server.py
-from __future__ import annotations
-import os
-import time
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-
+import time
+import json
 from collect import collect_all, collect_debug
 
-app = Flask(__name__, static_folder="static")
+app = Flask(__name__, static_url_path="/static", static_folder="static")
 CORS(app)
 
-# ---- Simple cache so requests don't trigger network every time ----
-CACHE_TTL = int(os.getenv("CACHE_TTL", "600"))  # seconds
-_cache_data = None
-_cache_ts = 0.0
+CACHE_SECONDS = 10 * 60
+_cache_data = None          # list[dict]
+_cache_fetched_at = 0       # epoch secs
 
+HTML = f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Purdue Men's Basketball — Live Feed</title>
+  <style>
+    :root {{ --fg:#0f172a; --muted:#475569; --border:#e2e8f0; --chip:#eef2ff; }}
+    * {{ box-sizing:border-box; }}
+    body {{ margin:0; font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji; color:var(--fg); background:#fff; }}
+    header {{ max-width:1000px; margin:28px auto 8px; display:flex; align-items:center; gap:12px; padding:0 16px; }}
+    header img {{ height:40px; width:auto; border-radius:6px; background:#fff; }}
+    h1 {{ font-size:28px; margin:0; }}
+    .controls {{ max-width:1000px; margin:8px auto 24px; padding:0 16px; display:flex; gap:12px; }}
+    input[type="search"] {{ flex:1; padding:12px 14px; border:1px solid var(--border); border-radius:10px; }}
+    select {{ padding:12px 14px; border:1px solid var(--border); border-radius:10px; }}
+    main {{ max-width:1000px; margin:0 auto; padding:0 16px 48px; }}
+    .item {{ border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin:12px 0; }}
+    .title {{ font-size:18px; font-weight:600; margin:0 0 6px; }}
+    .meta {{ font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }}
+    .chip {{ background:var(--chip); padding:3px 8px; border-radius:999px; font-size:12px; }}
+    .empty {{ color:var(--muted); margin:28px 0; }}
+    .toolbar {{ max-width:1000px; margin:0 auto 6px; padding:0 16px; display:flex; gap:10px; align-items:center; }}
+    button.small {{ font-size:12px; padding:6px 10px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; }}
+  </style>
+</head>
+<body>
+  <header>
+    <img src="/static/logo.png" alt="Purdue" onerror="this.remove()"/>
+    <h1>Purdue Men's Basketball — Live Feed</h1>
+  </header>
 
-def _refresh_cache():
-    global _cache_data, _cache_ts
-    _cache_data = collect_all()
-    _cache_ts = time.time()
-    return {
-        "status": "ok",
-        "items": 0 if _cache_data is None else len(_cache_data),
-        "loaded_at": _cache_ts,
-        "ttl": CACHE_TTL,
-    }
+  <div class="toolbar">
+    <button class="small" onclick="refreshNow()">Force refresh</button>
+    <span id="stamp" class="meta"></span>
+    <a class="small" href="/api/debug" target="_blank" style="text-decoration:none;border:1px solid var(--border);padding:6px 10px;border-radius:8px;">debug</a>
+  </div>
 
+  <div class="controls">
+    <input id="q" type="search" placeholder="Filter by keyword (e.g., 'Painter', 'Braden Smith')" oninput="render()"/>
+    <select id="src" onchange="render()">
+      <option value="">All sources</option>
+      <option>Google News</option>
+      <option>Reddit</option>
+    </select>
+  </div>
 
-def _get_cache():
-    if _cache_data is None or (time.time() - _cache_ts) > CACHE_TTL:
-        _refresh_cache()
-    return _cache_data
+  <main id="list"><div class="empty">Loading…</div></main>
 
-
-# ---- Routes ----
-@app.get("/")
-def root():
-    # Serve the existing UI (index.html) from /static
-    return send_from_directory(app.static_folder, "index.html")
-
-
-@app.get("/api/news")
-def api_news():
-    return jsonify(_get_cache())
-
-
-@app.get("/api/news/raw")
-def api_news_raw():
-    # same as /api/news, kept for back-compat
-    return jsonify(_get_cache())
-
-
-@app.post("/api/refresh-now")
-def api_refresh_now():
-    return jsonify(_refresh_cache())
-
-
-@app.get("/api/debug")
-def api_debug():
-    dbg = collect_debug()
-    dbg["cache_items"] = 0 if _cache_data is None else len(_cache_data)
-    dbg["cache_loaded_at"] = _cache_ts
-    dbg["cache_ttl"] = CACHE_TTL
-    return jsonify(dbg)
-
-
-@app.get("/healthz")
-def healthz():
-    return "ok", 200
-
-
-if __name__ == "__main__":
-    # Local dev
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "10000")), debug=False)
+<script>
+let DATA = [];
+let FETCH
