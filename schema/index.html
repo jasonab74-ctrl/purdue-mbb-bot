@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Purdue MBB Bot</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; }
+    #items { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+    .muted { color: #666; font-size: 0.9rem; }
+    input[type=text]{ width: 100%; padding: .5rem; }
+    button { padding: .5rem .8rem; }
+    pre { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>🏀 Purdue MBB Bot</h1>
+  <p>
+    <button id="refresh">Refresh Latest</button>
+  </p>
+  <div id="items"></div>
+  <hr>
+  <h2>Ask a question grounded in stored articles</h2>
+  <input id="q" type="text" placeholder="e.g., injuries, recruiting, exhibition">
+  <button id="ask">Ask</button>
+  <pre id="answer"></pre>
+<script>
+const API = (location.origin.includes('localhost') ? 'http://127.0.0.1:8000' : location.origin);
+async function latest(){
+  const r = await fetch(API + "/latest?limit=24");
+  const js = await r.json();
+  const el = document.getElementById('items');
+  el.innerHTML = '';
+  js.forEach(a => {
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.innerHTML = `<h3><a href="${a.url}" target="_blank" rel="noopener">${a.title}</a></h3>
+      <div class="muted">${a.source} • ${a.published_at || '—'}</div>
+      <p>${(a.summary || '').slice(0,240)}</p>`;
+    el.appendChild(d);
+  });
+}
+document.getElementById('refresh').onclick = latest;
+document.getElementById('ask').onclick = async () => {
+  const q = document.getElementById('q').value.trim();
+  if(!q) return;
+  const r = await fetch(API + "/chat?question=" + encodeURIComponent(q));
+  const js = await r.json();
+  document.getElementById('answer').textContent = js.answer;
+};
+latest();
+</script>
+</body>
+</html>
