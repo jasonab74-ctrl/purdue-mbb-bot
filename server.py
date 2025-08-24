@@ -1,14 +1,39 @@
-import os, time
+# server.py
+import os, time, glob, sys
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
-from collect import collect_all, collect_debug
 
 app = Flask(__name__)
 CORS(app)
 
+# Try to import the collector; if it fails, keep the app up and surface the reason.
+COLLECT_IMPORT_ERROR = None
+try:
+    from collect import collect_all, collect_debug  # expects collect.py at repo root
+except Exception as e:
+    COLLECT_IMPORT_ERROR = f"{type(e).__name__}: {e}"
+
+    def collect_all():
+        # Return empty list so /api/news works, but include a hint in /api/debug
+        return []
+
+    def collect_debug():
+        return {
+            "import_error": COLLECT_IMPORT_ERROR,
+            "cwd": os.getcwd(),
+            "sys_path": sys.path,
+            "files_in_app": sorted(os.listdir("/app")) if os.path.exists("/app") else [],
+            "glob_py_at_root": sorted(glob.glob("*.py")),
+            "env": {
+                "PYTHONPATH": os.environ.get("PYTHONPATH"),
+            },
+        }
+
 CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "300"))
 _cache_data = None
 _cache_ts = 0
+
+# ---------------- API ROUTES ----------------
 
 @app.route("/api/news")
 def api_news():
@@ -32,7 +57,11 @@ def refresh():
 
 @app.route("/api/debug")
 def api_debug():
-    return jsonify(collect_debug())
+    dbg = collect_debug()
+    # If import failed, add more context
+    if COLLECT_IMPORT_ERROR:
+        dbg["note"] = "collect.py did not import; see import_error and files_in_app above."
+    return jsonify(dbg)
 
 @app.route("/api/health")
 def api_health():
@@ -41,6 +70,8 @@ def api_health():
 @app.route("/healthz")
 def healthz():
     return {"status": "ok"}
+
+# ---------------- SIMPLE UI ----------------
 
 @app.route("/ui")
 @app.route("/ui/")
@@ -82,6 +113,8 @@ load();
 </body>
 </html>"""
     return Response(html, mimetype="text/html")
+
+# ---------------- ENTRY ----------------
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
