@@ -6,13 +6,9 @@ from urllib.parse import urlparse
 from flask import Flask, jsonify, send_from_directory, request, redirect
 import feedparser
 
-# ---------- Config ----------
 FEEDS = [
-    # Reliable test feeds (guaranteed content so the UI never looks empty)
     "https://hnrss.org/frontpage",
     "https://www.espn.com/espn/rss/news",
-
-    # College hoops + Purdue
     "https://www.espn.com/espn/rss/ncb/news",
     "https://feeds.cbssports.com/rss/headlines/ncaab",
     "https://www.ncaa.com/news/basketball-men/rss.xml",
@@ -20,7 +16,7 @@ FEEDS = [
     "https://www.on3.com/teams/purdue-boilermakers/news/feed/",
     "https://www.247sports.com/college/purdue/Article/feed.rss",
 ]
-REFRESH_SECONDS = 300  # background refresh every 5 min
+REFRESH_SECONDS = 300
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -45,7 +41,6 @@ FALLBACK_ARTICLES = [
     },
 ]
 
-# ---------- Helpers ----------
 def _host(link: str) -> str:
     try:
         return urlparse(link).netloc.replace("www.", "")
@@ -64,7 +59,6 @@ def _norm(e):
     return {"title": title, "link": link, "summary": summary, "published": ts, "source": _host(link)}
 
 def refresh_feeds():
-    """Pull all feeds, normalize, de-dup, and store."""
     global ARTICLES, LAST_REFRESH
     items = []
     for url in FEEDS:
@@ -74,19 +68,14 @@ def refresh_feeds():
                 items.append(_norm(e))
         except Exception as ex:
             print("Feed error:", url, ex)
-
-    # De-dup by (title, source)
     seen, unique = set(), []
     for a in items:
         key = (a["title"].strip().lower(), a["source"])
-        if key in seen:
+        if key in seen: 
             continue
         seen.add(key)
         unique.append(a)
-
-    # Sort newest first (if timestamps exist)
     unique.sort(key=lambda a: a["published"] or "", reverse=True)
-
     with LOCK:
         ARTICLES = unique[:250]
         LAST_REFRESH = datetime.now(timezone.utc).isoformat()
@@ -96,15 +85,14 @@ def _refresher():
         refresh_feeds()
         time.sleep(REFRESH_SECONDS)
 
-# Start background refresher
 threading.Thread(target=_refresher, daemon=True).start()
 
-# ---------- Routes ----------
+# ---- HEALTH PROBE ----
 @app.route("/healthz")
 def healthz():
-    # Render's health probe hits this
     return "ok", 200
 
+# ---- UI + API ----
 @app.route("/")
 def root():
     return redirect("/ui/")
@@ -141,4 +129,6 @@ def api_search():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "8000"))
+    print("=== BOOTING Purdue MBB Flask server ===")
+    print("Routes:", app.url_map)   # <— you’ll see /healthz listed here in logs
     app.run(host="0.0.0.0", port=port)
