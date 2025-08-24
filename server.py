@@ -1,65 +1,138 @@
-from flask import Flask, jsonify, request, Response
-from flask_cors import CORS
 import time
-import json
-from collect import collect_all, collect_debug
+import re
+import html
+import requests
+import feedparser
 
-app = Flask(__name__, static_url_path="/static", static_folder="static")
-CORS(app)
+UA = "Mozilla/5.0 (compatible; PurdueMBBBot/1.0; +https://purdue-mbb-api.onrender.com)"
+TIMEOUT = (6, 15)  # (connect, read) seconds
 
-CACHE_SECONDS = 10 * 60
-_cache_data = None          # list[dict]
-_cache_fetched_at = 0       # epoch secs
+# Lean on Google News for breadth (fast, stable), and Reddit for community.
+RSS_SOURCES = [
+    # Google News search tuned for Purdue MBB; excludes women's & football.
+    ('Google News',
+     'https://news.google.com/rss/search?q='
+     + requests.utils.quote(
+         '(("Purdue men\'s basketball") OR ("Purdue Boilermakers" AND basketball) OR "Matt Painter" OR "Purdue MBB") '
+         '-"women\'s" -WBB -volleyball -football -soccer -softball -baseball'
+       )
+     + '&hl=en-US&gl=US&ceid=US:en'),
 
-HTML = f"""<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Purdue Men's Basketball — Live Feed</title>
-  <style>
-    :root {{ --fg:#0f172a; --muted:#475569; --border:#e2e8f0; --chip:#eef2ff; }}
-    * {{ box-sizing:border-box; }}
-    body {{ margin:0; font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji; color:var(--fg); background:#fff; }}
-    header {{ max-width:1000px; margin:28px auto 8px; display:flex; align-items:center; gap:12px; padding:0 16px; }}
-    header img {{ height:40px; width:auto; border-radius:6px; background:#fff; }}
-    h1 {{ font-size:28px; margin:0; }}
-    .controls {{ max-width:1000px; margin:8px auto 24px; padding:0 16px; display:flex; gap:12px; }}
-    input[type="search"] {{ flex:1; padding:12px 14px; border:1px solid var(--border); border-radius:10px; }}
-    select {{ padding:12px 14px; border:1px solid var(--border); border-radius:10px; }}
-    main {{ max-width:1000px; margin:0 auto; padding:0 16px 48px; }}
-    .item {{ border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin:12px 0; }}
-    .title {{ font-size:18px; font-weight:600; margin:0 0 6px; }}
-    .meta {{ font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }}
-    .chip {{ background:var(--chip); padding:3px 8px; border-radius:999px; font-size:12px; }}
-    .empty {{ color:var(--muted); margin:28px 0; }}
-    .toolbar {{ max-width:1000px; margin:0 auto 6px; padding:0 16px; display:flex; gap:10px; align-items:center; }}
-    button.small {{ font-size:12px; padding:6px 10px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; }}
-  </style>
-</head>
-<body>
-  <header>
-    <img src="/static/logo.png" alt="Purdue" onerror="this.remove()"/>
-    <h1>Purdue Men's Basketball — Live Feed</h1>
-  </header>
+    # Reddit — r/Boilermakers, newest posts mentioning basketball/MBB.
+    ('Reddit',
+     'https://www.reddit.com/r/Boilermakers/search.rss?'
+     'q=' + requests.utils.quote('basketball OR "men\'s basketball" OR MBB OR Painter OR Boilers')
+     + '&restrict_sr=on&sort=new&t=month'),
+]
 
-  <div class="toolbar">
-    <button class="small" onclick="refreshNow()">Force refresh</button>
-    <span id="stamp" class="meta"></span>
-    <a class="small" href="/api/debug" target="_blank" style="text-decoration:none;border:1px solid var(--border);padding:6px 10px;border-radius:8px;">debug</a>
-  </div>
+NEGATIVE = re.compile(r"\b(women|volleyball|football|soccer|softball|baseball|wbb|wbk|w\.?b\.?b)\b", re.I)
+MBB_HINT = re.compile(
+    r"\b(MBB|men['’]s basketball|basketball team|Matt Painter|Boilermakers(?:\s+basketball)?|Painter|Braden Smith|Fletcher Loyer|Boilers)\b",
+    re.I,
+)
 
-  <div class="controls">
-    <input id="q" type="search" placeholder="Filter by keyword (e.g., 'Painter', 'Braden Smith')" oninput="render()"/>
-    <select id="src" onchange="render()">
-      <option value="">All sources</option>
-      <option>Google News</option>
-      <option>Reddit</option>
-    </select>
-  </div>
+def _http_bytes(url):
+    """Fetch bytes with UA + timeout (avoid feedparser doing the HTTP to reduce hangs)."""
+    r = requests.get(url, headers={"User-Agent": UA}, timeout=TIMEOUT)
+    # Reddit rate limit: if 429, wait a bit and surface as empty batch (we'll still show other sources)
+    if r.status_code == 429:
+        time.sleep(1.5)
+        raise requests.HTTPError("429 Too Many Requests")
+    r.raise_for_status()
+    return r.content
 
-  <main id="list"><div class="empty">Loading…</div></main>
+def _parse_rss_bytes(b):
+    return feedparser.parse(b)
 
-<script>
-let DATA = [];
-let FETCH
+def _clean_text(s):
+    if not s:
+        return ""
+    s = html.unescape(s)
+    # strip simple tags
+    s = re.sub(r"<[^>]+>", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+def _looks_like_mbb(title, summary):
+    t = (title or "")
+    s = (summary or "")
+    blob = f"{t}\n{s}"
+    if NEGATIVE.search(blob):
+        return False
+    # accept if it mentions basketball + Purdue-ish term, or strong hints (MBB, Painter, etc.)
+    if re.search(r"\b(basketball)\b", blob, re.I) and re.search(r"\b(Purdue|Boilermakers|Painter)\b", blob, re.I):
+        return True
+    if MBB_HINT.search(blob):
+        return True
+    return False
+
+def collect_all():
+    out = []
+    now = int(time.time())
+    for source_name, url in RSS_SOURCES:
+        try:
+            b = _http_bytes(url)
+            feed = _parse_rss_bytes(b)
+        except Exception:
+            # Skip on any network error; keep the app responsive.
+            continue
+
+        for e in feed.get("entries", []):
+            title = _clean_text(e.get("title"))
+            summary = _clean_text(e.get("summary") or e.get("description"))
+            link = e.get("link") or ""
+            if not title or not link:
+                continue
+            if not _looks_like_mbb(title, summary):
+                continue
+
+            # published time
+            ts = None
+            for key in ("published_parsed", "updated_parsed", "created_parsed"):
+                t = e.get(key)
+                if t:
+                    try:
+                        ts = int(time.mktime(t))
+                        break
+                    except Exception:
+                        pass
+            if not ts:
+                ts = now
+
+            out.append({
+                "title": title[:300],
+                "summary": summary[:600] if summary else "",
+                "link": link,
+                "source": source_name,
+                "published_ts": ts,
+            })
+
+        # be nice between sources
+        time.sleep(0.4)
+
+    # sort newest first & dedupe by link
+    seen = set()
+    deduped = []
+    for item in sorted(out, key=lambda x: x["published_ts"], reverse=True):
+        if item["link"] in seen:
+            continue
+        seen.add(item["link"])
+        deduped.append(item)
+
+    # keep a sane number
+    return deduped[:80]
+
+def collect_debug():
+    items = collect_all()
+    return {
+        "now": int(time.time()),
+        "counts": {"total": len(items), "by_source": _by_src(items)},
+        "sample": items[:8],
+        "sources": [s for s in RSS_SOURCES],
+    }
+
+def _by_src(items):
+    d = {}
+    for it in items:
+        d[it["source"]] = d.get(it["source"], 0) + 1
+    return d
