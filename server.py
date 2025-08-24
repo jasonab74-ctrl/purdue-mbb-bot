@@ -11,11 +11,8 @@ CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "300"))
 _cache_data = None
 _cache_ts = 0
 
-# ---------------- API ROUTES ----------------
-
 @app.route("/api/news")
 def api_news():
-    """Cached news endpoint (normal use for UI)."""
     global _cache_data, _cache_ts
     now = time.time()
     if not _cache_data or (now - _cache_ts) > CACHE_TTL_SECONDS:
@@ -25,32 +22,35 @@ def api_news():
 
 @app.route("/api/news/raw")
 def api_news_raw():
-    """Bypass cache and fetch everything fresh (debugging)."""
     return jsonify(collect_all())
 
 @app.route("/api/refresh", methods=["POST", "GET"])
 def refresh():
-    """Force cache clear so next /api/news pulls fresh."""
     global _cache_data, _cache_ts
     _cache_data = None
     _cache_ts = 0
     return {"status": "refreshed"}
 
+# Back-compat in case your old UI calls these:
+@app.route("/api/articles")
+def api_articles_alias():
+    return api_news()
+
+@app.route("/api/refresh-now")
+def refresh_now_alias():
+    return refresh()
+
 @app.route("/api/debug")
 def api_debug():
-    """See feed stats, errors, and config for troubleshooting."""
     return jsonify(collect_debug())
 
 @app.route("/api/health")
 def api_health():
     return {"status": "ok"}
 
-# Render is probing /healthz per your logs—mirror it.
 @app.route("/healthz")
 def healthz():
     return {"status": "ok"}
-
-# ---------------- SIMPLE UI ----------------
 
 @app.route("/ui")
 @app.route("/ui/")
@@ -63,6 +63,7 @@ def ui():
   <div style="margin:8px 0;">
     <button onclick="refresh()">Force Refresh</button>
     <button onclick="loadRaw()">Load Fresh (no cache)</button>
+    <a href="/api/debug" target="_blank">debug</a>
   </div>
   <div id="meta" style="color:#666;margin:6px 0;"></div>
   <div id="list"></div>
@@ -91,8 +92,6 @@ load();
 </body>
 </html>"""
     return Response(html, mimetype="text/html")
-
-# ---------------- ENTRY ----------------
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
