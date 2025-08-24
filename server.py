@@ -1,121 +1,76 @@
 # server.py
-import os, time, glob, sys
-from flask import Flask, jsonify, Response
+from __future__ import annotations
+import os
+import time
+from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 
-app = Flask(__name__)
+from collect import collect_all, collect_debug
+
+app = Flask(__name__, static_folder="static")
 CORS(app)
 
-# Try to import the collector; if it fails, keep the app up and surface the reason.
-COLLECT_IMPORT_ERROR = None
-try:
-    from collect import collect_all, collect_debug  # expects collect.py at repo root
-except Exception as e:
-    COLLECT_IMPORT_ERROR = f"{type(e).__name__}: {e}"
-
-    def collect_all():
-        # Return empty list so /api/news works, but include a hint in /api/debug
-        return []
-
-    def collect_debug():
-        return {
-            "import_error": COLLECT_IMPORT_ERROR,
-            "cwd": os.getcwd(),
-            "sys_path": sys.path,
-            "files_in_app": sorted(os.listdir("/app")) if os.path.exists("/app") else [],
-            "glob_py_at_root": sorted(glob.glob("*.py")),
-            "env": {
-                "PYTHONPATH": os.environ.get("PYTHONPATH"),
-            },
-        }
-
-CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "300"))
+# ---- Simple cache so requests don't trigger network every time ----
+CACHE_TTL = int(os.getenv("CACHE_TTL", "600"))  # seconds
 _cache_data = None
-_cache_ts = 0
+_cache_ts = 0.0
 
-# ---------------- API ROUTES ----------------
 
-@app.route("/api/news")
+def _refresh_cache():
+    global _cache_data, _cache_ts
+    _cache_data = collect_all()
+    _cache_ts = time.time()
+    return {
+        "status": "ok",
+        "items": 0 if _cache_data is None else len(_cache_data),
+        "loaded_at": _cache_ts,
+        "ttl": CACHE_TTL,
+    }
+
+
+def _get_cache():
+    if _cache_data is None or (time.time() - _cache_ts) > CACHE_TTL:
+        _refresh_cache()
+    return _cache_data
+
+
+# ---- Routes ----
+@app.get("/")
+def root():
+    # Serve the existing UI (index.html) from /static
+    return send_from_directory(app.static_folder, "index.html")
+
+
+@app.get("/api/news")
 def api_news():
-    global _cache_data, _cache_ts
-    now = time.time()
-    if not _cache_data or (now - _cache_ts) > CACHE_TTL_SECONDS:
-        _cache_data = collect_all()
-        _cache_ts = now
-    return jsonify(_cache_data or [])
+    return jsonify(_get_cache())
 
-@app.route("/api/news/raw")
+
+@app.get("/api/news/raw")
 def api_news_raw():
-    return jsonify(collect_all())
+    # same as /api/news, kept for back-compat
+    return jsonify(_get_cache())
 
-@app.route("/api/refresh", methods=["POST", "GET"])
-def refresh():
-    global _cache_data, _cache_ts
-    _cache_data = None
-    _cache_ts = 0
-    return {"status": "refreshed"}
 
-@app.route("/api/debug")
+@app.post("/api/refresh-now")
+def api_refresh_now():
+    return jsonify(_refresh_cache())
+
+
+@app.get("/api/debug")
 def api_debug():
     dbg = collect_debug()
-    # If import failed, add more context
-    if COLLECT_IMPORT_ERROR:
-        dbg["note"] = "collect.py did not import; see import_error and files_in_app above."
+    dbg["cache_items"] = 0 if _cache_data is None else len(_cache_data)
+    dbg["cache_loaded_at"] = _cache_ts
+    dbg["cache_ttl"] = CACHE_TTL
     return jsonify(dbg)
 
-@app.route("/api/health")
-def api_health():
-    return {"status": "ok"}
 
-@app.route("/healthz")
+@app.get("/healthz")
 def healthz():
-    return {"status": "ok"}
+    return "ok", 200
 
-# ---------------- SIMPLE UI ----------------
-
-@app.route("/ui")
-@app.route("/ui/")
-def ui():
-    html = """<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Purdue Men's Basketball — Live Feed</title></head>
-<body style="font-family:system-ui, sans-serif; max-width:900px; margin:20px auto;">
-  <h1>Purdue Men's Basketball — Live Feed</h1>
-  <div style="margin:8px 0;">
-    <button onclick="refresh()">Force Refresh</button>
-    <button onclick="loadRaw()">Load Fresh (no cache)</button>
-    <a href="/api/debug" target="_blank">debug</a>
-  </div>
-  <div id="meta" style="color:#666;margin:6px 0;"></div>
-  <div id="list"></div>
-<script>
-async function renderFrom(url){
-  const res = await fetch(url);
-  const items = await res.json();
-  const meta = document.getElementById('meta');
-  const list = document.getElementById('list');
-  meta.textContent = `Loaded ${items.length} • ${new Date().toLocaleString()}`;
-  if(!items.length){
-    list.innerHTML = '<p>No items found.</p>'; return;
-  }
-  list.innerHTML = items.map(i => `
-    <div style="border:1px solid #ddd; border-radius:8px; padding:10px; margin:8px 0;">
-      <a href="${i.url}" target="_blank" style="font-weight:bold">${(i.title||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</a><br>
-      <small>${new Date(i.published_at).toLocaleString()} • ${i.source||''}</small>
-      <p>${(i.description||'')}</p>
-    </div>`).join('');
-}
-async function load(){ return renderFrom('/api/news'); }
-async function loadRaw(){ return renderFrom('/api/news/raw'); }
-async function refresh(){ await fetch('/api/refresh'); await load(); }
-load();
-</script>
-</body>
-</html>"""
-    return Response(html, mimetype="text/html")
-
-# ---------------- ENTRY ----------------
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", "5000"))
-    app.run(host="0.0.0.0", port=port)
+    # Local dev
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "10000")), debug=False)
