@@ -1,16 +1,7 @@
-import feedparser
+import praw
 import sqlite3
 from datetime import datetime
-
-# --- Define feeds (name, url) ---
-FEEDS = [
-    ("NCAA", "https://www.ncaa.com/news/basketball-men/rss.xml"),
-    ("Hammer & Rails", "https://www.hammerandrails.com/rss/index.xml"),
-    ("PurdueSports", "https://purduesports.com/rss.aspx?path=mbball"),
-    ("247Sports Purdue", "https://247sports.com/college/purdue/Article/feed/"),
-    ("ESPN Purdue Basketball", "https://www.espn.com/espn/rss/ncb/team?teamId=2509"),
-    ("Yahoo Purdue Hoops", "https://sports.yahoo.com/ncaab/teams/purdue/rss/"),
-]
+import os
 
 # --- DB helper ---
 def db():
@@ -18,29 +9,34 @@ def db():
     con.row_factory = sqlite3.Row
     return con
 
-# --- Run collectors once ---
-def run_collect_once():
+# --- Main runner ---
+def run():
+    # Grab secrets from environment variables (set in Render)
+    reddit = praw.Reddit(
+        client_id=os.getenv("REDDIT_CLIENT_ID"),
+        client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
+        username=os.getenv("REDDIT_USERNAME"),
+        password=os.getenv("REDDIT_PASSWORD"),
+        user_agent=os.getenv("REDDIT_USER_AGENT", "PurdueMBBBot/1.0"),
+    )
+
+    SUBS = os.getenv("REDDIT_SUBS", "Boilermakers,Purdue,CollegeBasketball").split(",")
+
     con = db()
     cur = con.cursor()
 
-    for name, url in FEEDS:
-        print(f"Fetching {name} ...")
-        feed = feedparser.parse(url)
-        for entry in feed.entries:
-            title = entry.get("title", "")
-            link = entry.get("link", "")
-            published = entry.get("published", None)
-            if published:
-                try:
-                    published = datetime(*entry.published_parsed[:6])
-                except Exception:
-                    published = None
+    for sub in SUBS:
+        print(f"Fetching from r/{sub} ...")
+        for submission in reddit.subreddit(sub).new(limit=25):
+            title = submission.title
+            url = submission.url
+            created = datetime.utcfromtimestamp(submission.created_utc)
 
             cur.execute(
                 "INSERT OR IGNORE INTO articles (title, url, source, published_at) VALUES (?, ?, ?, ?)",
-                (title, link, name, published),
+                (title, url, f"Reddit r/{sub}", created),
             )
 
     con.commit()
     con.close()
-    print("Feeds updated.")
+    print("Reddit posts updated.")
