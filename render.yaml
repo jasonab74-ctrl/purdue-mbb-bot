@@ -24,7 +24,7 @@ services:
     env: docker
     plan: starter
     autoDeploy: true
-    dockerCommand: ["python", "-m", "app.schedule"]
+    dockerCommand: python -m app.schedule
     envVars:
       - key: REDDIT_CLIENT_ID
         sync: false
