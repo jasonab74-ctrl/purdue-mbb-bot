@@ -6,17 +6,21 @@ from urllib.parse import urlparse
 from flask import Flask, jsonify, send_from_directory, request, redirect
 import feedparser
 
-# ---------- Feeds (Purdue-focused first; add/remove as you like) ----------
+# ---------- Feeds (Purdue-focused + Reddit + NCAA MBB) ----------
 FEEDS = [
-    # Purdue-centric
+    # Purdue-centric outlets
     "https://www.si.com/college/purdue/.rss/full/",
     "https://www.on3.com/teams/purdue-boilermakers/news/feed/",
     "https://www.247sports.com/college/purdue/Article/feed.rss",
     "https://www.jconline.com/search/?f=rss&t=article&c=news%2Fsports%2Fpurdue-boilers*&l=50&s=start_time&sd=desc",
-    # SB Nation Purdue (often valid; harmless if empty)
-    "https://www.hammerandrails.com/rss/index.xml",
+    "https://www.hammerandrails.com/rss/index.xml",  # SB Nation Purdue
 
-    # Broader men's college hoops (kept last; we’ll filter them hard)
+    # Reddit (RSS – no API key needed)
+    "https://www.reddit.com/r/Purdue/.rss",
+    "https://www.reddit.com/r/Boilermakers/.rss",
+    "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue&restrict_sr=on&sort=new",
+
+    # NCAA men's hoops (kept last; still keyword-filtered)
     "https://www.ncaa.com/news/basketball-men/rss.xml",
     "https://www.espn.com/espn/rss/ncb/news",
     "https://feeds.cbssports.com/rss/headlines/ncaab",
@@ -24,11 +28,11 @@ FEEDS = [
 
 # ---------- Domain allowlist (extra guard) ----------
 ALLOW_SOURCES = {
-    # Primary Purdue outlets
-    "si.com", "on3.com", "247sports.com", "jconline.com",
-    "hammerandrails.com", "purduesports.com",
-
-    # National hoops (allowed but will be filtered by keywords)
+    # Purdue outlets
+    "si.com", "on3.com", "247sports.com", "jconline.com", "hammerandrails.com", "purduesports.com",
+    # Reddit
+    "reddit.com",
+    # National hoops (allowed but still keyword-filtered)
     "ncaa.com", "espn.com", "cbssports.com", "yahoo.com", "foxsports.com",
 }
 
@@ -36,16 +40,20 @@ ALLOW_SOURCES = {
 INCLUDE_KWS = [
     "purdue", "boilermaker", "boilermakers", "boilers",
     "matt painter", "mackey arena", "west lafayette",
-    "zach edey", "braden smith", "fletcher loy", "fletcher loyer",  # common names (keep both spellings)
-    "mason gillis", "trey kaufman", "lance jones", "caleb first", "caleb furst",  # older roster names included to catch references
-    "big ten", "b1g",  # context terms (still filtered with Purdue)
+    # common/current & recent names (helps catch roster/coach news)
+    "zach edey", "braden smith", "fletcher loyer", "lance jones",
+    "mason gillis", "trey kaufman", "caleb furst",
+    "big ten", "b1g"
 ]
-# Terms that usually indicate non-MBB content
+
 EXCLUDE_KWS = [
+    # non-basketball sports
     "football", "nfl", "qb", "quarterback", "wide receiver", "linebacker",
-    "mlb", "baseball", "nhl", "hockey", "golf", "ufc",
-    "raiders", "patriots", "yankees", "red sox", "cowboys", "eagles",
-    "fantasy football", "preseason", "otAs", "training camp",
+    "mlb", "baseball", "nhl", "hockey", "ufc", "golf", "soccer", "tennis",
+    # team names that often leak from other sports
+    "raiders", "patriots", "yankees", "red sox", "cowboys", "eagles", "vikings",
+    # seasonal non-hoops terms
+    "fantasy football", "preseason", "training camp", "otas"
 ]
 
 REFRESH_SECONDS = 300  # 5 minutes
@@ -76,6 +84,7 @@ def _host(link: str) -> str:
 def _norm(e):
     title = e.get("title") or "(untitled)"
     link = e.get("link") or ""
+    # Reddit RSS often has HTML; just keep plain text-ish
     summary = (e.get("summary") or e.get("description") or "").strip()
     ts = ""
     if getattr(e, "published_parsed", None):
@@ -85,27 +94,25 @@ def _norm(e):
     return {"title": title, "link": link, "summary": summary, "published": ts, "source": _host(link)}
 
 def _passes_filters(norm):
-    """Return True iff the article is Purdue MBB relevant."""
+    """Keep only Purdue Men's Basketball–relevant articles/posts."""
     text = (norm["title"] + " " + norm["summary"]).lower()
 
     # Must include a Purdue keyword
     if not any(kw in text for kw in INCLUDE_KWS):
         return False
 
-    # Bounce obvious non-basketball content
+    # Exclude obvious non-basketball content
     if any(bad in text for bad in EXCLUDE_KWS):
         return False
 
-    # Allowlist domain (extra guard): if domain not known, still allow
-    # as long as the text clearly references Purdue (we already checked).
+    # Allowlist domain (extra guard) — unknown domains still OK if text matches Purdue
     src = (norm.get("source") or "").lower()
     if src and src not in ALLOW_SOURCES:
-        # Still OK — keep Purdue mentions from other sites
         return True
 
     return True
 
-# ---------- Core refresh (strict Purdue filter) ----------
+# ---------- Core refresh ----------
 def refresh_feeds():
     global ARTICLES, LAST_REFRESH
     items = []
@@ -128,7 +135,7 @@ def refresh_feeds():
         seen.add(key)
         unique.append(a)
 
-    # Sort newest first if we have timestamps
+    # Sort newest first (when timestamps exist)
     unique.sort(key=lambda a: a["published"] or "", reverse=True)
 
     with LOCK:
