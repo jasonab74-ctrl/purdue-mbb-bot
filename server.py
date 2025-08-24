@@ -1,4 +1,3 @@
-# server.py
 import os, time
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
@@ -30,15 +29,6 @@ def refresh():
     _cache_data = None
     _cache_ts = 0
     return {"status": "refreshed"}
-
-# Back-compat in case your old UI calls these:
-@app.route("/api/articles")
-def api_articles_alias():
-    return api_news()
-
-@app.route("/api/refresh-now")
-def refresh_now_alias():
-    return refresh()
 
 @app.route("/api/debug")
 def api_debug():
