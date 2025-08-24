@@ -1,96 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Purdue MBB News</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #000;
-      color: #FFD700; /* Purdue gold */
-      margin: 0;
-      padding: 0;
+    :root{
+      --bg:#000; --panel:#121212; --card:#1a1a1a; --gold:#FFD700; --muted:#b7b7b7; --border:#2a2a2a;
     }
-    header {
-      background-color: #101010;
-      padding: 20px;
-      text-align: center;
-      border-bottom: 3px solid #FFD700;
+    @media (prefers-color-scheme: light){
+      :root{ --bg:#fff; --panel:#fafafa; --card:#ffffff; --gold:#B8860B; --muted:#666; --border:#e7e7e7; }
+      body{ color:#111; }
+      a{ color:#0b57d0; }
     }
-    header img {
-      height: 60px;
-    }
-    header h1 {
-      margin: 10px 0 0 0;
-      font-size: 1.8em;
-    }
-    .container {
-      padding: 20px;
-      max-width: 800px;
-      margin: auto;
-    }
-    .article {
-      background: #1a1a1a;
-      margin: 12px 0;
-      padding: 15px;
-      border-radius: 8px;
-      border-left: 6px solid #FFD700;
-    }
-    .article h2 {
-      margin: 0;
-      font-size: 1.2em;
-    }
-    .article a {
-      color: #FFD700;
-      text-decoration: none;
-    }
-    .article a:hover {
-      text-decoration: underline;
-    }
-    .source {
-      font-size: 0.9em;
-      color: #bbb;
-      margin-top: 5px;
-    }
-    footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 0.85em;
-      color: #aaa;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Purdue_Boilermakers_logo.svg" alt="Purdue Logo">
-    <h1>Purdue Men's Basketball News</h1>
-  </header>
 
-  <div class="container" id="news"></div>
-
-  <footer>
-    🚂 Boiler Up! — Auto-updated every few minutes
-  </footer>
-
-  <script>
-    async function loadNews() {
-      const res = await fetch('/latest');
-      const data = await res.json();
-      const container = document.getElementById('news');
-      container.innerHTML = "";
-      data.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'article';
-        div.innerHTML = `
-          <h2><a href="${item.url}" target="_blank">${item.title}</a></h2>
-          <div class="source">${item.source} — ${item.published_at || ''}</div>
-        `;
-        container.appendChild(div);
-      });
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0; background:var(--bg); color:var(--gold); font:16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, Arial;
     }
-    loadNews();
-    setInterval(loadNews, 300000); // refresh every 5 min
-  </script>
-</body>
-</html>
+    header{
+      position:sticky; top:0; z-index:5;
+      background:var(--panel); padding:12px 16px; border-bottom:2px solid var(--gold);
+      display:flex; align-items:center; gap:12px;
+    }
+    header img{ height:36px; width:auto; }
+    header h1{ margin:0; font-size:18px; color:var(--gold); }
+    .actions{ margin-left:auto; display:flex; gap:8px; }
+    .btn{
+      -webkit-tap-highlight-color: transparent;
+      padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+      background:var(--card); color:var(--gold); font-weight:600;
+    }
+
+    main{ padding:14px; max-width:900px; margin:0 auto; }
+    #status{ color:var(--muted); font-size:14px; margin:6px 2px 12px; }
+
+    .grid{
+      display:grid; gap:12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width:560px){
+      .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (min-width:960px){
+      .grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    }
+
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .title{
+      font-size:17px; line-height:1.35; margin:0;
