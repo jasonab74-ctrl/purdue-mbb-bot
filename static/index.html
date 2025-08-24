@@ -2,240 +2,61 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Purdue MBB News</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#000000" />
-  <style>
-    :root {
-      --bg: #000;
-      --panel: #121212;
-      --card: #1a1a1a;
-      --gold: #FFD700;
-      --muted: #b7b7b7;
-      --border: #2a2a2a;
-      --ink: #111;
-    }
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #fff;
-        --panel: #fafafa;
-        --card: #ffffff;
-        --gold: #B8860B;
-        --muted: #666;
-        --border: #e7e7e7;
-        --ink: #111;
-      }
-      body { color:#111; }
-      a { color:#0b57d0; }
-    }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--gold);
-      font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, Arial;
-    }
-
-    header {
-      position: sticky; top: 0; z-index: 5;
-      background: var(--panel);
-      padding: 10px 16px;
-      border-bottom: 2px solid var(--gold);
-      display: flex; align-items: center; gap: 12px;
-    }
-    header img { height: 42px; width: auto; flex-shrink: 0; }
-    header h1 { margin: 0; font-size: 20px; color: var(--gold); font-weight: 700; line-height: 1.2; }
-    .header-title { display: flex; flex-direction: column; justify-content: center; }
-    .actions { margin-left: auto; display: flex; gap: 8px; }
-    .btn {
-      -webkit-tap-highlight-color: transparent;
-      padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
-      background: var(--card); color: var(--gold); font-weight: 600; cursor: pointer;
-    }
-
-    main { padding: 14px; max-width: 960px; margin: 0 auto; }
-    .tabs { display:flex; gap:8px; margin:10px 2px; flex-wrap:wrap; }
-    .tab {
-      padding:8px 12px; border-radius:999px; border:1px solid var(--border);
-      background: var(--card); color: var(--gold); font-weight:700; cursor:pointer;
-    }
-    .tab.active { outline:2px solid var(--gold); }
-
-    .searchbar {
-      display:flex; gap:8px; margin:8px 2px 6px; align-items:center; flex-wrap:wrap;
-    }
-    .input {
-      flex:1 1 260px; min-width: 180px;
-      background: var(--card); color: var(--gold);
-      border: 1px solid var(--border); border-radius: 10px;
-      padding: 10px 12px; font-size: 16px;
-    }
-    .btn.secondary { color: var(--gold); background: var(--panel); }
-
-    #status { color: var(--muted); font-size: 14px; margin: 6px 2px 12px; }
-
-    .grid { display:grid; gap:12px; grid-template-columns: 1fr; }
-    @media (min-width:560px){ .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    @media (min-width:960px){ .grid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      display: flex; flex-direction: column; gap: 10px;
-    }
-    .title { font-size: 17px; line-height: 1.35; margin: 0; }
-    .title a { color: inherit; text-decoration: none; }
-    .title a:hover, .title a:active { text-decoration: underline; }
-
-    .meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--ink);
-      background: var(--gold); border-radius: 999px; padding: 4px 10px; font-weight: 700;
-    }
-    .time { color: var(--muted); font-size: 12px; }
-
-    footer { text-align: center; color: var(--muted); padding: 16px; font-size: 13px; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Purdue Men's Basketball News</title>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <header>
-    <img alt="Purdue" src="https://1000logos.net/wp-content/uploads/2017/02/Purdue-Boilermakers-Logo.png" loading="lazy">
-    <div class="header-title"><h1>Purdue Men's Basketball News</h1></div>
-    <div class="actions"><button id="refreshBtn" class="btn">Refresh</button></div>
+    <img alt="Purdue" src="/static/purdue.png" loading="lazy" class="logo">
+    <div class="header-title">
+      <h1>Purdue Men's Basketball News</h1>
+    </div>
+    <div class="actions">
+      <button id="refreshBtn" class="btn">Refresh</button>
+    </div>
   </header>
 
   <main>
-    <!-- Tabs -->
-    <div class="tabs">
-      <button id="tabLatest" class="tab active">Latest</button>
-      <button id="tabSearch" class="tab">Search</button>
-    </div>
-
-    <!-- Search bar (hidden until Search tab selected) -->
-    <div id="searchBar" class="searchbar" style="display:none;">
-      <input id="q" class="input" type="search" placeholder="Search articles… e.g., Edey, recruiting, Big Ten" enterkeyhint="search" />
-      <button id="btnSearch" class="btn">Search</button>
-      <button id="btnClear" class="btn secondary">Clear</button>
-    </div>
-
-    <div id="status">Loading…</div>
-    <section id="grid" class="grid"></section>
+    <section id="articles" class="articles"></section>
   </main>
 
-  <footer>🚂 Boiler Up — auto-updates every 5 min</footer>
+  <footer>
+    <p>Powered by your custom Purdue MBB API</p>
+  </footer>
 
   <script>
-    const API = location.origin;
-    let mode = 'latest'; // 'latest' | 'search'
-
-    const el = id => document.getElementById(id);
-    const grid = el('grid');
-    const statusEl = el('status');
-    const tabLatest = el('tabLatest');
-    const tabSearch = el('tabSearch');
-    const searchBar = el('searchBar');
-    const qInput = el('q');
-
-    const sourceBadge = (source) => {
-      const s = (source||'').toLowerCase();
-      let label = source || 'Source';
-      if (s.includes('reddit')) label = 'Reddit';
-      else if (s.includes('espn')) label = 'ESPN';
-      else if (s.includes('247')) label = '247Sports';
-      else if (s.includes('yahoo')) label = 'Yahoo Sports';
-      else if (s.includes('hammer')) label = 'Hammer & Rails';
-      else if (s.includes('purdue')) label = 'PurdueSports';
-      else if (s.includes('ncaa')) label = 'NCAA';
-      return `<span class="badge">${label}</span>`;
-    };
-
-    const fmtTime = (iso) => {
-      if (!iso) return '';
+    async function fetchArticles() {
+      const container = document.getElementById("articles");
+      container.innerHTML = "<p>Loading...</p>";
       try {
-        const d = new Date(iso);
-        const diff = (new Date() - d) / 1000;
-        if (diff < 90) return 'just now';
-        if (diff < 3600) return Math.floor(diff/60) + ' min ago';
-        if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
-        return d.toLocaleString();
-      } catch { return ''; }
-    };
-
-    function renderList(data){
-      grid.innerHTML = '';
-      if (!Array.isArray(data) || data.length === 0) {
-        statusEl.textContent = (mode === 'search')
-          ? 'No matches. Try a different keyword.'
-          : 'No stories yet. Check back soon.';
-        return;
-      }
-      statusEl.textContent = `Updated • ${new Date().toLocaleTimeString()}`;
-      for (const item of data) {
-        const card = document.createElement('article');
-        card.className = 'card';
-        const title = (item.title || '').replace(/"/g,'&quot;');
-        const url = item.url || '#';
-        card.innerHTML = `
-          <h2 class="title"><a href="${url}" target="_blank" rel="noopener">${title}</a></h2>
-          <div class="meta">
-            ${sourceBadge(item.source)}
-            <span class="time">${fmtTime(item.published_at)}</span>
-          </div>
-        `;
-        grid.appendChild(card);
+        const res = await fetch("/api/articles");
+        const data = await res.json();
+        container.innerHTML = "";
+        if (data.articles && data.articles.length > 0) {
+          data.articles.forEach(article => {
+            const card = document.createElement("div");
+            card.className = "article-card";
+            card.innerHTML = `
+              <h2><a href="${article.link}" target="_blank">${article.title}</a></h2>
+              <p>${article.summary || ""}</p>
+              <small>${article.source || ""} – ${article.published || ""}</small>
+            `;
+            container.appendChild(card);
+          });
+        } else {
+          container.innerHTML = "<p>No articles found.</p>";
+        }
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = "<p>Error loading articles.</p>";
       }
     }
 
-    async function loadLatest(){
-      statusEl.textContent = 'Loading…';
-      try{
-        const r = await fetch(`${API}/latest?limit=36`, { cache: 'no-store' });
-        renderList(await r.json());
-      } catch {
-        statusEl.textContent = 'Failed to load latest.';
-      }
-    }
+    document.getElementById("refreshBtn").addEventListener("click", fetchArticles);
 
-    async function runSearch(){
-      const q = qInput.value.trim();
-      if (!q) { statusEl.textContent = 'Type something to search.'; grid.innerHTML = ''; return; }
-      statusEl.textContent = 'Searching…';
-      try{
-        const r = await fetch(`${API}/search?q=${encodeURIComponent(q)}&limit=36`, { cache: 'no-store' });
-        renderList(await r.json());
-      } catch {
-        statusEl.textContent = 'Search failed.';
-      }
-    }
-
-    // Tabs
-    function setMode(newMode){
-      mode = newMode;
-      tabLatest.classList.toggle('active', mode==='latest');
-      tabSearch.classList.toggle('active', mode==='search');
-      searchBar.style.display = (mode==='search') ? 'flex' : 'none';
-      if (mode==='latest') loadLatest();
-      else { statusEl.textContent = 'Enter a term and tap Search.'; grid.innerHTML = ''; qInput.focus(); }
-    }
-    tabLatest.addEventListener('click', () => setMode('latest'));
-    tabSearch.addEventListener('click', () => setMode('search'));
-
-    // Search controls
-    el('btnSearch').addEventListener('click', runSearch);
-    el('btnClear').addEventListener('click', () => { qInput.value=''; setMode('latest'); });
-    qInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') runSearch(); });
-
-    // Refresh button respects current mode
-    el('refreshBtn').addEventListener('click', () => { mode==='latest' ? loadLatest() : runSearch(); });
-
-    // Initial load + auto-refresh (latest only)
-    loadLatest();
-    setInterval(() => { if (mode==='latest') loadLatest(); }, 300000); // 5 min
+    // Load on page start
+    fetchArticles();
   </script>
 </body>
 </html>
