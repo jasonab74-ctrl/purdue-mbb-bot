@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: purdue-mbb-api
+    env: docker
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /healthz
+    envVars:
+      - key: REDDIT_CLIENT_ID
+        sync: false
+      - key: REDDIT_CLIENT_SECRET
+        sync: false
+      - key: REDDIT_USERNAME
+        sync: false
+      - key: REDDIT_PASSWORD
+        sync: false
+      - key: REDDIT_USER_AGENT
+        value: PurdueMBBBot/1.0 by YOUR_REDDIT_USERNAME
+      - key: REDDIT_SUBS
+        value: Boilermakers,Purdue,CollegeBasketball
+
+  - type: worker
+    name: purdue-mbb-worker
+    env: docker
+    plan: starter
+    autoDeploy: true
+    dockerCommand: ["python", "-m", "app.schedule"]
+    envVars:
+      - key: REDDIT_CLIENT_ID
+        sync: false
+      - key: REDDIT_CLIENT_SECRET
+        sync: false
+      - key: REDDIT_USERNAME
+        sync: false
+      - key: REDDIT_PASSWORD
+        sync: false
+      - key: REDDIT_USER_AGENT
+        value: PurdueMBBBot/1.0 by YOUR_REDDIT_USERNAME
+      - key: REDDIT_SUBS
+        value: Boilermakers,Purdue,CollegeBasketball
