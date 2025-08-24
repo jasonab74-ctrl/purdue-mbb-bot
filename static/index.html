@@ -2,61 +2,103 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Purdue Men's Basketball News</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <header>
-    <img alt="Purdue" src="/static/purdue.png" loading="lazy" class="logo">
-    <div class="header-title">
-      <h1>Purdue Men's Basketball News</h1>
-    </div>
-    <div class="actions">
+    <img alt="Purdue" src="/static/purdue.png" class="logo" />
+    <h1>Purdue Men's Basketball News</h1>
+    <div class="header-actions">
+      <input id="q" class="search" type="search" placeholder="Search articles…" />
       <button id="refreshBtn" class="btn">Refresh</button>
     </div>
   </header>
+
+  <div class="subline">
+    <span id="status">Loading…</span>
+    <span>🏁 Boiler Up — auto-updates every 5 min</span>
+  </div>
 
   <main>
     <section id="articles" class="articles"></section>
   </main>
 
-  <footer>
-    <p>Powered by your custom Purdue MBB API</p>
-  </footer>
-
   <script>
-    async function fetchArticles() {
+    let latestQuery = "";
+
+    function htmlEscape(s) {
+      const d = document.createElement("div");
+      d.innerText = s || "";
+      return d.innerHTML;
+    }
+
+    function renderArticles(list) {
       const container = document.getElementById("articles");
-      container.innerHTML = "<p>Loading...</p>";
-      try {
-        const res = await fetch("/api/articles");
-        const data = await res.json();
-        container.innerHTML = "";
-        if (data.articles && data.articles.length > 0) {
-          data.articles.forEach(article => {
-            const card = document.createElement("div");
-            card.className = "article-card";
-            card.innerHTML = `
-              <h2><a href="${article.link}" target="_blank">${article.title}</a></h2>
-              <p>${article.summary || ""}</p>
-              <small>${article.source || ""} – ${article.published || ""}</small>
-            `;
-            container.appendChild(card);
-          });
-        } else {
-          container.innerHTML = "<p>No articles found.</p>";
-        }
-      } catch (err) {
-        console.error(err);
-        container.innerHTML = "<p>Error loading articles.</p>";
+      if (!list || list.length === 0) {
+        container.innerHTML = `<p class="empty">No articles found.</p>`;
+        return;
+      }
+      container.innerHTML = "";
+      for (const a of list) {
+        const card = document.createElement("article");
+        card.className = "article-card";
+        card.innerHTML = `
+          <h2><a href="${a.link}" target="_blank" rel="noopener">${htmlEscape(a.title)}</a></h2>
+          <p>${htmlEscape(a.summary || "")}</p>
+          <div class="meta">
+            <span>${htmlEscape(a.source || "")}</span>
+            <span>${a.published ? new Date(a.published).toLocaleString() : ""}</span>
+          </div>
+        `;
+        container.appendChild(card);
       }
     }
 
-    document.getElementById("refreshBtn").addEventListener("click", fetchArticles);
+    async function fetchJSON(url) {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }
 
-    // Load on page start
-    fetchArticles();
+    async function loadArticles() {
+      const status = document.getElementById("status");
+      const q = document.getElementById("q").value.trim();
+      latestQuery = q;
+      status.textContent = "Loading…";
+      try {
+        const endpoint = q ? `/api/search?q=${encodeURIComponent(q)}` : "/api/articles";
+        const data = await fetchJSON(endpoint);
+        renderArticles(data.articles || []);
+        // Small health ping to show freshness
+        try {
+          const health = await fetchJSON("/api/health");
+          if (health.ok) {
+            status.textContent = `Loaded ${data.articles?.length || 0} • Last refresh ${health.last_refresh ? new Date(health.last_refresh).toLocaleTimeString() : "–"}`;
+          } else {
+            status.textContent = "Loaded • refresh info unavailable";
+          }
+        } catch {
+          status.textContent = `Loaded ${data.articles?.length || 0}`;
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById("articles").innerHTML =
+          `<p class="error">Failed to load. Pull down to refresh.</p>`;
+        status.textContent = "Error";
+      }
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", loadArticles);
+    document.getElementById("q").addEventListener("input", () => {
+      // live search with small debounce
+      clearTimeout(window.__deb);
+      window.__deb = setTimeout(loadArticles, 250);
+    });
+
+    // Initial load
+    loadArticles();
   </script>
 </body>
 </html>
