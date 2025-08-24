@@ -6,21 +6,49 @@ from urllib.parse import urlparse
 from flask import Flask, jsonify, send_from_directory, request, redirect
 import feedparser
 
-# ---------- Feeds: Purdue-focused + NCAA men's basketball ----------
+# ---------- Feeds (Purdue-focused first; add/remove as you like) ----------
 FEEDS = [
-    # Purdue-focused outlets
+    # Purdue-centric
     "https://www.si.com/college/purdue/.rss/full/",
     "https://www.on3.com/teams/purdue-boilermakers/news/feed/",
     "https://www.247sports.com/college/purdue/Article/feed.rss",
     "https://www.jconline.com/search/?f=rss&t=article&c=news%2Fsports%2Fpurdue-boilers*&l=50&s=start_time&sd=desc",
+    # SB Nation Purdue (often valid; harmless if empty)
+    "https://www.hammerandrails.com/rss/index.xml",
 
-    # NCAA men's basketball for broader context (still filtered below)
+    # Broader men's college hoops (kept last; we’ll filter them hard)
     "https://www.ncaa.com/news/basketball-men/rss.xml",
     "https://www.espn.com/espn/rss/ncb/news",
     "https://feeds.cbssports.com/rss/headlines/ncaab",
 ]
 
-REFRESH_SECONDS = 300  # background refresh every 5 min
+# ---------- Domain allowlist (extra guard) ----------
+ALLOW_SOURCES = {
+    # Primary Purdue outlets
+    "si.com", "on3.com", "247sports.com", "jconline.com",
+    "hammerandrails.com", "purduesports.com",
+
+    # National hoops (allowed but will be filtered by keywords)
+    "ncaa.com", "espn.com", "cbssports.com", "yahoo.com", "foxsports.com",
+}
+
+# ---------- Include / Exclude keyword filters ----------
+INCLUDE_KWS = [
+    "purdue", "boilermaker", "boilermakers", "boilers",
+    "matt painter", "mackey arena", "west lafayette",
+    "zach edey", "braden smith", "fletcher loy", "fletcher loyer",  # common names (keep both spellings)
+    "mason gillis", "trey kaufman", "lance jones", "caleb first", "caleb furst",  # older roster names included to catch references
+    "big ten", "b1g",  # context terms (still filtered with Purdue)
+]
+# Terms that usually indicate non-MBB content
+EXCLUDE_KWS = [
+    "football", "nfl", "qb", "quarterback", "wide receiver", "linebacker",
+    "mlb", "baseball", "nhl", "hockey", "golf", "ufc",
+    "raiders", "patriots", "yankees", "red sox", "cowboys", "eagles",
+    "fantasy football", "preseason", "otAs", "training camp",
+]
+
+REFRESH_SECONDS = 300  # 5 minutes
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -31,8 +59,8 @@ LOCK = threading.Lock()
 FALLBACK_ARTICLES = [
     {
         "title": "Purdue MBB feed warming up…",
-        "link": "https://www.purduesports.com/",
-        "summary": "If you see this, feeds are still loading or returned nothing new yet. Try Refresh.",
+        "link": "https://purduesports.com/sports/mens-basketball",
+        "summary": "If you see this, feeds are still loading or filtered out non-Purdue items. Tap Refresh.",
         "published": datetime.now(timezone.utc).isoformat(),
         "source": "purduesports.com",
     }
@@ -56,18 +84,37 @@ def _norm(e):
         ts = datetime(*e.updated_parsed[:6], tzinfo=timezone.utc).isoformat()
     return {"title": title, "link": link, "summary": summary, "published": ts, "source": _host(link)}
 
-# ---------- Core refresh (Purdue-only filter) ----------
+def _passes_filters(norm):
+    """Return True iff the article is Purdue MBB relevant."""
+    text = (norm["title"] + " " + norm["summary"]).lower()
+
+    # Must include a Purdue keyword
+    if not any(kw in text for kw in INCLUDE_KWS):
+        return False
+
+    # Bounce obvious non-basketball content
+    if any(bad in text for bad in EXCLUDE_KWS):
+        return False
+
+    # Allowlist domain (extra guard): if domain not known, still allow
+    # as long as the text clearly references Purdue (we already checked).
+    src = (norm.get("source") or "").lower()
+    if src and src not in ALLOW_SOURCES:
+        # Still OK — keep Purdue mentions from other sites
+        return True
+
+    return True
+
+# ---------- Core refresh (strict Purdue filter) ----------
 def refresh_feeds():
     global ARTICLES, LAST_REFRESH
     items = []
     for url in FEEDS:
         try:
             d = feedparser.parse(url)
-            for e in d.entries[:50]:
+            for e in d.entries[:60]:
                 norm = _norm(e)
-                text = (norm["title"] + " " + norm["summary"]).lower()
-                # keep only Purdue men's hoops adjacent content
-                if ("purdue" in text) or ("boilermaker" in text):
+                if _passes_filters(norm):
                     items.append(norm)
         except Exception as ex:
             print("Feed error:", url, ex)
