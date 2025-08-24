@@ -1,211 +1,261 @@
-import os, html
-import email.utils as eut
-from datetime import datetime, timezone
-from typing import List, Dict, Tuple
-import requests, feedparser
+# collect.py
+# Aggregates Purdue Men's Basketball news & reddit only.
+# Dependencies: feedparser, requests (already in requirements.txt)
 
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
+from __future__ import annotations
 
-FEEDS: List[Tuple[str, bool, str]] = [
-    ("https://purduesports.com/rss.aspx?path=mbball", True,  "PurdueSports"),
-    ("https://www.on3.com/feeds/team/purdue-boilermakers/", True, "On3 Purdue"),
-    ("https://www.sbnation.com/rss/team/purdue-boilermakers/index.xml", True, "Hammer & Rails"),
-    ("https://www.si.com/.rss/full/purdue-boilermakers", False, "SI Purdue"),
-    ("https://www.jconline.com/search/?q=Purdue%20basketball&output=rss", False, "J&C"),
-    ("https://www.indystar.com/search/?q=Purdue%20basketball&output=rss", False, "IndyStar"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+men%27s+basketball+OR+%22Purdue+basketball%22+OR+%22Purdue+MBB%22&hl=en-US&gl=US&ceid=US:en", False, "GN broad 1"),
-    ("https://news.google.com/rss/search?q=Purdue+basketball+OR+Boilermakers+basketball&hl=en-US&gl=US&ceid=US:en", False, "GN broad 2"),
-    ("https://news.google.com/rss/search?q=Purdue&hl=en-US&gl=US&ceid=US:en", False, "GN fallback"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:espn.com&hl=en-US&gl=US&ceid=US:en", False, "GN ESPN"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:yahoo.com&hl=en-US&gl=US&ceid=US:en", False, "GN Yahoo"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:cbssports.com&hl=en-US&gl=US&ceid=US:en", False, "GN CBS"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:theathletic.com&hl=en-US&gl=US&ceid=US:en", False, "GN Athletic"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:usatoday.com&hl=en-US&gl=US&ceid=US:en", False, "GN USAT"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:apnews.com&hl=en-US&gl=US&ceid=US:en", False, "GN AP"),
-    ("https://www.wlfi.com/search/?f=rss&t=article&s=start_time&sd=desc&q=Purdue%20basketball", False, "WLFI"),
-    ("https://www.journalgazette.net/search/?f=rss&c=news*&q=Purdue%20basketball", False, "FortWayne JG"),
-    ("https://www.nwitimes.com/search/?f=rss&t=article&q=Purdue%20basketball&s=start_time&sd=desc", False, "NW Indiana Times"),
+import os
+import re
+import time
+import json
+import math
+import html
+import hashlib
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlparse, quote_plus
+
+import feedparser
+import requests
+
+# ---------- Tunables ----------
+MAX_ITEMS = 200
+MAX_AGE_DAYS = 14
+
+# Sources:
+# - Google News RSS queries scoped to Purdue men's basketball
+# - Hammer & Rails (SBNation) RSS (filtering keeps just MBB)
+GOOGLE_NEWS = [
+    # core queries
+    "https://news.google.com/rss/search?q=Purdue%20men%27s%20basketball&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20men%27s%20basketball&hl=en-US&gl=US&ceid=US:en",
+    # official site / beat sites via GNews
+    "https://news.google.com/rss/search?q=site%3Apurduesports.com%20%22Men%27s%20Basketball%22&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=site%3Ahammerandrails.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en",
 ]
 
-REDDIT_SR = ["Boilermakers", "CollegeBasketball"]
-
-YOUTUBE_CHANNEL_ALLOW = [
-    "Field of 68", "Sleepers Media", "Purdue Athletics", "PurdueSports",
-    "BTN", "Big Ten Network", "BoilerUpload", "BoilerBall",
+FEEDS_RSS = [
+    "https://www.hammerandrails.com/rss/index.xml",  # Purdue SBNation (all sports; we filter)
 ]
 
-TEAM_KEYWORDS = [
-    "purdue","boilermaker","boilermakers","purdue mbb","boilerball",
-    "matt painter","braden smith","fletcher loyer","caleb furst",
-    "trey kaufman","mason gillis","zach edey","boilers"
+# Reddit, no API keys required (RSS search). We still try to use a UA if provided.
+REDDIT_SUBS = [
+    "Purdue",
+    "Boilermakers",    # exists
+    "CollegeBasketball"
 ]
 
-HTTP_TIMEOUT = 20
-UA_STR = "Mozilla/5.0 (X11; Linux x86_64) Purdue-MBB/1.3 (+https://example.com)"
-REQ_HEADERS = {"User-Agent": UA_STR, "Accept": "*/*"}
+REDDIT_QUERY = "Purdue men%27s basketball OR Purdue basketball OR Boilermakers basketball"
+# --------------------------------
 
-STATS = {
-    "rss": {"ok": 0, "kept": 0, "skipped": 0},
-    "reddit": {"ok": 0, "kept": 0, "skipped": 0},
-    "youtube": {"ok": 0, "kept": 0, "skipped": 0},
-    "feeds": {},
-    "errors": []
-}
+UA = os.getenv("REDDIT_USER_AGENT") or os.getenv("USER_AGENT") or "mbb-news-bot/1.0 (+https://purdue-mbb-api.onrender.com)"
+HTTP_TIMEOUT = 12
 
-def _note_error(where: str, err: Exception):
-    STATS["errors"].append(f"{where}: {type(err).__name__}: {err}")
-    STATS["errors"] = STATS["errors"][-30:]
-
-def _parse_date_guess(s: str) -> str:
-    if not s: return datetime.now(timezone.utc).isoformat()
+def http_get(url: str) -> requests.Response | None:
     try:
-        dt = eut.parsedate_to_datetime(s)
-        if not dt.tzinfo: dt = dt.replace(tzinfo=timezone.utc)
-        return dt.isoformat()
+        return requests.get(url, headers={"User-Agent": UA}, timeout=HTTP_TIMEOUT)
+    except Exception:
+        return None
+
+def parse_rss(url: str) -> list[dict]:
+    # Prefer requests (better headers) then feedparser
+    resp = http_get(url)
+    if resp is None or resp.status_code != 200:
+        d = feedparser.parse(url)  # feedparser will try on its own
+    else:
+        d = feedparser.parse(resp.content)
+
+    items = []
+    for e in d.entries:
+        title = html.unescape(getattr(e, "title", "") or "").strip()
+        link = (getattr(e, "link", "") or "").strip()
+        summary = html.unescape(getattr(e, "summary", "") or getattr(e, "description", "") or "").strip()
+        # published
+        ts = None
+        if getattr(e, "published_parsed", None):
+            ts = datetime.fromtimestamp(time.mktime(e.published_parsed), tz=timezone.utc)
+        elif getattr(e, "updated_parsed", None):
+            ts = datetime.fromtimestamp(time.mktime(e.updated_parsed), tz=timezone.utc)
+        else:
+            ts = datetime.now(timezone.utc)
+
+        site = clean_site(link)
+        items.append({
+            "title": title,
+            "url": link,
+            "site": site,
+            "summary": strip_html(summary)[:600],
+            "published": ts.isoformat(),
+            "kind": "news",
+        })
+    return items
+
+def reddit_search_rss(sub: str, query: str) -> str:
+    # Sorted new, restricted to subreddit
+    q = quote_plus(query)
+    return f"https://www.reddit.com/r/{sub}/search.rss?q={q}&restrict_sr=1&sort=new"
+
+def clean_site(url: str) -> str:
+    try:
+        netloc = urlparse(url).netloc.lower()
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+        # unwrap Google News redirect if present
+        if "news.google." in netloc and "url=" in url:
+            # best-effort pull original link
+            from urllib.parse import parse_qs
+            qs = parse_qs(urlparse(url).query)
+            if "url" in qs and qs["url"]:
+                netloc = urlparse(qs["url"][0]).netloc.lower()
+                if netloc.startswith("www."):
+                    netloc = netloc[4:]
+        return netloc or "unknown"
+    except Exception:
+        return "unknown"
+
+def strip_html(s: str) -> str:
+    return re.sub(r"<[^>]+>", " ", s or "").replace("&nbsp;", " ").strip()
+
+# ------------------ Filtering ------------------
+
+INCLUDE_PATTS = [
+    r"\bpurdue\b.*\b(basketball|boilermakers)\b",
+    r"\bboilermakers\b.*\bbasketball\b",
+    r"\bmen'?s?\s+basketball\b.*\bpurdue\b",
+    r"\bmatt\s+painter\b",
+    r"\bmackey\s+arena\b",
+]
+
+EXCLUDE_PATTS = [
+    r"\bfootball\b",
+    r"\bwomen'?s?\b",  # women's sports
+    r"\bsoccer\b",
+    r"\bvolleyball\b",
+    r"\bbaseball\b",
+    r"\bsoftball\b",
+    r"\bwrestling\b",
+    r"\btrack\b",
+    r"\bcross\s*country\b",
+    r"\bgolf\b",
+    r"\bswim|min g\b",
+    r"\btennis\b",
+    r"\bhockey\b",
+    r"\besports\b",
+    # other Purdue campuses / unrelated
+    r"\bPurdue\s+(Fort\s*Wayne|North\s*west|Calumet|Global)\b",
+    r"\bFort\s*Wayne\b",
+    r"\bPurdue\s*Northwest\b",
+]
+
+INC_COMP = [re.compile(p, re.I) for p in INCLUDE_PATTS]
+EXC_COMP = [re.compile(p, re.I) for p in EXCLUDE_PATTS]
+
+def is_mbb_relevant(title: str, summary: str, site: str) -> bool:
+    text = f"{title} {summary}".lower()
+    if any(p.search(text) for p in EXC_COMP):
+        return False
+    # Always allow obvious sites even with short titles
+    priority_hosts = {"hammerandrails.com", "purduesports.com"}
+    if site in priority_hosts and ("basketball" in text or "purdue" in text or "boilermaker" in text):
+        return True
+    return any(p.search(text) for p in INC_COMP)
+
+def within_age(published_iso: str) -> bool:
+    try:
+        dt = datetime.fromisoformat(published_iso)
+        return (datetime.now(timezone.utc) - dt) <= timedelta(days=MAX_AGE_DAYS)
+    except Exception:
+        return True
+
+def dedupe(items: list[dict]) -> list[dict]:
+    seen = set()
+    out = []
+    for it in sorted(items, key=lambda x: x.get("published", ""), reverse=True):
+        sig = (normalize_url(it.get("url", "")) or "") + "|" + (it.get("title", "").strip().lower())
+        h = hashlib.sha1(sig.encode("utf-8")).hexdigest()
+        if h in seen:
+            continue
+        seen.add(h)
+        out.append(it)
+    return out[:MAX_ITEMS]
+
+def normalize_url(u: str) -> str:
+    try:
+        p = urlparse(u)
+        core = f"{p.scheme}://{p.netloc}{p.path}"
+        return core.lower()
+    except Exception:
+        return u.lower()
+
+# ------------------ Public API ------------------
+
+def collect_all() -> list[dict]:
+    """
+    Returns an array of dicts: {title, url, site, published, kind, summary}
+    """
+    items: list[dict] = []
+    stats = {"rss": {"ok": 0}, "reddit": {"ok": 0}}
+
+    # Google News + RSS feeds
+    for u in GOOGLE_NEWS + FEEDS_RSS:
+        try:
+            batch = parse_rss(u)
+            stats["rss"]["ok"] += len(batch)
+            items.extend(batch)
+        except Exception:
+            pass
+
+    # Reddit search RSS
+    for sub in REDDIT_SUBS:
+        try:
+            url = reddit_search_rss(sub, REDDIT_QUERY)
+            batch = parse_rss(url)
+            for b in batch:
+                b["kind"] = "reddit"
+                # reddit often puts HTML in summary; keep it short
+                b["summary"] = (b.get("summary") or "")[:300]
+            stats["reddit"]["ok"] += len(batch)
+            items.extend(batch)
+        except Exception:
+            pass
+
+    # Filter for Purdue MBB only and recent
+    kept: list[dict] = []
+    for it in items:
+        if not within_age(it.get("published", "")):
+            continue
+        if is_mbb_relevant(it.get("title", ""), it.get("summary", ""), it.get("site", "")):
+            kept.append(it)
+
+    kept = dedupe(kept)
+    return kept
+
+def collect_debug() -> dict:
+    """
+    Debug payload to help /api/debug
+    """
+    files = []
+    try:
+        files = sorted(os.listdir("."))
     except Exception:
         pass
-    try:
-        dt = datetime.fromisoformat(s.replace("Z","+00:00"))
-        if not dt.tzinfo: dt = dt.replace(tzinfo=timezone.utc)
-        return dt.isoformat()
-    except Exception:
-        return datetime.now(timezone.utc).isoformat()
 
-def _clean(s: str) -> str: return html.unescape((s or "").strip())
-def _looks_purdue(t: str) -> bool:
-    tl = (t or "").lower()
-    return any(k in tl for k in TEAM_KEYWORDS)
-
-def _fetch_feed_with_requests(url: str, label: str):
-    try:
-        r = requests.get(url, headers=REQ_HEADERS, timeout=HTTP_TIMEOUT)
-        r.raise_for_status()
-        return feedparser.parse(r.content)
-    except Exception as e:
-        _note_error(f"rss_http<{label}>", e)
-        try:
-            return feedparser.parse(url, request_headers=REQ_HEADERS)
-        except Exception as e2:
-            _note_error(f"rss_fp_fallback<{label}>", e2)
-            return feedparser.FeedParserDict(entries=[])
-
-def fetch_rss() -> List[Dict]:
-    out: List[Dict] = []
-    for url, team_specific, label in FEEDS:
-        try:
-            feed = _fetch_feed_with_requests(url, label)
-            STATS["rss"]["ok"] += 1
-            kept_here = 0
-            for e in feed.entries[:100]:
-                title = _clean(getattr(e, "title", "")); link = getattr(e, "link", "")
-                if not title or not link:
-                    STATS["rss"]["skipped"] += 1; continue
-                summary = _clean(getattr(e, "summary", ""))
-                keep = True if team_specific else (_looks_purdue(title) or _looks_purdue(summary))
-                if not keep:
-                    STATS["rss"]["skipped"] += 1; continue
-                pub = getattr(e, "published", None) or getattr(e, "updated", None) or getattr(e, "pubDate", None)
-                out.append({
-                    "title": title, "url": link,
-                    "published_at": _parse_date_guess(str(pub)),
-                    "source": "News",
-                    "description": summary[:240],
-                })
-                STATS["rss"]["kept"] += 1; kept_here += 1
-            if kept_here:
-                STATS["feeds"][label] = STATS["feeds"].get(label, 0) + kept_here
-        except Exception as err:
-            _note_error(f"fetch_rss<{label}>", err)
-    return out
-
-def fetch_reddit() -> List[Dict]:
-    out: List[Dict] = []
-    for sr in REDDIT_SR:
-        try:
-            r = requests.get(
-                f"https://www.reddit.com/r/{sr}/new.json?limit=40",
-                headers={"User-Agent": UA_STR, "Accept": "application/json"},
-                timeout=HTTP_TIMEOUT
-            )
-            r.raise_for_status()
-            STATS["reddit"]["ok"] += 1
-            for ch in r.json().get("data", {}).get("children", []):
-                d = ch.get("data", {})
-                title = _clean(d.get("title", "")); body = _clean(d.get("selftext", ""))
-                if not title or not (_looks_purdue(title) or _looks_purdue(body)):
-                    STATS["reddit"]["skipped"] += 1; continue
-                permalink = d.get("permalink", ""); ts = d.get("created_utc")
-                when = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat() if ts else datetime.now(timezone.utc).isoformat()
-                out.append({
-                    "title": title,
-                    "url": f"https://reddit.com{permalink}" if permalink else "https://reddit.com",
-                    "published_at": when,
-                    "source": f"Reddit r/{sr}",
-                    "description": body[:240],
-                })
-                STATS["reddit"]["kept"] += 1
-        except Exception as err:
-            _note_error(f"fetch_reddit<r/{sr}>", err)
-    return out
-
-def fetch_youtube() -> List[Dict]:
-    if not YOUTUBE_API_KEY:
-        _note_error("youtube", Exception("YOUTUBE_API_KEY not set"))
-        return []
-    out: List[Dict] = []; seen = set()
-    for q in ["Purdue basketball","Purdue Boilermakers basketball","Purdue MBB"]:
-        try:
-            url = ("https://www.googleapis.com/youtube/v3/search"
-                   f"?key={YOUTUBE_API_KEY}&part=snippet&order=date&type=video&maxResults=30&q={requests.utils.quote(q)}")
-            r = requests.get(url, headers=REQ_HEADERS, timeout=HTTP_TIMEOUT); r.raise_for_status()
-            for it in r.json().get("items", []):
-                vid = it.get("id", {}).get("videoId")
-                if not vid or vid in seen: continue
-                sn = it.get("snippet", {}) or {}
-                title = _clean(sn.get("title", "")); desc = _clean(sn.get("description", ""))
-                ch = _clean(sn.get("channelTitle", "")) or "YouTube"
-                when = _parse_date_guess(sn.get("publishedAt", ""))
-                allowed = any(ch.lower() == a.lower() for a in YOUTUBE_CHANNEL_ALLOW)
-                if not (allowed or _looks_purdue(title) or _looks_purdue(desc)):
-                    STATS["youtube"]["skipped"] += 1; continue
-                out.append({
-                    "title": title,
-                    "url": f"https://www.youtube.com/watch?v={vid}",
-                    "published_at": when,
-                    "source": ch,
-                    "description": desc[:240],
-                })
-                seen.add(vid); STATS["youtube"]["kept"] += 1
-        except Exception as err:
-            _note_error("fetch_youtube", err)
-    return out
-
-def _dedupe(items: List[Dict]) -> List[Dict]:
-    seen=set(); out=[]
-    for x in items:
-        key=(x.get("title","").strip().lower(), x.get("url","").strip().lower())
-        if key in seen: continue
-        seen.add(key); out.append(x)
-    return out
-
-def collect_all() -> List[Dict]:
-    STATS["feeds"].clear()
-    items = fetch_rss() + fetch_reddit() + fetch_youtube()
-    items = _dedupe(items)
-    items.sort(key=lambda i: i.get("published_at",""), reverse=True)
-    return items[:200]
-
-def collect_debug() -> Dict:
-    now = datetime.now(timezone.utc).isoformat()
+    # small sample run for counts (don’t pull everything to keep it quick)
+    sample = collect_all()
     return {
-        "now": now,
-        "stats": STATS,
-        "feeds_config": [{"url": u, "team_specific": ts, "label": lbl} for (u, ts, lbl) in FEEDS],
-        "youtube_key_present": bool(YOUTUBE_API_KEY),
-        "team_keywords": TEAM_KEYWORDS,
-        "ua": UA_STR,
+        "cwd": os.getcwd(),
+        "env": {"PYTHONPATH": os.environ.get("PYTHONPATH")},
+        "files_in_app": files,
+        "sample_count": len(sample),
+        "sample_preview": sample[:5],
+        "rules": {
+            "include": INCLUDE_PATTS,
+            "exclude": EXCLUDE_PATTS,
+            "max_age_days": MAX_AGE_DAYS,
+        },
     }
 
+
+# Local smoke test
 if __name__ == "__main__":
-    import json
-    print(json.dumps(collect_all(), indent=2))
+    data = collect_all()
+    print(json.dumps({"count": len(data), "first": data[:3]}, indent=2))
