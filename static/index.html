@@ -1,55 +1,96 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <title>Purdue MBB News</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Purdue MBB Bot</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; }
-    #items { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
-    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
-    .muted { color: #666; font-size: 0.9rem; }
-    input[type=text]{ width: 100%; padding: .5rem; }
-    button { padding: .5rem .8rem; }
-    pre { white-space: pre-wrap; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #FFD700; /* Purdue gold */
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #101010;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 3px solid #FFD700;
+    }
+    header img {
+      height: 60px;
+    }
+    header h1 {
+      margin: 10px 0 0 0;
+      font-size: 1.8em;
+    }
+    .container {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .article {
+      background: #1a1a1a;
+      margin: 12px 0;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 6px solid #FFD700;
+    }
+    .article h2 {
+      margin: 0;
+      font-size: 1.2em;
+    }
+    .article a {
+      color: #FFD700;
+      text-decoration: none;
+    }
+    .article a:hover {
+      text-decoration: underline;
+    }
+    .source {
+      font-size: 0.9em;
+      color: #bbb;
+      margin-top: 5px;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.85em;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
-  <h1>🏀 Purdue MBB Bot</h1>
-  <p>
-    <button id="refresh">Refresh Latest</button>
-  </p>
-  <div id="items"></div>
-  <hr>
-  <h2>Ask a question grounded in stored articles</h2>
-  <input id="q" type="text" placeholder="e.g., injuries, recruiting, exhibition">
-  <button id="ask">Ask</button>
-  <pre id="answer"></pre>
-<script>
-const API = (location.origin.includes('localhost') ? 'http://127.0.0.1:8000' : location.origin);
-async function latest(){
-  const r = await fetch(API + "/latest?limit=24");
-  const js = await r.json();
-  const el = document.getElementById('items');
-  el.innerHTML = '';
-  js.forEach(a => {
-    const d = document.createElement('div');
-    d.className = 'card';
-    d.innerHTML = `<h3><a href="${a.url}" target="_blank" rel="noopener">${a.title}</a></h3>
-      <div class="muted">${a.source} • ${a.published_at || '—'}</div>
-      <p>${(a.summary || '').slice(0,240)}</p>`;
-    el.appendChild(d);
-  });
-}
-document.getElementById('refresh').onclick = latest;
-document.getElementById('ask').onclick = async () => {
-  const q = document.getElementById('q').value.trim();
-  if(!q) return;
-  const r = await fetch(API + "/chat?question=" + encodeURIComponent(q));
-  const js = await r.json();
-  document.getElementById('answer').textContent = js.answer;
-};
-latest();
-</script>
+  <header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Purdue_Boilermakers_logo.svg" alt="Purdue Logo">
+    <h1>Purdue Men's Basketball News</h1>
+  </header>
+
+  <div class="container" id="news"></div>
+
+  <footer>
+    🚂 Boiler Up! — Auto-updated every few minutes
+  </footer>
+
+  <script>
+    async function loadNews() {
+      const res = await fetch('/latest');
+      const data = await res.json();
+      const container = document.getElementById('news');
+      container.innerHTML = "";
+      data.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'article';
+        div.innerHTML = `
+          <h2><a href="${item.url}" target="_blank">${item.title}</a></h2>
+          <div class="source">${item.source} — ${item.published_at || ''}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+    loadNews();
+    setInterval(loadNews, 300000); // refresh every 5 min
+  </script>
 </body>
 </html>
