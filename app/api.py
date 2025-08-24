@@ -1,140 +1,138 @@
 # app/api.py
-import os
-import time
-import threading
+import os, time, threading
 from datetime import datetime, timezone
 from urllib.parse import urlparse
-
-from flask import Flask, jsonify, request, send_from_directory, redirect
+from flask import Flask, jsonify, send_from_directory, request, redirect
 import feedparser
 
 # ---------- Config ----------
 FEEDS = [
-    # National / CBB
+    # Two reliable test feeds to guarantee content
+    "https://hnrss.org/frontpage",
+    "https://www.espn.com/espn/rss/news",
+    # Add your college hoops / Purdue sources below
     "https://www.espn.com/espn/rss/ncb/news",
     "https://feeds.cbssports.com/rss/headlines/ncaab",
     "https://www.ncaa.com/news/basketball-men/rss.xml",
-    # Purdue-focused
     "https://www.si.com/college/purdue/.rss/full/",
     "https://www.on3.com/teams/purdue-boilermakers/news/feed/",
     "https://www.247sports.com/college/purdue/Article/feed.rss",
-    "https://www.jconline.com/search/?f=rss&t=article&c=news%2Fsports%2Fpurdue-boilers*&l=50&s=start_time&sd=desc",
-    # Add more as you like
 ]
-REFRESH_SECONDS = 300  # 5 minutes
+REFRESH_SECONDS = 300
 
-# ---------- App ----------
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
-ARTICLES = []        # in-memory store of normalized articles
-LAST_REFRESH = None  # timestamp of last successful refresh
+ARTICLES = []
+LAST_REFRESH = None
 LOCK = threading.Lock()
 
-def _norm_source(link):
+FALLBACK_ARTICLES = [
+    {
+        "title": "Welcome to Purdue MBB News",
+        "link": "https://purdue.edu",
+        "summary": "If you’re seeing this, feeds are still loading. The UI is working.",
+        "published": datetime.now(timezone.utc).isoformat(),
+        "source": "purdue.edu",
+    },
+    {
+        "title": "Tip: Use the search box",
+        "link": "https://onrender.com",
+        "summary": "Type ‘Purdue’ or ‘ESPN’ to filter results once feeds load.",
+        "published": datetime.now(timezone.utc).isoformat(),
+        "source": "system",
+    },
+]
+
+def _host(link):
     try:
-        host = urlparse(link).netloc
-        return host.replace("www.", "")
+        h = urlparse(link).netloc
+        return h.replace("www.", "")
     except Exception:
         return ""
 
-def _normalize(entry):
-    title = entry.get("title") or "(untitled)"
-    link = entry.get("link") or ""
-    summary = (entry.get("summary") or entry.get("description") or "").strip()
-    published = ""
-    if entry.get("published_parsed"):
-        dt = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
-        published = dt.isoformat()
-    elif entry.get("updated_parsed"):
-        dt = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
-        published = dt.isoformat()
-    source = _norm_source(link)
+def _norm(e):
+    title = e.get("title") or "(untitled)"
+    link = e.get("link") or ""
+    summary = (e.get("summary") or e.get("description") or "").strip()
+    ts = None
+    if getattr(e, "published_parsed", None):
+        ts = datetime(*e.published_parsed[:6], tzinfo=timezone.utc).isoformat()
+    elif getattr(e, "updated_parsed", None):
+        ts = datetime(*e.updated_parsed[:6], tzinfo=timezone.utc).isoformat()
     return {
         "title": title,
         "link": link,
         "summary": summary,
-        "published": published,
-        "source": source,
+        "published": ts or "",
+        "source": _host(link),
     }
 
 def refresh_feeds():
-    global LAST_REFRESH, ARTICLES
-    try:
-        items = []
-        for url in FEEDS:
+    global ARTICLES, LAST_REFRESH
+    items = []
+    for url in FEEDS:
+        try:
             d = feedparser.parse(url)
-            for e in d.entries[:50]:
-                items.append(_normalize(e))
-        # Simple de-dup by title+source
-        seen = set()
-        deduped = []
-        for a in items:
-            key = (a["title"].strip().lower(), a["source"])
-            if key in seen:
-                continue
-            seen.add(key)
-            deduped.append(a)
+            for e in d.entries[:40]:
+                items.append(_norm(e))
+        except Exception as ex:
+            print("Feed error:", url, ex)
+    # de-dup by (title, source)
+    seen = set()
+    unique = []
+    for a in items:
+        key = (a["title"].strip().lower(), a["source"])
+        if key in seen: 
+            continue
+        seen.add(key)
+        unique.append(a)
+    unique.sort(key=lambda a: a["published"] or "", reverse=True)
+    with LOCK:
+        ARTICLES = unique[:250]
+        LAST_REFRESH = datetime.now(timezone.utc).isoformat()
 
-        # Sort newest first if we have timestamps
-        def sort_key(a):
-            return a["published"] or ""
-        deduped.sort(key=sort_key, reverse=True)
-
-        with LOCK:
-            ARTICLES = deduped[:200]
-            LAST_REFRESH = datetime.now(timezone.utc).isoformat()
-    except Exception as exc:
-        # Keep running even if one refresh fails
-        print("Feed refresh error:", exc)
-
-def _background_refresher():
+def refresher():
     while True:
         refresh_feeds()
         time.sleep(REFRESH_SECONDS)
 
-# Kick off background refresh on startup
-threading.Thread(target=_background_refresher, daemon=True).start()
+threading.Thread(target=refresher, daemon=True).start()
 
-# ---------- Routes ----------
 @app.route("/")
 def root():
-    # Redirect root to your UI
     return redirect("/ui/")
 
 @app.route("/ui/")
-def ui_index():
+def ui():
     return send_from_directory(app.static_folder, "index.html")
 
 @app.route("/api/health")
 def health():
     with LOCK:
-        count = len(ARTICLES)
-        last = LAST_REFRESH
-    return jsonify({"ok": True, "articles": count, "last_refresh": last})
+        return jsonify({"ok": True, "articles": len(ARTICLES), "last_refresh": LAST_REFRESH})
+
+@app.route("/api/refresh-now")
+def refresh_now():
+    refresh_feeds()
+    with LOCK:
+        return jsonify({"ok": True, "articles": len(ARTICLES), "last_refresh": LAST_REFRESH})
 
 @app.route("/api/articles")
 def api_articles():
     with LOCK:
-        data = list(ARTICLES)
+        data = list(ARTICLES) if ARTICLES else list(FALLBACK_ARTICLES)
     return jsonify({"articles": data})
 
 @app.route("/api/search")
 def api_search():
     q = (request.args.get("q") or "").strip().lower()
     with LOCK:
+        base = ARTICLES if ARTICLES else FALLBACK_ARTICLES
         if not q:
-            results = list(ARTICLES)
+            res = list(base)
         else:
-            results = [
-                a for a in ARTICLES
-                if q in a["title"].lower()
-                or q in a["summary"].lower()
-                or q in a["source"].lower()
-            ]
-    return jsonify({"articles": results})
-
-# Serve static files (logo, css, etc.) are handled by Flask static config
+            res = [a for a in base if q in a["title"].lower() or q in a["summary"].lower() or q in a["source"].lower()]
+    return jsonify({"articles": res})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "8000"))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
