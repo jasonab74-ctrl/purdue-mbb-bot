@@ -69,4 +69,71 @@ def refresh_feeds():
                 # keep only Purdue men's hoops adjacent content
                 if ("purdue" in text) or ("boilermaker" in text):
                     items.append(norm)
-        except Exception a
+        except Exception as ex:
+            print("Feed error:", url, ex)
+
+    # De-dup by (title, source)
+    seen, unique = set(), []
+    for a in items:
+        key = (a["title"].strip().lower(), a["source"])
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(a)
+
+    # Sort newest first if we have timestamps
+    unique.sort(key=lambda a: a["published"] or "", reverse=True)
+
+    with LOCK:
+        ARTICLES = unique[:250]
+        LAST_REFRESH = datetime.now(timezone.utc).isoformat()
+
+def _refresher():
+    while True:
+        refresh_feeds()
+        time.sleep(REFRESH_SECONDS)
+
+# Start background refresher
+threading.Thread(target=_refresher, daemon=True).start()
+
+# ---------- Routes ----------
+@app.route("/healthz")
+def healthz():
+    return "ok", 200
+
+@app.route("/")
+def root():
+    return redirect("/ui/")
+
+@app.route("/ui/")
+def ui():
+    return send_from_directory(app.static_folder, "index.html")
+
+@app.route("/api/health")
+def health():
+    with LOCK:
+        return jsonify({"ok": True, "articles": len(ARTICLES), "last_refresh": LAST_REFRESH})
+
+@app.route("/api/refresh-now")
+def refresh_now():
+    refresh_feeds()
+    with LOCK:
+        return jsonify({"ok": True, "articles": len(ARTICLES), "last_refresh": LAST_REFRESH})
+
+@app.route("/api/articles")
+def api_articles():
+    with LOCK:
+        data = list(ARTICLES) if ARTICLES else list(FALLBACK_ARTICLES)
+    return jsonify({"articles": data})
+
+@app.route("/api/search")
+def api_search():
+    q = (request.args.get("q") or "").strip().lower()
+    with LOCK:
+        base = ARTICLES if ARTICLES else FALLBACK_ARTICLES
+        res = [a for a in base if not q or q in (a["title"] + " " + a["summary"] + " " + (a["source"] or "")).lower()]
+    return jsonify({"articles": res})
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", "8000"))
+    app.run(host="0.0.0.0", port=port)
