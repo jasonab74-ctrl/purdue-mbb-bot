@@ -38,7 +38,16 @@ def latest(limit: int = 20):
         "LIMIT ?",
         (limit,),
     ).fetchall()
-    return [dict(r) for r in rows]
+
+    results = []
+    for r in rows:
+        results.append({
+            "title": r["title"],
+            "url": r["url"],
+            "source": r["source"],     # ✅ shows source
+            "published_at": r["published_at"],
+        })
+    return results
 
 # --- Search (full-text) ---
 @app.get("/search")
@@ -53,7 +62,7 @@ def search(q: str = Query(..., min_length=2), limit: int = 20):
     ).fetchall()
     return [dict(r) for r in rows]
 
-# --- Simple chat-style answer from top matches ---
+# --- Simple chat-style answer ---
 @app.get("/chat")
 def chat(question: str):
     con = db()
@@ -64,22 +73,26 @@ def chat(question: str):
         "LIMIT 5",
         (question,),
     ).fetchall()
+
     if not rows:
         return {
             "answer": "I don’t have anything on that yet. Try another query or check back shortly.",
             "sources": [],
         }
-    bullets = [f"- {r['title']} ({r['source']}) — {r['url']}" for r in rows]
-    return {"answer": "Here’s what I found:\n" + "\n".join(bullets), "sources": bullets}
 
-# --- Secure refresh endpoint for cron job ---
+    bullets = [f"- {r['title']} ({r['source']}) — {r['url']}" for r in rows]
+    return {
+        "answer": "Here’s what I found:\n" + "\n".join(bullets),
+        "sources": bullets
+    }
+
+# --- Secure refresh endpoint ---
 REFRESH_KEY = os.getenv("REFRESH_KEY", "")
 
 @app.post("/refresh")
 def refresh(key: str):
     if not REFRESH_KEY or key != REFRESH_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    # Run collectors INSIDE this web container so it updates the same SQLite DB
     try:
         from app.collect import run_collect_once
         from app.reddit_collect import run as run_reddit
