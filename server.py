@@ -1,138 +1,169 @@
-import time
-import re
-import html
-import requests
-import feedparser
+from __future__ import annotations
+import os, time
+from flask import Flask, jsonify, request, Response
+from flask_cors import CORS
+from collect import collect_all, collect_debug
 
-UA = "Mozilla/5.0 (compatible; PurdueMBBBot/1.0; +https://purdue-mbb-api.onrender.com)"
-TIMEOUT = (6, 15)  # (connect, read) seconds
+app = Flask(__name__, static_folder="static")
+CORS(app)
 
-# Lean on Google News for breadth (fast, stable), and Reddit for community.
-RSS_SOURCES = [
-    # Google News search tuned for Purdue MBB; excludes women's & football.
-    ('Google News',
-     'https://news.google.com/rss/search?q='
-     + requests.utils.quote(
-         '(("Purdue men\'s basketball") OR ("Purdue Boilermakers" AND basketball) OR "Matt Painter" OR "Purdue MBB") '
-         '-"women\'s" -WBB -volleyball -football -soccer -softball -baseball'
-       )
-     + '&hl=en-US&gl=US&ceid=US:en'),
+CACHE_TTL = int(os.getenv("CACHE_TTL", "300"))  # seconds
+_cache = {"items": [], "stats": {}, "fetched_at": 0}
 
-    # Reddit — r/Boilermakers, newest posts mentioning basketball/MBB.
-    ('Reddit',
-     'https://www.reddit.com/r/Boilermakers/search.rss?'
-     'q=' + requests.utils.quote('basketball OR "men\'s basketball" OR MBB OR Painter OR Boilers')
-     + '&restrict_sr=on&sort=new&t=month'),
-]
+def _stale() -> bool:
+    return (time.time() - (_cache["fetched_at"] or 0)) > CACHE_TTL
 
-NEGATIVE = re.compile(r"\b(women|volleyball|football|soccer|softball|baseball|wbb|wbk|w\.?b\.?b)\b", re.I)
-MBB_HINT = re.compile(
-    r"\b(MBB|men['’]s basketball|basketball team|Matt Painter|Boilermakers(?:\s+basketball)?|Painter|Braden Smith|Fletcher Loyer|Boilers)\b",
-    re.I,
-)
-
-def _http_bytes(url):
-    """Fetch bytes with UA + timeout (avoid feedparser doing the HTTP to reduce hangs)."""
-    r = requests.get(url, headers={"User-Agent": UA}, timeout=TIMEOUT)
-    # Reddit rate limit: if 429, wait a bit and surface as empty batch (we'll still show other sources)
-    if r.status_code == 429:
-        time.sleep(1.5)
-        raise requests.HTTPError("429 Too Many Requests")
-    r.raise_for_status()
-    return r.content
-
-def _parse_rss_bytes(b):
-    return feedparser.parse(b)
-
-def _clean_text(s):
-    if not s:
-        return ""
-    s = html.unescape(s)
-    # strip simple tags
-    s = re.sub(r"<[^>]+>", " ", s)
-    s = re.sub(r"\s+", " ", s).strip()
-    return s
-
-def _looks_like_mbb(title, summary):
-    t = (title or "")
-    s = (summary or "")
-    blob = f"{t}\n{s}"
-    if NEGATIVE.search(blob):
-        return False
-    # accept if it mentions basketball + Purdue-ish term, or strong hints (MBB, Painter, etc.)
-    if re.search(r"\b(basketball)\b", blob, re.I) and re.search(r"\b(Purdue|Boilermakers|Painter)\b", blob, re.I):
-        return True
-    if MBB_HINT.search(blob):
-        return True
-    return False
-
-def collect_all():
-    out = []
-    now = int(time.time())
-    for source_name, url in RSS_SOURCES:
-        try:
-            b = _http_bytes(url)
-            feed = _parse_rss_bytes(b)
-        except Exception:
-            # Skip on any network error; keep the app responsive.
-            continue
-
-        for e in feed.get("entries", []):
-            title = _clean_text(e.get("title"))
-            summary = _clean_text(e.get("summary") or e.get("description"))
-            link = e.get("link") or ""
-            if not title or not link:
-                continue
-            if not _looks_like_mbb(title, summary):
-                continue
-
-            # published time
-            ts = None
-            for key in ("published_parsed", "updated_parsed", "created_parsed"):
-                t = e.get(key)
-                if t:
-                    try:
-                        ts = int(time.mktime(t))
-                        break
-                    except Exception:
-                        pass
-            if not ts:
-                ts = now
-
-            out.append({
-                "title": title[:300],
-                "summary": summary[:600] if summary else "",
-                "link": link,
-                "source": source_name,
-                "published_ts": ts,
-            })
-
-        # be nice between sources
-        time.sleep(0.4)
-
-    # sort newest first & dedupe by link
-    seen = set()
-    deduped = []
-    for item in sorted(out, key=lambda x: x["published_ts"], reverse=True):
-        if item["link"] in seen:
-            continue
-        seen.add(item["link"])
-        deduped.append(item)
-
-    # keep a sane number
-    return deduped[:80]
-
-def collect_debug():
-    items = collect_all()
-    return {
-        "now": int(time.time()),
-        "counts": {"total": len(items), "by_source": _by_src(items)},
-        "sample": items[:8],
-        "sources": [s for s in RSS_SOURCES],
+def _refresh_cache() -> None:
+    global _cache
+    data = collect_all()
+    _cache = {
+        "items": data["items"],
+        "stats": data["stats"],
+        "fetched_at": time.time(),
     }
 
-def _by_src(items):
-    d = {}
-    for it in items:
-        d[it["source"]] = d.get(it["source"], 0) + 1
-    return d
+@app.get("/api/news")
+def api_news():
+    """
+    Returns cached news by default. Pass ?nocache=1 to force a fresh scrape for
+    THIS request only (still updates cache).
+    """
+    nocache = request.args.get("nocache") == "1"
+    if nocache or _stale() or not _cache["items"]:
+        _refresh_cache()
+    return jsonify({
+        "items": _cache["items"],
+        "stats": _cache["stats"],
+        "fetched_at": _cache["fetched_at"],
+        "ttl": CACHE_TTL,
+    })
+
+@app.post("/api/refresh-now")
+def api_refresh_now():
+    """
+    Synchronous refresh (quick—uses tight timeouts).
+    """
+    _refresh_cache()
+    return jsonify({"ok": True, "count": len(_cache["items"]), "fetched_at": _cache["fetched_at"]})
+
+@app.get("/api/debug")
+def api_debug():
+    dbg = collect_debug()
+    # include cache header info too
+    dbg["cache"] = {
+        "count": len(_cache["items"]),
+        "fetched_at": _cache["fetched_at"],
+        "stale": _stale(),
+        "ttl": CACHE_TTL,
+    }
+    return jsonify(dbg)
+
+# ---------- Very small front-end ----------
+HTML = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Purdue Men's Basketball — Live Feed</title>
+  <link rel="icon" href="/static/logo.png">
+  <style>
+    :root { --text:#111; --muted:#666; --chip:#eef2ff; --border:#e5e7eb; --bg:#fafafa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: var(--text); background: var(--bg); }
+    header { display:flex; gap:12px; align-items:center; padding:18px 20px; border-bottom:1px solid var(--border); background:#fff; position:sticky; top:0; z-index:1;}
+    header img { width:36px; height:36px; border-radius:6px; object-fit:contain; }
+    header h1 { font-size:22px; margin:0; font-weight:750; }
+    .controls { display:flex; gap:8px; margin-left:auto; }
+    button { border:1px solid var(--border); background:#fff; padding:8px 12px; border-radius:10px; cursor:pointer; }
+    button:hover { background:#f3f4f6; }
+    main { max-width:1100px; margin: 16px auto; padding: 0 16px 40px; }
+    .filters { display:flex; gap:8px; margin: 10px 0 16px; }
+    input, select { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; }
+    select { max-width:220px; }
+    .meta { color:var(--muted); font-size:13px; margin-bottom:10px; }
+    .card { background:#fff; border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; }
+    .title { font-weight:700; margin:0 0 8px; }
+    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .chip { background: var(--chip); border:1px solid #c7d2fe; color:#1e40af; padding:2px 8px; border-radius:999px; font-size:12px; }
+    .src { color:var(--muted); font-size:13px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="/static/logo.png" alt="Purdue logo" onerror="this.style.display='none'">
+    <h1>Purdue Men's Basketball — Live Feed</h1>
+    <div class="controls">
+      <button id="btnRefresh">Force Refresh</button>
+      <button id="btnFresh">Load Fresh (no cache)</button>
+      <a href="/api/debug" target="_blank" style="align-self:center;color:#2563eb;">debug</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="filters">
+      <input id="kw" placeholder="Filter by keyword (e.g., 'Painter', 'Braden Smith')" />
+      <select id="src">
+        <option value="">All sources</option>
+        <option value="Google News">Google News</option>
+        <option value="Reddit">Reddit</option>
+      </select>
+    </div>
+    <div id="meta" class="meta"></div>
+    <div id="list"></div>
+  </main>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+    const list = $("#list"), meta=$("#meta"), kw=$("#kw"), src=$("#src");
+
+    function render(data){
+      const q = kw.value.trim().toLowerCase();
+      const s = src.value;
+      const items = (data.items || []).filter(x=>{
+        const okSrc = !s || x.source === s;
+        const text = (x.title+" "+(x.summary||"")).toLowerCase();
+        const okQ = !q || text.includes(q);
+        return okSrc && okQ;
+      });
+      meta.textContent = `${items.length} items — fetched ${new Date(data.fetched_at*1000).toLocaleString()}`;
+      list.innerHTML = items.map(x=>`
+        <div class="card">
+          <div class="row" style="justify-content:space-between">
+            <a class="title" href="${x.link}" target="_blank" rel="noopener">${x.title}</a>
+            <span class="chip">${x.source}</span>
+          </div>
+          <div class="src">${x.published || ""}</div>
+          <div>${x.summary || ""}</div>
+        </div>`).join("") || "<div class='meta'>No results.</div>";
+    }
+
+    async function load(nocache){
+      list.innerHTML = "<div class='meta'>Loading…</div>";
+      const url = "/api/news"+(nocache?"?nocache=1":"");
+      const r = await fetch(url);
+      render(await r.json());
+    }
+
+    $("#btnFresh").onclick = ()=>load(true);
+    $("#btnRefresh").onclick = async ()=>{
+      await fetch("/api/refresh-now", {method:"POST"});
+      load(false);
+    };
+    kw.oninput = ()=>load(false);
+    src.onchange = ()=>load(false);
+
+    load(false);
+  </script>
+</body>
+</html>
+"""
+
+@app.get("/")
+def ui():
+    return Response(HTML, mimetype="text/html")
+
+
+if __name__ == "__main__":
+    # local dev: python server.py
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "10000")), debug=True)
