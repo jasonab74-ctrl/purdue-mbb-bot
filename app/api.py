@@ -1,106 +1,140 @@
-from fastapi import FastAPI, Query, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+# app/api.py
 import os
-import sqlite3
+import time
+import threading
+from datetime import datetime, timezone
+from urllib.parse import urlparse
 
-# --- FastAPI setup ---
-app = FastAPI(title="Purdue MBB Bot API")
+from flask import Flask, jsonify, request, send_from_directory, redirect
+import feedparser
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ---------- Config ----------
+FEEDS = [
+    # National / CBB
+    "https://www.espn.com/espn/rss/ncb/news",
+    "https://feeds.cbssports.com/rss/headlines/ncaab",
+    "https://www.ncaa.com/news/basketball-men/rss.xml",
+    # Purdue-focused
+    "https://www.si.com/college/purdue/.rss/full/",
+    "https://www.on3.com/teams/purdue-boilermakers/news/feed/",
+    "https://www.247sports.com/college/purdue/Article/feed.rss",
+    "https://www.jconline.com/search/?f=rss&t=article&c=news%2Fsports%2Fpurdue-boilers*&l=50&s=start_time&sd=desc",
+    # Add more as you like
+]
+REFRESH_SECONDS = 300  # 5 minutes
 
-# --- DB helper ---
-def db():
-    con = sqlite3.connect("purdue_mbb.db")
-    con.row_factory = sqlite3.Row
-    return con
+# ---------- App ----------
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 
-# --- Health ---
-@app.get("/healthz")
-def healthz():
-    con = db()
-    row = con.execute("SELECT count(1) AS c FROM articles").fetchone()
-    return {"ok": True, "articles": row["c"]}
+ARTICLES = []        # in-memory store of normalized articles
+LAST_REFRESH = None  # timestamp of last successful refresh
+LOCK = threading.Lock()
 
-# --- Latest ---
-@app.get("/latest")
-def latest(limit: int = 20):
-    con = db()
-    rows = con.execute(
-        "SELECT * FROM articles "
-        "ORDER BY (published_at IS NULL), published_at DESC, id DESC "
-        "LIMIT ?",
-        (limit,),
-    ).fetchall()
+def _norm_source(link):
+    try:
+        host = urlparse(link).netloc
+        return host.replace("www.", "")
+    except Exception:
+        return ""
 
-    results = []
-    for r in rows:
-        results.append({
-            "title": r["title"],
-            "url": r["url"],
-            "source": r["source"],     # ✅ shows source
-            "published_at": r["published_at"],
-        })
-    return results
-
-# --- Search (full-text) ---
-@app.get("/search")
-def search(q: str = Query(..., min_length=2), limit: int = 20):
-    con = db()
-    rows = con.execute(
-        "SELECT a.* FROM articles_fts f "
-        "JOIN articles a ON a.id = f.rowid "
-        "WHERE articles_fts MATCH ? "
-        "LIMIT ?",
-        (q, limit),
-    ).fetchall()
-    return [dict(r) for r in rows]
-
-# --- Simple chat-style answer ---
-@app.get("/chat")
-def chat(question: str):
-    con = db()
-    rows = con.execute(
-        "SELECT a.* FROM articles_fts f "
-        "JOIN articles a ON a.id = f.rowid "
-        "WHERE articles_fts MATCH ? "
-        "LIMIT 5",
-        (question,),
-    ).fetchall()
-
-    if not rows:
-        return {
-            "answer": "I don’t have anything on that yet. Try another query or check back shortly.",
-            "sources": [],
-        }
-
-    bullets = [f"- {r['title']} ({r['source']}) — {r['url']}" for r in rows]
+def _normalize(entry):
+    title = entry.get("title") or "(untitled)"
+    link = entry.get("link") or ""
+    summary = (entry.get("summary") or entry.get("description") or "").strip()
+    published = ""
+    if entry.get("published_parsed"):
+        dt = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+        published = dt.isoformat()
+    elif entry.get("updated_parsed"):
+        dt = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
+        published = dt.isoformat()
+    source = _norm_source(link)
     return {
-        "answer": "Here’s what I found:\n" + "\n".join(bullets),
-        "sources": bullets
+        "title": title,
+        "link": link,
+        "summary": summary,
+        "published": published,
+        "source": source,
     }
 
-# --- Secure refresh endpoint ---
-REFRESH_KEY = os.getenv("REFRESH_KEY", "")
-
-@app.post("/refresh")
-def refresh(key: str):
-    if not REFRESH_KEY or key != REFRESH_KEY:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+def refresh_feeds():
+    global LAST_REFRESH, ARTICLES
     try:
-        from app.collect import run_collect_once
-        from app.reddit_collect import run as run_reddit
-        run_collect_once()
-        run_reddit()
-        return {"ok": True, "message": "Collectors ran"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        items = []
+        for url in FEEDS:
+            d = feedparser.parse(url)
+            for e in d.entries[:50]:
+                items.append(_normalize(e))
+        # Simple de-dup by title+source
+        seen = set()
+        deduped = []
+        for a in items:
+            key = (a["title"].strip().lower(), a["source"])
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(a)
 
-# --- Serve the simple web UI at /ui ---
-app.mount("/ui", StaticFiles(directory="static", html=True), name="ui")
+        # Sort newest first if we have timestamps
+        def sort_key(a):
+            return a["published"] or ""
+        deduped.sort(key=sort_key, reverse=True)
+
+        with LOCK:
+            ARTICLES = deduped[:200]
+            LAST_REFRESH = datetime.now(timezone.utc).isoformat()
+    except Exception as exc:
+        # Keep running even if one refresh fails
+        print("Feed refresh error:", exc)
+
+def _background_refresher():
+    while True:
+        refresh_feeds()
+        time.sleep(REFRESH_SECONDS)
+
+# Kick off background refresh on startup
+threading.Thread(target=_background_refresher, daemon=True).start()
+
+# ---------- Routes ----------
+@app.route("/")
+def root():
+    # Redirect root to your UI
+    return redirect("/ui/")
+
+@app.route("/ui/")
+def ui_index():
+    return send_from_directory(app.static_folder, "index.html")
+
+@app.route("/api/health")
+def health():
+    with LOCK:
+        count = len(ARTICLES)
+        last = LAST_REFRESH
+    return jsonify({"ok": True, "articles": count, "last_refresh": last})
+
+@app.route("/api/articles")
+def api_articles():
+    with LOCK:
+        data = list(ARTICLES)
+    return jsonify({"articles": data})
+
+@app.route("/api/search")
+def api_search():
+    q = (request.args.get("q") or "").strip().lower()
+    with LOCK:
+        if not q:
+            results = list(ARTICLES)
+        else:
+            results = [
+                a for a in ARTICLES
+                if q in a["title"].lower()
+                or q in a["summary"].lower()
+                or q in a["source"].lower()
+            ]
+    return jsonify({"articles": results})
+
+# Serve static files (logo, css, etc.) are handled by Flask static config
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", "8000"))
+    app.run(host="0.0.0.0", port=port)
