@@ -45,6 +45,11 @@ def api_debug():
 def api_health():
     return {"status": "ok"}
 
+# Render is probing /healthz per your logs—mirror it.
+@app.route("/healthz")
+def healthz():
+    return {"status": "ok"}
+
 # ---------------- SIMPLE UI ----------------
 
 @app.route("/ui")
@@ -52,31 +57,35 @@ def api_health():
 def ui():
     html = """<!doctype html>
 <html>
-<head><meta charset="utf-8">
-<title>Purdue Men's Basketball — Live Feed</title></head>
+<head><meta charset="utf-8"><title>Purdue Men's Basketball — Live Feed</title></head>
 <body style="font-family:system-ui, sans-serif; max-width:900px; margin:20px auto;">
   <h1>Purdue Men's Basketball — Live Feed</h1>
-  <button onclick="refresh()">Force Refresh</button>
+  <div style="margin:8px 0;">
+    <button onclick="refresh()">Force Refresh</button>
+    <button onclick="loadRaw()">Load Fresh (no cache)</button>
+  </div>
+  <div id="meta" style="color:#666;margin:6px 0;"></div>
   <div id="list"></div>
 <script>
-async function load(){
-  const res = await fetch('/api/news');
+async function renderFrom(url){
+  const res = await fetch(url);
   const items = await res.json();
+  const meta = document.getElementById('meta');
   const list = document.getElementById('list');
+  meta.textContent = `Loaded ${items.length} • ${new Date().toLocaleString()}`;
   if(!items.length){
     list.innerHTML = '<p>No items found.</p>'; return;
   }
   list.innerHTML = items.map(i => `
     <div style="border:1px solid #ddd; border-radius:8px; padding:10px; margin:8px 0;">
-      <a href="${i.url}" target="_blank" style="font-weight:bold">${i.title}</a><br>
-      <small>${i.published_at} • ${i.source||''}</small><br>
-      <p>${i.description||''}</p>
+      <a href="${i.url}" target="_blank" style="font-weight:bold">${(i.title||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</a><br>
+      <small>${new Date(i.published_at).toLocaleString()} • ${i.source||''}</small>
+      <p>${(i.description||'')}</p>
     </div>`).join('');
 }
-async function refresh(){
-  await fetch('/api/refresh');
-  await load();
-}
+async function load(){ return renderFrom('/api/news'); }
+async function loadRaw(){ return renderFrom('/api/news/raw'); }
+async function refresh(){ await fetch('/api/refresh'); await load(); }
 load();
 </script>
 </body>
