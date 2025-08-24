@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+purdue_mbb.db
+purdue_mbb.db-*
+.DS_Store
