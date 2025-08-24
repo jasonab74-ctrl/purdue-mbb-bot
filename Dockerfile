@@ -3,15 +3,21 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir gunicorn
+# System updates (optional but safe)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy code
+# Python deps
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir gunicorn
+
+# App code
 COPY . .
 
-# Expose port
+# Ensure unbuffered logs
 ENV PYTHONUNBUFFERED=1
 
-# Start the Flask app with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:${PORT}", "server:app"]
+# IMPORTANT: use shell-form CMD so $PORT expands
+CMD gunicorn --bind 0.0.0.0:$PORT server:app
