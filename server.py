@@ -8,7 +8,7 @@ import feedparser
 
 # ---------- Config ----------
 FEEDS = [
-    # Two reliable test feeds (guaranteed content so UI never looks empty)
+    # Reliable test feeds (guaranteed content so the UI never looks empty)
     "https://hnrss.org/frontpage",
     "https://www.espn.com/espn/rss/news",
 
@@ -45,10 +45,10 @@ FALLBACK_ARTICLES = [
     },
 ]
 
+# ---------- Helpers ----------
 def _host(link: str) -> str:
     try:
-        h = urlparse(link).netloc
-        return h.replace("www.", "")
+        return urlparse(link).netloc.replace("www.", "")
     except Exception:
         return ""
 
@@ -64,6 +64,7 @@ def _norm(e):
     return {"title": title, "link": link, "summary": summary, "published": ts, "source": _host(link)}
 
 def refresh_feeds():
+    """Pull all feeds, normalize, de-dup, and store."""
     global ARTICLES, LAST_REFRESH
     items = []
     for url in FEEDS:
@@ -73,7 +74,8 @@ def refresh_feeds():
                 items.append(_norm(e))
         except Exception as ex:
             print("Feed error:", url, ex)
-    # de-dup by (title, source)
+
+    # De-dup by (title, source)
     seen, unique = set(), []
     for a in items:
         key = (a["title"].strip().lower(), a["source"])
@@ -81,20 +83,28 @@ def refresh_feeds():
             continue
         seen.add(key)
         unique.append(a)
+
+    # Sort newest first (if timestamps exist)
     unique.sort(key=lambda a: a["published"] or "", reverse=True)
+
     with LOCK:
         ARTICLES = unique[:250]
         LAST_REFRESH = datetime.now(timezone.utc).isoformat()
 
-def refresher():
+def _refresher():
     while True:
         refresh_feeds()
         time.sleep(REFRESH_SECONDS)
 
-# start background refresher
-threading.Thread(target=refresher, daemon=True).start()
+# Start background refresher
+threading.Thread(target=_refresher, daemon=True).start()
 
 # ---------- Routes ----------
+@app.route("/healthz")
+def healthz():
+    # Render's health probe hits this
+    return "ok", 200
+
 @app.route("/")
 def root():
     return redirect("/ui/")
@@ -125,10 +135,8 @@ def api_search():
     q = (request.args.get("q") or "").strip().lower()
     with LOCK:
         base = ARTICLES if ARTICLES else FALLBACK_ARTICLES
-        if not q:
-            res = list(base)
-        else:
-            res = [a for a in base if q in a["title"].lower() or q in a["summary"].lower() or q in a["source"].lower()]
+        res = [a for a in base if not q or q in a["title"].lower()
+               or q in a["summary"].lower() or q in a["source"].lower()]
     return jsonify({"articles": res})
 
 if __name__ == "__main__":
