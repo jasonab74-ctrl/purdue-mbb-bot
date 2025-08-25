@@ -1,7 +1,6 @@
 import feedparser, time, json, os, socket, re, hashlib
 from html import unescape
 
-# Faster failures on slow feeds
 socket.setdefaulttimeout(8)
 
 REQ_HEADERS = {
@@ -17,8 +16,6 @@ def strip_html(s: str) -> str:
     s = _TAGS.sub(" ", s)
     return " ".join(s.split())
 
-# ─────────────────────────────────────────────────────────────
-# 🔧 EDIT ONLY THIS LIST to add/remove sources (RSS/ATOM URLs)
 SOURCES = [
     {"name": "Hammer & Rails", "url": "https://www.hammerandrails.com/rss/index.xml"},
     {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
@@ -28,11 +25,9 @@ SOURCES = [
     {"name": "CBS CBB",     "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
     {"name": "SI College",  "url": "https://www.si.com/rss/college"},
     {"name": "USA Today CBB", "url": "http://rssfeeds.usatoday.com/usatodaycomcollegebasketball-topstories&x=1"},
-    # YouTube (videos). Replace channel_id as you like:
     {"name": "YouTube: Field of 68", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
     {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
 ]
-# ─────────────────────────────────────────────────────────────
 
 DATA_FILE = "data.json"
 
@@ -61,7 +56,6 @@ def collect():
                 link = e.get("link", "").strip()
                 published = e.get("published_parsed") or e.get("updated_parsed")
                 ts = int(time.mktime(published)) if published else now_ts
-                # Pull text from multiple places (YouTube often uses media/content)
                 summary_raw = (
                     e.get("summary")
                     or e.get("description")
@@ -80,7 +74,6 @@ def collect():
                     "summary_text": summary_text,
                 }
 
-                # Filter for Purdue MBB relevance
                 hay = " ".join([title, summary_text])
                 if not is_purdue_mbb(hay):
                     continue
