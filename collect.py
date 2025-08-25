@@ -1,4 +1,4 @@
-import feedparser, time, re, socket
+import feedparser, time, json, os, socket, re, hashlib
 from html import unescape
 
 socket.setdefaulttimeout(8)
@@ -16,61 +16,91 @@ def strip_html(s: str) -> str:
     s = _TAGS.sub(" ", s)
     return " ".join(s.split())
 
+# ─────────────────────────────────────────────────────────────
+# 🔧 EDIT ONLY THIS LIST to add/remove sources
+# Keep names short; URLs must be RSS/ATOM
 SOURCES = [
-    {"name":"Hammer & Rails","url":"https://www.hammerandrails.com/rss/current"},
-    {"name":"SI Purdue","url":"https://www.si.com/rss/college/purdue"},
-    {"name":"GoldandBlack","url":"https://www.on3.com/teams/purdue-boilermakers/feed/"},
-    {"name":"Google News","url":"https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"Google News","url":"https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20basketball&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"Bing News","url":"https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball&format=RSS"},
-    {"name":"ESPN CBB","url":"https://www.espn.com/espn/rss/ncb/news"},
-    {"name":"CBS CBB","url":"https://www.cbssports.com/rss/headlines/college-basketball/"},
+    {"name": "Hammer & Rails", "url": "https://www.hammerandrails.com/rss/index.xml"},
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Bing News",   "url": "https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball&format=RSS"},
+    {"name": "ESPN CBB",    "url": "https://www.espn.com/espn/rss/ncb/news"},
+    {"name": "CBS CBB",     "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
+    # Optional adds (uncomment if you want more volume):
+    # {"name": "SI College",  "url": "https://www.si.com/rss/college"},
+    # {"name": "USA Today CBB", "url": "http://rssfeeds.usatoday.com/usatodaycomcollegebasketball-topstories&x=1"},
+    # {"name": "The Athletic CBB", "url": "https://theathletic.com/feed/ncaa-basketball/"},
+    # YouTube examples (videos, not articles). Replace channel_id with ones you want:
+    # {"name": "YouTube: Field of 68", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
+    # {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
 ]
+# ─────────────────────────────────────────────────────────────
 
-def parse_rss(url, source_name):
-    try:
-        d=feedparser.parse(url, request_headers=REQ_HEADERS)
-    except Exception as e:
-        print("ERR feed", url, e)
-        return []
+DATA_FILE = "data.json"
 
-    items=[]
-    for entry in d.entries[:20]:
-        title=entry.get("title","").strip()
-        link=entry.get("link","")
-        published_ts=0
-        if "published_parsed" in entry and entry.published_parsed:
-            published_ts=int(time.mktime(entry.published_parsed))
-        elif "updated_parsed" in entry and entry.updated_parsed:
-            published_ts=int(time.mktime(entry.updated_parsed))
+def parse_rss(url):
+    return feedparser.parse(url, request_headers=REQ_HEADERS).entries
 
-        summary_raw=entry.get("summary") or entry.get("description") or ""
-        summary_text=strip_html(summary_raw)
+def is_purdue_mbb(text: str) -> bool:
+    t = (text or "").lower()
+    # broad but safe filter—keeps Purdue hoops, drops generic CBB
+    keys_any = ["purdue", "boilermaker", "matt painter", "mackey", "boilers"]
+    # try to exclude women's/teamwide football noise if headlines are vague
+    anti = ["women", "wbb", "volleyball", "football", "softball", "baseball"]
+    if any(k in t for k in keys_any) and not any(a in t for a in anti):
+        return True
+    return False
 
-        # Filter: keep only Purdue men's basketball related items
-        blob=(title+" "+summary_text).lower()
-        if "purdue" not in blob or "basketball" not in blob:
-            continue
+def key(item):
+    # stable dedupe key using normalized title+link
+    base = f"{(item.get('title') or '').strip()}|{(item.get('link') or '').strip()}"
+    return hashlib.md5(base.encode("utf-8")).hexdigest()
 
-        items.append({
-            "title":title,
-            "link":link,
-            "source":source_name,
-            "published_ts":published_ts,
-            "summary":summary_raw,
-            "summary_text":summary_text,
-        })
+def collect():
+    items = []
+    seen = set()
+    now_ts = int(time.time())
+
+    for src in SOURCES:
+        try:
+            for e in parse_rss(src["url"])[:50]:  # cap per-source
+                title = e.get("title", "").strip()
+                link = e.get("link", "").strip()
+                published = e.get("published_parsed") or e.get("updated_parsed")
+                ts = int(time.mktime(published)) if published else now_ts
+                summary_raw = e.get("summary") or e.get("description") or ""
+                summary_text = strip_html(summary_raw)
+
+                candidate = {
+                    "title": title,
+                    "link": link,
+                    "source": src["name"],
+                    "published_ts": ts,
+                    "summary": summary_raw,
+                    "summary_text": summary_text,
+                }
+
+                # filter for Purdue MBB
+                hay = " ".join([title, summary_text])
+                if not is_purdue_mbb(hay):
+                    continue
+
+                k = key(candidate)
+                if k in seen:
+                    continue
+                seen.add(k)
+                items.append(candidate)
+        except Exception as ex:
+            print("Error fetching", src["url"], ex)
+
+    items.sort(key=lambda x: x["published_ts"], reverse=True)
     return items
 
-def collect_all():
-    all_items=[]
-    for s in SOURCES:
-        all_items.extend(parse_rss(s["url"], s["name"]))
-    all_items.sort(key=lambda x: x["published_ts"], reverse=True)
-    return all_items
+def save(items):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(items, f, indent=2)
 
-if __name__=="__main__":
-    data=collect_all()
-    import json
-    with open("news.json","w") as f: json.dump(data,f)
-    print("Wrote", len(data), "items")
+if __name__ == "__main__":
+    data = collect()
+    save(data)
+    print("Saved", len(data), "items")
