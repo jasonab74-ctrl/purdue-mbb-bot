@@ -33,23 +33,23 @@ HTML = r"""<!doctype html>
     .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
     input[type="search"],select{border:1px solid var(--border);background:#fff;border-radius:10px;padding:12px}
     input[type="search"]{flex:1 1 520px}
-    .quicklinks{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 4px}
-    .ql a{display:inline-block;background:#fff;border:1px solid var(--border);padding:8px 10px;border-radius:999px;text-decoration:none;color:#1f3aff;font-weight:600}
+    .quicklinks{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0}
+    .quicklinks a{display:inline-block;background:#fff;border:1px solid var(--border);padding:8px 12px;border-radius:999px;text-decoration:none;color:#1f3aff;font-weight:600}
+    .quicklinks a:hover{background:#f3f4f6}
     .loaded{color:var(--sub);font-size:13px;margin:8px 0 10px}
-    .list{display:grid;gap:14px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
+    .list{display:grid;gap:10px} /* tighter spacing */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
     .meta{color:var(--sub);font-size:13px;margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
     .source{background:var(--chip);color:var(--chip-text);padding:2px 8px;border-radius:999px;font-weight:700}
     .title{font-weight:800;font-size:18px;text-decoration:none;color:#111827}
     .title:hover{text-decoration:underline}
-    .snippet{margin-top:8px;color:#111827;opacity:.9}
     @media (max-width:520px){.logo{width:44px;height:44px}.title{font-size:17px}}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="header">
-      <div class="logo"><img alt="Purdue P" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Purdue_Boilermakers_logo.svg/120px-Purdue_Boilermakers_logo.svg.png"></div>
+      <div class="logo"><img alt="Purdue P" src="https://upload.wikimedia.org/wikipedia/commons/6/68/Purdue_Boilermakers_logo.svg"></div>
       <h1>Purdue Men's Basketball — Live Feed</h1>
       <div class="right">
         <button id="refresh" class="btn">Force Refresh</button>
@@ -57,11 +57,14 @@ HTML = r"""<!doctype html>
       </div>
     </div>
 
-    <!-- Quick links (edit URLs/text here if you want different ones) -->
+    <!-- 🔗 Quick Links (all six) -->
     <div class="quicklinks">
-      <span class="ql"><a href="https://purduesports.com/sports/mens-basketball" target="_blank" rel="noopener">Official MBB</a></span>
-      <span class="ql"><a href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a></span>
-      <span class="ql"><a href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a></span>
+      <a href="https://purduesports.com/sports/mens-basketball" target="_blank" rel="noopener">Official MBB</a>
+      <a href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
+      <a href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
+      <a href="https://www.hammerandrails.com/mens-basketball" target="_blank" rel="noopener">Hammer & Rails</a>
+      <a href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit r/Boilermakers</a>
+      <a href="https://www.reddit.com/r/PurdueBasketball/" target="_blank" rel="noopener">Reddit r/PurdueBasketball</a>
     </div>
 
     <div class="controls">
@@ -80,17 +83,6 @@ HTML = r"""<!doctype html>
 
     function tsPretty(ts){ if(!ts) return ""; return new Date(ts*1000).toLocaleString(); }
 
-    // Decode entities and strip tags safely (handles double-escaped html)
-    function clean(html){
-      if(!html) return "";
-      const d = document.createElement("div");
-      d.innerHTML = html;                         // 1st decode
-      const dec = d.textContent || d.innerText || "";
-      d.innerHTML = dec;                          // if it was &lt;a&gt;… decode again to real tags
-      const txt = d.textContent || d.innerText || "";
-      return txt.replace(/\s+/g," ").trim();
-    }
-
     function render(items){
       list.innerHTML = "";
       items.forEach(it=>{
@@ -105,14 +97,8 @@ HTML = r"""<!doctype html>
         a.className="title"; a.href = it.link || "#"; a.target="_blank"; a.rel="noopener";
         a.textContent = it.title || "(untitled)";
 
-        const desc = clean(it.summary_text || it.summary || "");
-        if(desc){
-          const p = document.createElement("p"); p.className="snippet";
-          p.textContent = desc.length>220 ? (desc.slice(0,220)+"…") : desc;
-          card.append(meta,a,p);
-        } else {
-          card.append(meta,a);
-        }
+        // Only title + meta (no summaries/verbiage)
+        card.append(meta,a);
         list.append(card);
       });
     }
@@ -122,7 +108,7 @@ HTML = r"""<!doctype html>
       const only = src.value;
       const items = (DATA.items||[]).filter(it=>{
         const okSrc = !only || it.source===only;
-        const txt = (it.title||"")+" "+clean(it.summary_text||it.summary||"");
+        const txt = (it.title||"");
         const okText = !t || txt.toLowerCase().includes(t);
         return okSrc && okText;
       });
