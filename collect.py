@@ -31,7 +31,7 @@ SOURCES = [
     # {"name": "USA Today CBB", "url": "http://rssfeeds.usatoday.com/usatodaycomcollegebasketball-topstories&x=1"},
     # {"name": "The Athletic CBB", "url": "https://theathletic.com/feed/ncaa-basketball/"},
     # YouTube examples (videos, not articles). Replace channel_id with ones you want:
-    # {"name": "YouTube: Field of 68", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
+    {"name": "YouTube: Field of 68", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
     # {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
 ]
 # ─────────────────────────────────────────────────────────────
