@@ -9,6 +9,18 @@ HTTP_TIMEOUT = 6  # seconds
 CACHE_TTL = 15 * 60  # 15 minutes
 
 SOURCES = [
+# --- Additional Purdue-related YouTube RSS feeds (purely additive) ---
+YOUTUBE_FEEDS = [
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCKyz9ZrU_nqFauFWYhdPNIQ",  # Purdue Athletics (official)
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UC9by2xjmM_ldmvIwYrARCDg",  # Field of 68
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCaqPH-Ckzu_pSoO3AKcatNw",  # Sleepers Media
+]
+
+# If you already have SOURCES defined elsewhere, this will extend it.
+try:
+    SOURCES += YOUTUBE_FEEDS
+except NameError:
+    SOURCES = list(YOUTUBE_FEEDS)
     ("Hammer & Rails", "https://www.hammerandrails.com/rss/index.xml"),
     ("Journal & Courier Purdue", "https://rss.app/feeds/2iN67Qv7t9C1p7dS.xml"),
     ("Sports Illustrated (Purdue)", "https://www.si.com/college/purdue/.rss"),
