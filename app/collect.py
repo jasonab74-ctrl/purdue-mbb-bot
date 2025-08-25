@@ -26,7 +26,7 @@ GOOGLE_NEWS_MAX = int(os.environ.get("GOOGLE_NEWS_MAX", "10"))
 
 # Identify ourselves for politeness / fewer 403s
 REQUEST_HEADERS = {
-    "User-Agent": "Purdue-MBB-FeedBot/1.0 (+https://github.com/you/yourrepo)"
+    "User-Agent": "Purdue-MBB-FeedBot/1.0 (+https://example.com/)"
 }
 
 # ---------------------- Feeds -----------------------
@@ -37,7 +37,7 @@ try:
 except Exception as e:
     raise SystemExit(f"ERROR: could not import FEEDS from feeds.py: {e}")
 
-# Optional helper: if user kept a separate Google News tuple
+# Optional helper: if you kept a separate Google News tuple
 try:
     from feeds import GOOGLE_NEWS_FEED  # optional
     HAS_GOOGLE_NEWS = True
@@ -52,11 +52,8 @@ def strip_tags(s: str) -> str:
     """Turn HTML into plain text (UI shows summary_text)."""
     if not s:
         return ""
-    # Unescape entities first so tags like &lt;a&gt; become <a>
     s = html.unescape(s)
-    # Remove tags
     s = re.sub(r"<[^>]+>", " ", s)
-    # Collapse whitespace
     s = re.sub(r"\s+", " ", s).strip()
     return s
 
@@ -88,7 +85,6 @@ def canonicalize_url(url: str) -> str:
             allow.append((k, v))
     new_qs = urlencode(allow, doseq=True)
 
-    # Normalize scheme/host casing; path as-is
     p = p._replace(netloc=p.netloc.lower(), scheme=p.scheme.lower(), query=new_qs)
     return urlunparse(p)
 
@@ -124,15 +120,11 @@ def parse_feed(name: str, url: str) -> list[dict]:
         # Prefer 'content' -> 'summary' -> ''
         summary_html = ""
         if "content" in e and e.content:
-            # content is a list of dicts
             summary_html = " ".join(part.get("value", "") for part in e.content)
         else:
             summary_html = e.get("summary", "") or e.get("description", "")
 
-        # Some feeds (YT) have media descriptions in 'summary'; still fine
         pub_ts = best_published_ts(e)
-
-        # Normalize / unwrap links for dedupe
         link = canonicalize_url(link)
 
         items.append(
@@ -140,16 +132,14 @@ def parse_feed(name: str, url: str) -> list[dict]:
                 "source": name,
                 "title": strip_tags(title),
                 "link": link,
-                "summary": summary_html,  # keep raw for future, UI uses summary_text
+                "summary": summary_html,      # keep raw; UI also has summary_text
                 "summary_text": strip_tags(summary_html),
                 "published_ts": pub_ts,
-                # Optional extras (harmless if missing in UI)
                 "published": e.get("published", "") or e.get("updated", "") or "",
                 "id": e.get("id") or link,
             }
         )
 
-    # Optional cap for Google News noise
     if "google news" in name.lower():
         items = items[:GOOGLE_NEWS_MAX]
 
@@ -163,7 +153,6 @@ def collect_all() -> dict:
     """Fetch all feeds, merge, dedupe, sort newest->oldest, write JSON."""
     t0 = time.time()
 
-    # Build list of (name, url) in desired order
     feed_list = list(FEEDS)
     if HAS_GOOGLE_NEWS and isinstance(GOOGLE_NEWS_FEED, tuple):
         feed_list.append(GOOGLE_NEWS_FEED)
@@ -176,24 +165,21 @@ def collect_all() -> dict:
             logging.exception("Feed failed: %s — %s", name, e)
 
     # De-dupe by canonical link first, then fallback to (title, source)
-    seen_links = set()
+    seen = set()
     deduped: list[dict] = []
     for it in all_items:
-        key = (it.get("link") or "").lower()
-        if key and key not in seen_links:
-            seen_links.add(key)
+        k1 = (it.get("link") or "").lower()
+        if k1 and k1 not in seen:
+            seen.add(k1)
             deduped.append(it)
             continue
-        # Fallback key
-        key2 = (it.get("title", "").lower(), it.get("source", "").lower())
-        if key2 not in seen_links:
-            seen_links.add(key2)
+        k2 = (it.get("title", "").lower(), it.get("source", "").lower())
+        if k2 not in seen:
+            seen.add(k2)
             deduped.append(it)
 
-    # Sort newest → oldest
     deduped.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
 
-    # Trim overall
     if len(deduped) > MAX_TOTAL_ITEMS:
         deduped = deduped[:MAX_TOTAL_ITEMS]
 
@@ -204,7 +190,6 @@ def collect_all() -> dict:
         "count": len(deduped),
     }
 
-    # Ensure folder exists and write atomically
     DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
     tmp = DATA_PATH.with_suffix(".json.tmp")
     with tmp.open("w", encoding="utf-8") as f:
@@ -224,7 +209,6 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s",
     )
     out = collect_all()
-    # Print a tiny summary for logs/Render
     print(json.dumps({"count": out["count"], "updated_ts": out["updated_ts"]}))
 
 
