@@ -62,6 +62,15 @@ HTML = """<!doctype html>
     .left { display:flex; align-items:center; gap:14px; }
     .right { display:flex; align-items:center; gap:10px; }
   </style>
+  <style>
+  /* Safe, light polish — matches classes used in the script */
+  .status { font-size: 12px; color: #666; margin: 6px 0 12px; }
+  .card { padding: 12px 14px; border: 1px solid #eee; border-radius: 10px; margin: 10px 0; }
+  .title { font-weight: 700; text-decoration: none; display: inline-block; margin-bottom: 6px; }
+  .title:hover { text-decoration: underline; }
+  .meta { font-size: 12px; color: #777; margin-bottom: 8px; }
+  .summary { margin: 0; line-height: 1.4; }
+</style>
 </head>
 <body>
   <header>
