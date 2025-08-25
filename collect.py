@@ -1,156 +1,98 @@
-import re
+# collect.py
+#
+# Fetch Purdue Men's Basketball (MBB) items from a handful of sources,
+# filter for MBB-only, and return a cached-ready payload.
+
+from __future__ import annotations
 import time
-import logging
-from datetime import datetime, timezone
-from typing import List, Dict, Any
+import html
+import re
+from typing import List, Dict, Any, Tuple
 import requests
 import feedparser
-from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
+from urllib.parse import urlparse
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-log = logging.getLogger("collect")
+# ---------- HTTP config ----------
+UA = "purdue-mbb-bot/1.0 (+https://purdue-mbb-api.onrender.com)"
+REQ_TIMEOUT = (5, 10)  # connect, read seconds
+REQ_HEADERS = {"User-Agent": UA, "Accept": "application/rss+xml,application/atom+xml;q=0.9,*/*;q=0.8"}
 
-UA = (
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/127.0 Safari/537.36"
-)
-REQ_TIMEOUT = (6, 12)  # connect, read seconds
-
-# --- Feeds: tightly scoped to men's basketball ---
-FEEDS = [
-    ("Google News", "https://news.google.com/rss/search?q=Purdue%20men%27s%20basketball&hl=en-US&gl=US&ceid=US:en"),
-    ("Google News", "https://news.google.com/rss/search?q=Boilermakers%20men%27s%20basketball&hl=en-US&gl=US&ceid=US:en"),
+# ---------- Sources ----------
+SOURCES: List[Tuple[str, str]] = [
     ("Hammer & Rails", "https://www.hammerandrails.com/rss/index.xml"),
-    ("Journal & Courier", "https://rss.app/feeds/RF7ak4i8V5bXb8O7.xml"),  # fallback proxy; fine to keep
-    ("Purdue Athletics", "https://purduesports.com/feeds/posts?path=mbball"),  # men's basketball path when available
-    # Reddit (handle 429s gracefully)
-    ("Reddit", "https://www.reddit.com/r/Boilermakers/search.rss?q=Purdue%20men%27s%20basketball&restrict_sr=on&sort=new&t=month"),
+    ("Journal & Courier Purdue", "https://rss.app/feeds/2iN670v7t9C1p7dS.xml"),
+    ("Sports Illustrated (Purdue)", "https://www.si.com/college/purdue/.rss"),
+    ("Purdue Exponent", "https://www.purdueexponent.org/search/?f=atom&c=news%2Csports&t=article"),
+    ("GoldandBlack", "https://www.on3.com/feeds/goldandblack/purdue/"),
+    # Reddit (can rate-limit; we add strong UA and accept skips on 429)
+    ("Reddit r/Boilermakers", "https://www.reddit.com/r/Boilermakers/search.rss?q=Purdue%20men%27s%20basketball&restrict_sr=on&sort=new&t=month"),
 ]
 
-EXCLUDE_WORDS = re.compile(
-    r"\b(football|wbb|women'?s|volleyball|baseball|softball|soccer|wrestling|hockey|golf|track|cross[- ]country)\b",
-    re.I,
-)
+# ---------- Filtering ----------
+NEGATIVE = [
+    "football", "women's", "womens", "women’s", "soccer", "volleyball", "baseball", "softball",
+    "hockey", "wrestling", "golf", "tennis", "track", "cross country", "swim", "swimming"
+]
 
-INCLUDE_HINTS = re.compile(
-    r"\b(basketball|hoops|mbb)\b|Matt\s+Painter|Braden\s+Smith|Fletcher\s+Loyer|Lance\s+Jones|"
-    r"Trey\s+Kaufman|Myles\s+Colvin|Purdue\s+vs\.|Boilermakers",
-    re.I,
-)
+# Current / recent MBB names + coach + arena keywords.
+NAMES = [
+    "matt painter", "mackey arena", "braden smith", "fletcher loyer", "myles colvin",
+    "caleb furst", "trey kaufman", "camden heide", "lance jones", "mason gillis", "zach edey",
+    "zach edey", "z. edey", "purdue commit", "boilermakers guard", "boilermakers forward"
+]
 
+POSITIVE = ["basketball", "men's basketball", "mens basketball", "mbb", "boiler ball", "boilermaker ball"] + NAMES
 
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def _iso_from_struct(t) -> str:
-    if not t:
-        return _now_iso()
-    return datetime(*t[:6], tzinfo=timezone.utc).isoformat()
+MAX_AGE_DAYS = 120  # only keep reasonably recent items
 
 
-def canonicalize_url(u: str) -> str:
-    """Strip tracking params to help dedupe."""
+def _now_ms() -> int:
+    return int(time.time() * 1000)
+
+
+def _req_bytes(url: str) -> bytes | None:
     try:
-        p = urlparse(u)
-        q = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True)
-             if not k.lower().startswith(("utm_", "gclid", "fbclid"))]
-        return urlunparse(p._replace(query=urlencode(q)))
+        r = requests.get(url, headers=REQ_HEADERS, timeout=REQ_TIMEOUT, allow_redirects=True)
+        if r.status_code == 429:
+            # Too many requests (Reddit often does this). Just skip gracefully.
+            return None
+        r.raise_for_status()
+        return r.content
     except Exception:
-        return u
+        return None
 
 
-def parse_rss(url: str, source_name: str) -> List[Dict[str, Any]]:
-    """Fetch RSS with requests (so we control timeouts/headers), then parse via feedparser."""
+def parse_rss(url: str) -> feedparser.FeedParserDict | None:
+    raw = _req_bytes(url)
+    if not raw:
+        return None
     try:
-        resp = requests.get(
-            url,
-            headers={"User-Agent": UA, "Accept": "application/rss+xml,application/xml;q=0.9,*/*;q=0.8"},
-            timeout=REQ_TIMEOUT,
-        )
-        resp.raise_for_status()
-    except requests.HTTPError as e:
-        code = getattr(e.response, "status_code", None)
-        log.warning("[rss-skip] %s -> %s", url, e)
-        # Reddit rate limiting (429) is common; just skip
-        return []
-    except Exception as e:
-        log.warning("[rss-skip] %s -> %s", url, e)
-        return []
-
-    d = feedparser.parse(resp.content)
-    items = []
-    for e in d.entries:
-        title = (getattr(e, "title", "") or "").strip()
-        link = canonicalize_url((getattr(e, "link", "") or "").strip())
-        summary = (getattr(e, "summary", "") or "").strip()
-        published = _iso_from_struct(getattr(e, "published_parsed", None) or getattr(e, "updated_parsed", None))
-
-        if not title or not link:
-            continue
-
-        text = " ".join([title, summary]).lower()
-        if "purdue" not in text and "boilermaker" not in text:
-            # Still allow explicit MBB hints (e.g., player names), otherwise skip
-            if not INCLUDE_HINTS.search(title) and not INCLUDE_HINTS.search(summary):
-                continue
-
-        if EXCLUDE_WORDS.search(title) or EXCLUDE_WORDS.search(summary):
-            continue
-
-        ok = INCLUDE_HINTS.search(title) or INCLUDE_HINTS.search(summary)
-        if not ok:
-            # Require explicit basketball context to avoid other sports
-            continue
-
-        items.append({
-            "title": title,
-            "url": link,
-            "summary": summary,
-            "published": published,
-            "source": source_name,
-            "source_type": "RSS",
-        })
-    return items
+        return feedparser.parse(raw)
+    except Exception:
+        return None
 
 
-def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    seen = set()
-    out = []
-    for it in items:
-        key = (it.get("title", "").lower(), it.get("url", ""))
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append(it)
-    return out
+def _text(*parts: Any) -> str:
+    s = " ".join([str(p) for p in parts if p])
+    s = html.unescape(s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
 
 
-def collect_all() -> Dict[str, Any]:
-    all_items: List[Dict[str, Any]] = []
-    for source_name, url in FEEDS:
-        batch = parse_rss(url, source_name)
-        all_items.extend(batch)
-
-    # Sort newest first
-    all_items = dedupe(all_items)
-    all_items.sort(key=lambda x: x.get("published", ""), reverse=True)
-
-    return {
-        "fetched_at": _now_iso(),
-        "count": len(all_items),
-        "items": all_items,
-    }
+def _is_recent(entry: feedparser.FeedParserDict) -> bool:
+    # Accept entries without dates, but prefer recent ones.
+    try:
+        tm = entry.get("published_parsed") or entry.get("updated_parsed")
+        if not tm:
+            return True
+        ts = int(time.mktime(tm))  # seconds
+        age_days = (time.time() - ts) / 86400.0
+        return age_days <= MAX_AGE_DAYS
+    except Exception:
+        return True
 
 
-def collect_debug() -> Dict[str, Any]:
-    data = collect_all()
-    by_source: Dict[str, int] = {}
-    for it in data["items"]:
-        by_source[it["source"]] = by_source.get(it["source"], 0) + 1
-    return {
-        "fetched_at": data["fetched_at"],
-        "total": data["count"],
-        "by_source": by_source,
-        "example": data["items"][:3],
-    }
+def _host_key(link: str) -> str:
+    try:
+        u = urlparse(link)
+        return f"{u.netloc}{u.pa
