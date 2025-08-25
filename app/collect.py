@@ -1,231 +1,232 @@
-# collect.py
-import os, html
-import email.utils as eut
-from datetime import datetime, timezone
-from typing import List, Dict, Tuple
-import requests, feedparser
+# app/collect.py
+# Aggregate Purdue MBB feeds -> data/news.json
+# Works with feeds.py (FEEDS list). Requires: feedparser
 
-# ------------ CONFIG ------------
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
+import os
+import json
+import time
+import re
+import html
+import logging
+from pathlib import Path
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse, parse_qsl
 
-# (url, is_team_specific, label)
-FEEDS: List[Tuple[str, bool, str]] = [
-    ("https://purduesports.com/rss.aspx?path=mbball", True,  "PurdueSports"),
-    ("https://www.on3.com/feeds/team/purdue-boilermakers/", True, "On3 Purdue"),
-    ("https://www.sbnation.com/rss/team/purdue-boilermakers/index.xml", True, "Hammer & Rails"),
+import feedparser
 
-    ("https://www.si.com/.rss/full/purdue-boilermakers", False, "SI Purdue"),
-    ("https://www.jconline.com/search/?q=Purdue%20basketball&output=rss", False, "J&C"),
-    ("https://www.indystar.com/search/?q=Purdue%20basketball&output=rss", False, "IndyStar"),
+# ---------------------- Config ----------------------
 
-    # Broad Google News — these get filtered by TEAM_KEYWORDS
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+men%27s+basketball+OR+%22Purdue+basketball%22+OR+%22Purdue+MBB%22&hl=en-US&gl=US&ceid=US:en", False, "GN broad 1"),
-    ("https://news.google.com/rss/search?q=Purdue+basketball+OR+Boilermakers+basketball&hl=en-US&gl=US&ceid=US:en", False, "GN broad 2"),
-    # ultra-safe fallback (very broad)
-    ("https://news.google.com/rss/search?q=Purdue&hl=en-US&gl=US&ceid=US:en", False, "GN fallback"),
+# Where to write the merged JSON that server.py reads
+DATA_PATH = Path(os.environ.get("DATA_PATH", "data/news.json"))
 
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:espn.com&hl=en-US&gl=US&ceid=US:en", False, "GN ESPN"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:yahoo.com&hl=en-US&gl=US&ceid=US:en", False, "GN Yahoo"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:cbssports.com&hl=en-US&gl=US&ceid=US:en", False, "GN CBS"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:theathletic.com&hl=en-US&gl=US&ceid=US:en", False, "GN Athletic"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:usatoday.com&hl=en-US&gl=US&ceid=US:en", False, "GN USAT"),
-    ("https://news.google.com/rss/search?q=Purdue+Boilermakers+basketball+site:apnews.com&hl=en-US&gl=US&ceid=US:en", False, "GN AP"),
+# Number of items to keep overall (after sorting)
+MAX_TOTAL_ITEMS = int(os.environ.get("MAX_TOTAL_ITEMS", "500"))
 
-    ("https://www.wlfi.com/search/?f=rss&t=article&s=start_time&sd=desc&q=Purdue%20basketball", False, "WLFI"),
-    ("https://www.journalgazette.net/search/?f=rss&c=news*&q=Purdue%20basketball", False, "FortWayne JG"),
-    ("https://www.nwitimes.com/search/?f=rss&t=article&q=Purdue%20basketball&s=start_time&sd=desc", False, "NW Indiana Times"),
-]
+# If you keep a Google News feed, limit how many of its items we take
+GOOGLE_NEWS_MAX = int(os.environ.get("GOOGLE_NEWS_MAX", "10"))
 
-REDDIT_SR = ["Boilermakers", "CollegeBasketball"]
-
-YOUTUBE_CHANNEL_ALLOW = [
-    "Field of 68", "Sleepers Media", "Purdue Athletics", "PurdueSports",
-    "BTN", "Big Ten Network", "BoilerUpload", "BoilerBall",
-]
-
-TEAM_KEYWORDS = [
-    "purdue","boilermaker","boilermakers","purdue mbb","boilerball",
-    "matt painter","braden smith","fletcher loyer","caleb furst",
-    "trey kaufman","mason gillis","zach edey","boilers"
-]
-
-HTTP_TIMEOUT = 20
-UA_STR = "Mozilla/5.0 (X11; Linux x86_64) Purdue-MBB/1.3 (+https://example.com)"
-REQ_HEADERS = {"User-Agent": UA_STR, "Accept": "*/*"}
-
-STATS = {
-    "rss": {"ok": 0, "kept": 0, "skipped": 0},
-    "reddit": {"ok": 0, "kept": 0, "skipped": 0},
-    "youtube": {"ok": 0, "kept": 0, "skipped": 0},
-    "feeds": {},
-    "errors": []
+# Identify ourselves for politeness / fewer 403s
+REQUEST_HEADERS = {
+    "User-Agent": "Purdue-MBB-FeedBot/1.0 (+https://github.com/you/yourrepo)"
 }
-# ------------ END CONFIG ------------
 
-def _note_error(where: str, err: Exception):
-    msg = f"{where}: {type(err).__name__}: {err}"
-    STATS["errors"].append(msg)
-    STATS["errors"] = STATS["errors"][-30:]
+# ---------------------- Feeds -----------------------
 
-def _parse_date_guess(s: str) -> str:
-    if not s: return datetime.now(timezone.utc).isoformat()
+try:
+    # Expect feeds.py to live alongside this file or on PYTHONPATH
+    from feeds import FEEDS  # required
+except Exception as e:
+    raise SystemExit(f"ERROR: could not import FEEDS from feeds.py: {e}")
+
+# Optional helper: if user kept a separate Google News tuple
+try:
+    from feeds import GOOGLE_NEWS_FEED  # optional
+    HAS_GOOGLE_NEWS = True
+except Exception:
+    GOOGLE_NEWS_FEED = None
+    HAS_GOOGLE_NEWS = False
+
+# ---------------------- Utils ----------------------
+
+
+def strip_tags(s: str) -> str:
+    """Turn HTML into plain text (UI shows summary_text)."""
+    if not s:
+        return ""
+    # Unescape entities first so tags like &lt;a&gt; become <a>
+    s = html.unescape(s)
+    # Remove tags
+    s = re.sub(r"<[^>]+>", " ", s)
+    # Collapse whitespace
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
+def unwrap_google_news(url: str) -> str:
+    """If this is a news.google.com link, return the embedded original URL."""
     try:
-        dt = eut.parsedate_to_datetime(s)
-        if not dt.tzinfo: dt = dt.replace(tzinfo=timezone.utc)
-        return dt.isoformat()
+        p = urlparse(url)
+        if "news.google.com" in p.netloc:
+            q = parse_qs(p.query)
+            if "url" in q and q["url"]:
+                return q["url"][0]
     except Exception:
         pass
+    return url
+
+
+def canonicalize_url(url: str) -> str:
+    """Normalize URL (remove UTM etc.) for dedupe."""
+    if not url:
+        return url
+    url = unwrap_google_news(url)
+
+    p = urlparse(url)
+    # strip tracking params commonly seen
+    allow = []
+    for k, v in parse_qsl(p.query, keep_blank_values=True):
+        if not k.lower().startswith(("utm_", "gclid", "oc")):
+            allow.append((k, v))
+    new_qs = urlencode(allow, doseq=True)
+
+    # Normalize scheme/host casing; path as-is
+    p = p._replace(netloc=p.netloc.lower(), scheme=p.scheme.lower(), query=new_qs)
+    return urlunparse(p)
+
+
+def as_epoch(struct_time) -> int | None:
     try:
-        dt = datetime.fromisoformat(s.replace("Z","+00:00"))
-        if not dt.tzinfo: dt = dt.replace(tzinfo=timezone.utc)
-        return dt.isoformat()
+        return int(time.mktime(struct_time))
     except Exception:
-        return datetime.now(timezone.utc).isoformat()
+        return None
 
-def _clean(s: str) -> str: return html.unescape((s or "").strip())
-def _looks_purdue(t: str) -> bool:
-    tl = (t or "").lower()
-    return any(k in tl for k in TEAM_KEYWORDS)
 
-def _fetch_feed_with_requests(url: str, label: str):
-    """Fetch RSS bytes with a real UA; fall back to feedparser’s internal fetch if needed."""
-    try:
-        r = requests.get(url, headers=REQ_HEADERS, timeout=HTTP_TIMEOUT)
-        r.raise_for_status()
-        return feedparser.parse(r.content)
-    except Exception as e:
-        _note_error(f"rss_http<{label}>", e)
+def best_published_ts(entry) -> int:
+    """Pick the best available timestamp for an entry; fallback to 'now'."""
+    for key in ("published_parsed", "updated_parsed", "created_parsed"):
+        st = entry.get(key)
+        if st:
+            ts = as_epoch(st)
+            if ts:
+                return ts
+    return int(time.time())
+
+
+def parse_feed(name: str, url: str) -> list[dict]:
+    """Return list of normalized items from a single feed."""
+    logging.info("Fetching: %s — %s", name, url)
+    d = feedparser.parse(url, request_headers=REQUEST_HEADERS)
+
+    items = []
+    for e in d.entries:
+        title = e.get("title") or "(untitled)"
+        link = e.get("link") or ""
+
+        # Prefer 'content' -> 'summary' -> ''
+        summary_html = ""
+        if "content" in e and e.content:
+            # content is a list of dicts
+            summary_html = " ".join(part.get("value", "") for part in e.content)
+        else:
+            summary_html = e.get("summary", "") or e.get("description", "")
+
+        # Some feeds (YT) have media descriptions in 'summary'; still fine
+        pub_ts = best_published_ts(e)
+
+        # Normalize / unwrap links for dedupe
+        link = canonicalize_url(link)
+
+        items.append(
+            {
+                "source": name,
+                "title": strip_tags(title),
+                "link": link,
+                "summary": summary_html,  # keep raw for future, UI uses summary_text
+                "summary_text": strip_tags(summary_html),
+                "published_ts": pub_ts,
+                # Optional extras (harmless if missing in UI)
+                "published": e.get("published", "") or e.get("updated", "") or "",
+                "id": e.get("id") or link,
+            }
+        )
+
+    # Optional cap for Google News noise
+    if "google news" in name.lower():
+        items = items[:GOOGLE_NEWS_MAX]
+
+    return items
+
+
+# ---------------------- Core -----------------------
+
+
+def collect_all() -> dict:
+    """Fetch all feeds, merge, dedupe, sort newest->oldest, write JSON."""
+    t0 = time.time()
+
+    # Build list of (name, url) in desired order
+    feed_list = list(FEEDS)
+    if HAS_GOOGLE_NEWS and isinstance(GOOGLE_NEWS_FEED, tuple):
+        feed_list.append(GOOGLE_NEWS_FEED)
+
+    all_items: list[dict] = []
+    for name, url in feed_list:
         try:
-            # last-ditch: feedparser’s own downloader (add headers)
-            return feedparser.parse(url, request_headers=REQ_HEADERS)
-        except Exception as e2:
-            _note_error(f"rss_fp_fallback<{label}>", e2)
-            return feedparser.FeedParserDict(entries=[])
+            all_items.extend(parse_feed(name, url))
+        except Exception as e:
+            logging.exception("Feed failed: %s — %s", name, e)
 
-def fetch_rss() -> List[Dict]:
-    out: List[Dict] = []
-    for url, team_specific, label in FEEDS:
-        try:
-            feed = _fetch_feed_with_requests(url, label)
-            STATS["rss"]["ok"] += 1
-            kept_here = 0
-            for e in feed.entries[:100]:
-                title = _clean(getattr(e, "title", "")); link = getattr(e, "link", "")
-                if not title or not link:
-                    STATS["rss"]["skipped"] += 1; continue
-                summary = _clean(getattr(e, "summary", ""))
+    # De-dupe by canonical link first, then fallback to (title, source)
+    seen_links = set()
+    deduped: list[dict] = []
+    for it in all_items:
+        key = (it.get("link") or "").lower()
+        if key and key not in seen_links:
+            seen_links.add(key)
+            deduped.append(it)
+            continue
+        # Fallback key
+        key2 = (it.get("title", "").lower(), it.get("source", "").lower())
+        if key2 not in seen_links:
+            seen_links.add(key2)
+            deduped.append(it)
 
-                keep = True if team_specific else (_looks_purdue(title) or _looks_purdue(summary))
-                if not keep:
-                    STATS["rss"]["skipped"] += 1; continue
+    # Sort newest → oldest
+    deduped.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
 
-                pub = getattr(e, "published", None) or getattr(e, "updated", None) or getattr(e, "pubDate", None)
-                out.append({
-                    "title": title,
-                    "url": link,
-                    "published_at": _parse_date_guess(str(pub)),
-                    "source": "News",
-                    "description": summary[:240],
-                })
-                STATS["rss"]["kept"] += 1
-                kept_here += 1
+    # Trim overall
+    if len(deduped) > MAX_TOTAL_ITEMS:
+        deduped = deduped[:MAX_TOTAL_ITEMS]
 
-            if kept_here:
-                STATS["feeds"][label] = STATS["feeds"].get(label, 0) + kept_here
-
-        except Exception as err:
-            _note_error(f"fetch_rss<{label}>", err)
-    return out
-
-def fetch_reddit() -> List[Dict]:
-    out: List[Dict] = []
-    for sr in REDDIT_SR:
-        try:
-            r = requests.get(
-                f"https://www.reddit.com/r/{sr}/new.json?limit=40",
-                headers={"User-Agent": UA_STR, "Accept": "application/json"},
-                timeout=HTTP_TIMEOUT
-            )
-            r.raise_for_status()
-            STATS["reddit"]["ok"] += 1
-            data = r.json().get("data", {})
-            for ch in data.get("children", []):
-                d = ch.get("data", {})
-                title = _clean(d.get("title", "")); body = _clean(d.get("selftext", ""))
-                if not title or not (_looks_purdue(title) or _looks_purdue(body)):
-                    STATS["reddit"]["skipped"] += 1; continue
-                permalink = d.get("permalink", ""); ts = d.get("created_utc")
-                when = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat() if ts else datetime.now(timezone.utc).isoformat()
-                out.append({
-                    "title": title,
-                    "url": f"https://reddit.com{permalink}" if permalink else "https://reddit.com",
-                    "published_at": when,
-                    "source": f"Reddit r/{sr}",
-                    "description": body[:240],
-                })
-                STATS["reddit"]["kept"] += 1
-        except Exception as err:
-            _note_error(f"fetch_reddit<r/{sr}>", err)
-    return out
-
-def fetch_youtube() -> List[Dict]:
-    if not YOUTUBE_API_KEY:
-        _note_error("youtube", Exception("YOUTUBE_API_KEY not set"))
-        return []
-    out: List[Dict] = []; seen = set()
-    for q in ["Purdue basketball","Purdue Boilermakers basketball","Purdue MBB"]:
-        try:
-            url = ("https://www.googleapis.com/youtube/v3/search"
-                   f"?key={YOUTUBE_API_KEY}&part=snippet&order=date&type=video&maxResults=30&q={requests.utils.quote(q)}")
-            r = requests.get(url, headers=REQ_HEADERS, timeout=HTTP_TIMEOUT); r.raise_for_status()
-            for it in r.json().get("items", []):
-                vid = it.get("id", {}).get("videoId")
-                if not vid or vid in seen: continue
-                sn = it.get("snippet", {}) or {}
-                title = _clean(sn.get("title", "")); desc = _clean(sn.get("description", ""))
-                ch = _clean(sn.get("channelTitle", "")) or "YouTube"
-                when = _parse_date_guess(sn.get("publishedAt", ""))
-                allowed = any(ch.lower() == a.lower() for a in YOUTUBE_CHANNEL_ALLOW)
-                if not (allowed or _looks_purdue(title) or _looks_purdue(desc)):
-                    STATS["youtube"]["skipped"] += 1; continue
-                out.append({
-                    "title": title,
-                    "url": f"https://www.youtube.com/watch?v={vid}",
-                    "published_at": when,
-                    "source": ch,
-                    "description": desc[:240],
-                })
-                seen.add(vid); STATS["youtube"]["kept"] += 1
-        except Exception as err:
-            _note_error("fetch_youtube", err)
-    return out
-
-def _dedupe(items: List[Dict]) -> List[Dict]:
-    seen=set(); out=[]
-    for x in items:
-        key=(x.get("title","").strip().lower(), x.get("url","").strip().lower())
-        if key in seen: continue
-        seen.add(key); out.append(x)
-    return out
-
-def collect_all() -> List[Dict]:
-    STATS["feeds"].clear()
-    items = fetch_rss() + fetch_reddit() + fetch_youtube()
-    items = _dedupe(items)
-    items.sort(key=lambda i: i.get("published_at",""), reverse=True)
-    return items[:200]
-
-def collect_debug() -> Dict:
-    now = datetime.now(timezone.utc).isoformat()
-    return {
-        "now": now,
-        "stats": STATS,
-        "feeds_config": [{"url": u, "team_specific": ts, "label": lbl} for (u, ts, lbl) in FEEDS],
-        "youtube_key_present": bool(YOUTUBE_API_KEY),
-        "team_keywords": TEAM_KEYWORDS,
-        "ua": UA_STR,
+    out = {
+        "updated_ts": int(time.time()),
+        "items": deduped,
+        "took_ms": int((time.time() - t0) * 1000),
+        "count": len(deduped),
     }
 
+    # Ensure folder exists and write atomically
+    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp = DATA_PATH.with_suffix(".json.tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False)
+    tmp.replace(DATA_PATH)
+
+    logging.info("Wrote %s items to %s in %d ms", len(deduped), DATA_PATH, out["took_ms"])
+    return out
+
+
+# ---------------------- CLI ------------------------
+
+
+def main():
+    logging.basicConfig(
+        level=os.environ.get("LOGLEVEL", "INFO"),
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
+    out = collect_all()
+    # Print a tiny summary for logs/Render
+    print(json.dumps({"count": out["count"], "updated_ts": out["updated_ts"]}))
+
+
 if __name__ == "__main__":
-    import json
-    print(json.dumps(collect_all(), indent=2))
+    main()
