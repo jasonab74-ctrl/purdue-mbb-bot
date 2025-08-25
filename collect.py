@@ -1,123 +1,156 @@
-import time
 import re
-import html
-from typing import List, Dict, Any, Tuple
+import time
+import logging
+from datetime import datetime, timezone
+from typing import List, Dict, Any
 import requests
 import feedparser
+from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 
-# --- Tunables ---------------------------------------------------------------
-REQUEST_TIMEOUT = 12            # seconds per HTTP GET
-TOTAL_COLLECT_BUDGET = 40       # hard cap for one full refresh
-MAX_ITEMS = 200                 # keep it reasonable
-USER_AGENT = "purdue-mbb-bot/1.0 (+https://github.com/yourrepo)"
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("collect")
 
-# Sources (RSS/Atom) — add/remove freely. Filters below keep only MBB.
-SOURCES: List[Tuple[str, str]] = [
+UA = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/127.0 Safari/537.36"
+)
+REQ_TIMEOUT = (6, 12)  # connect, read seconds
+
+# --- Feeds: tightly scoped to men's basketball ---
+FEEDS = [
+    ("Google News", "https://news.google.com/rss/search?q=Purdue%20men%27s%20basketball&hl=en-US&gl=US&ceid=US:en"),
+    ("Google News", "https://news.google.com/rss/search?q=Boilermakers%20men%27s%20basketball&hl=en-US&gl=US&ceid=US:en"),
     ("Hammer & Rails", "https://www.hammerandrails.com/rss/index.xml"),
-    ("Journal & Courier Purdue", "https://rss.app/feeds/2iN67Qv7t9C1p7dS.xml"),  # fallback feed; fine if 404/slow; we'll skip.
-    ("Sports Illustrated (Purdue)", "https://www.si.com/college/purdue/.rss"),
-    ("Purdue Exponent", "https://www.purdueexponent.org/search/?f=atom&c=news%2Csports&t=article"),
-    ("GoldandBlack", "https://www.on3.com/feeds/goldandblack/purdue/"),  # many sites block; skip on error
-    # Reddit: search inside r/Boilermakers (we’ll be respectful + skip on 429)
-    ("Reddit r/Boilermakers",
-     "https://www.reddit.com/r/Boilermakers/search.rss?q=Purdue%20men%27s%20basketball&restrict_sr=on&sort=new&t=month"),
+    ("Journal & Courier", "https://rss.app/feeds/RF7ak4i8V5bXb8O7.xml"),  # fallback proxy; fine to keep
+    ("Purdue Athletics", "https://purduesports.com/feeds/posts?path=mbball"),  # men's basketball path when available
+    # Reddit (handle 429s gracefully)
+    ("Reddit", "https://www.reddit.com/r/Boilermakers/search.rss?q=Purdue%20men%27s%20basketball&restrict_sr=on&sort=new&t=month"),
 ]
 
-# --- Helpers ----------------------------------------------------------------
+EXCLUDE_WORDS = re.compile(
+    r"\b(football|wbb|women'?s|volleyball|baseball|softball|soccer|wrestling|hockey|golf|track|cross[- ]country)\b",
+    re.I,
+)
 
-def _http_get(url: str) -> str | None:
-    """Fetch text with UA + timeout. Returns response.text or None."""
+INCLUDE_HINTS = re.compile(
+    r"\b(basketball|hoops|mbb)\b|Matt\s+Painter|Braden\s+Smith|Fletcher\s+Loyer|Lance\s+Jones|"
+    r"Trey\s+Kaufman|Myles\s+Colvin|Purdue\s+vs\.|Boilermakers",
+    re.I,
+)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _iso_from_struct(t) -> str:
+    if not t:
+        return _now_iso()
+    return datetime(*t[:6], tzinfo=timezone.utc).isoformat()
+
+
+def canonicalize_url(u: str) -> str:
+    """Strip tracking params to help dedupe."""
     try:
-        r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=REQUEST_TIMEOUT)
-        # handle “Too Many Requests” from Reddit or others without blowing up:
-        if r.status_code == 429:
-            return None
-        r.raise_for_status()
-        ct = r.headers.get("content-type","").lower()
-        # feedparser is fine with XML/Atom/HTML as text
-        r.encoding = r.encoding or ("utf-8" if "charset" not in ct else None)
-        return r.text
+        p = urlparse(u)
+        q = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True)
+             if not k.lower().startswith(("utm_", "gclid", "fbclid"))]
+        return urlunparse(p._replace(query=urlencode(q)))
     except Exception:
-        return None
+        return u
 
-def parse_rss(url: str) -> List[Dict[str, Any]]:
-    """Best-effort parse of a feed URL."""
-    text = _http_get(url)
-    if not text:
+
+def parse_rss(url: str, source_name: str) -> List[Dict[str, Any]]:
+    """Fetch RSS with requests (so we control timeouts/headers), then parse via feedparser."""
+    try:
+        resp = requests.get(
+            url,
+            headers={"User-Agent": UA, "Accept": "application/rss+xml,application/xml;q=0.9,*/*;q=0.8"},
+            timeout=REQ_TIMEOUT,
+        )
+        resp.raise_for_status()
+    except requests.HTTPError as e:
+        code = getattr(e.response, "status_code", None)
+        log.warning("[rss-skip] %s -> %s", url, e)
+        # Reddit rate limiting (429) is common; just skip
         return []
-    d = feedparser.parse(text)
+    except Exception as e:
+        log.warning("[rss-skip] %s -> %s", url, e)
+        return []
+
+    d = feedparser.parse(resp.content)
     items = []
-    for e in d.entries[:100]:
-        title = html.unescape(getattr(e, "title", "").strip())
-        link = getattr(e, "link", "").strip()
-        summary = html.unescape(getattr(e, "summary", getattr(e, "description", ""))).strip()
-        # Normalize published date if present
-        published = getattr(e, "published", "") or getattr(e, "updated", "") or ""
-        source = getattr(d.feed, "title", "") or url
+    for e in d.entries:
+        title = (getattr(e, "title", "") or "").strip()
+        link = canonicalize_url((getattr(e, "link", "") or "").strip())
+        summary = (getattr(e, "summary", "") or "").strip()
+        published = _iso_from_struct(getattr(e, "published_parsed", None) or getattr(e, "updated_parsed", None))
+
+        if not title or not link:
+            continue
+
+        text = " ".join([title, summary]).lower()
+        if "purdue" not in text and "boilermaker" not in text:
+            # Still allow explicit MBB hints (e.g., player names), otherwise skip
+            if not INCLUDE_HINTS.search(title) and not INCLUDE_HINTS.search(summary):
+                continue
+
+        if EXCLUDE_WORDS.search(title) or EXCLUDE_WORDS.search(summary):
+            continue
+
+        ok = INCLUDE_HINTS.search(title) or INCLUDE_HINTS.search(summary)
+        if not ok:
+            # Require explicit basketball context to avoid other sports
+            continue
+
         items.append({
-            "title": title, "link": link, "summary": summary,
-            "published": published, "source": source
+            "title": title,
+            "url": link,
+            "summary": summary,
+            "published": published,
+            "source": source_name,
+            "source_type": "RSS",
         })
     return items
 
-# Strong “MBB-only” filter.
-_NEG = re.compile(r"\b(women|wbb|football|soccer|volleyball|baseball|softball|wrestling|track|golf|tennis|swim|minors?)\b", re.I)
-_POS_ANY = re.compile(r"\b(basketball|mbb|m\.?b\.?b\.?|march madness|mackey|big ten|b1g)\b", re.I)
-_PURDUE = re.compile(r"\b(purdue|boilermakers?|boilers)\b", re.I)
 
-def is_mbb(item: Dict[str, Any]) -> bool:
-    text = f"{item.get('title','')} {item.get('summary','')} {item.get('link','')}"
-    if _NEG.search(text):
-        return False
-    if _PURDUE.search(text) and _POS_ANY.search(text):
-        return True
-    # Allow some known sources to pass with “basketball” only
-    if _POS_ANY.search(text) and any(k in (item.get("source","").lower()) for k in ("hammer & rails","journal","si.com","goldandblack","exponent")):
-        return True
-    return False
+def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen = set()
+    out = []
+    for it in items:
+        key = (it.get("title", "").lower(), it.get("url", ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(it)
+    return out
+
 
 def collect_all() -> Dict[str, Any]:
-    """Fetch from all sources with a total time budget and return curated items."""
-    started = time.monotonic()
     all_items: List[Dict[str, Any]] = []
-    per_source = []
+    for source_name, url in FEEDS:
+        batch = parse_rss(url, source_name)
+        all_items.extend(batch)
 
-    for name, url in SOURCES:
-        if time.monotonic() - started > TOTAL_COLLECT_BUDGET:
-            per_source.append({"name": name, "url": url, "error": "budget_exceeded"})
-            break
-        try:
-            batch = parse_rss(url)
-            kept = [x | {"source": name} for x in batch if is_mbb(x | {"source": name})]
-            all_items.extend(kept)
-            per_source.append({"name": name, "url": url, "fetched": len(batch), "kept": len(kept)})
-        except Exception as e:
-            per_source.append({"name": name, "url": url, "error": str(e)})
+    # Sort newest first
+    all_items = dedupe(all_items)
+    all_items.sort(key=lambda x: x.get("published", ""), reverse=True)
 
-    # de-dup by link, keep most recent first by published text (not perfect but fine)
-    seen = set()
-    unique = []
-    for item in all_items:
-        link = item.get("link","")
-        if link in seen: 
-            continue
-        seen.add(link)
-        unique.append(item)
-
-    # simple recency sort on string (feeds vary; we just keep the list stable)
-    unique = unique[:MAX_ITEMS]
     return {
-        "updated": int(time.time()),
-        "count": len(unique),
-        "items": unique,
-        "sources": per_source,
+        "fetched_at": _now_iso(),
+        "count": len(all_items),
+        "items": all_items,
     }
 
+
 def collect_debug() -> Dict[str, Any]:
-    sample = collect_all()
+    data = collect_all()
+    by_source: Dict[str, int] = {}
+    for it in data["items"]:
+        by_source[it["source"]] = by_source.get(it["source"], 0) + 1
     return {
-        "updated": sample["updated"],
-        "count": sample["count"],
-        "sources": sample["sources"],
-        "example": sample["items"][:3],
+        "fetched_at": data["fetched_at"],
+        "total": data["count"],
+        "by_source": by_source,
+        "example": data["items"][:3],
     }
