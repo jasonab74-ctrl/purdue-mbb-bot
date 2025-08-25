@@ -1,15 +1,16 @@
 # server.py
-from __future__ import annotations
+from flask import Flask, jsonify, Response, request
 import json
-from pathlib import Path
-from flask import Flask, Response, request, jsonify
+import time
 
-# IMPORTANT: use the collector inside the app package
-from app import collect
+# your existing collector
+import collect  # must exist in the same app folder
 
-APP = Flask(__name__)
-DATA_PATH = Path("data/news.json")
+app = Flask(__name__)
 
+CACHE = {"data": None, "updated": 0}
+
+# ----------------- HTML -----------------
 HTML = r"""<!doctype html>
 <html lang="en">
 <head>
@@ -37,12 +38,14 @@ HTML = r"""<!doctype html>
     .quicklinks a{display:inline-block;background:#fff;border:1px solid var(--border);padding:8px 12px;border-radius:999px;text-decoration:none;color:#1f3aff;font-weight:600}
     .quicklinks a:hover{background:#f3f4f6}
     .loaded{color:var(--sub);font-size:13px;margin:8px 0 10px}
-    .list{display:grid;gap:10px} /* tighter spacing */
+    .list{display:grid;gap:10px}
     .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
     .meta{color:var(--sub);font-size:13px;margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
     .source{background:var(--chip);color:var(--chip-text);padding:2px 8px;border-radius:999px;font-weight:700}
     .title{font-weight:800;font-size:18px;text-decoration:none;color:#111827}
     .title:hover{text-decoration:underline}
+    /* Belt-and-suspenders: even if a <p> is inserted, never show it */
+    .card p, .card .snippet { display:none !important; }
     @media (max-width:520px){.logo{width:44px;height:44px}.title{font-size:17px}}
   </style>
 </head>
@@ -97,7 +100,7 @@ HTML = r"""<!doctype html>
         a.className="title"; a.href = it.link || "#"; a.target="_blank"; a.rel="noopener";
         a.textContent = it.title || "(untitled)";
 
-        // Only title + meta (no summaries/verbiage)
+        // Only title + meta (no summary)
         card.append(meta,a);
         list.append(card);
       });
@@ -139,27 +142,60 @@ HTML = r"""<!doctype html>
   </script>
 </body>
 </html>"""
+# ----------------- /HTML -----------------
 
-@APP.get("/")
-def home():
+def _collect_cached():
+    """Return cached data; refresh if stale (>15 min) or empty."""
+    now = int(time.time())
+    if not CACHE["data"] or now - CACHE["updated"] > 900:
+        CACHE["data"] = collect.collect_all()
+        CACHE["updated"] = now
+    return CACHE["data"]
+
+@app.get("/")
+def index():
     return Response(HTML, mimetype="text/html")
 
-@APP.get("/api/news")
+@app.get("/api/news")
 def api_news():
-    if not DATA_PATH.exists():
-        payload = collect.collect_all()
-        return jsonify(payload)
-    return Response(DATA_PATH.read_text(encoding="utf-8"), mimetype="application/json")
+    data = _collect_cached()
+    # normalize the shape the front-end expects
+    out = {
+        "items": [
+            {
+                "title": it.get("title"),
+                "link": it.get("link"),
+                "source": it.get("source"),
+                "summary_text": it.get("summary_text", ""),  # not used by UI anymore
+                "published_ts": it.get("published_ts"),
+            }
+            for it in data.get("items", [])
+        ],
+        "updated_ts": data.get("updated"),
+        "count": data.get("count", 0),
+        "sources": data.get("sources", []),
+    }
+    return jsonify(out)
 
-@APP.post("/api/refresh-now")
-def refresh_now():
-    payload = collect.collect_all()
-    return jsonify({"ok": True, "count": payload.get("count", 0), "updated_ts": payload.get("updated_ts")})
+@app.post("/api/refresh-now")
+def api_refresh_now():
+    CACHE["data"] = collect.collect_all()
+    CACHE["updated"] = int(time.time())
+    return jsonify({"ok": True, "updated_ts": CACHE["updated"], "count": CACHE["data"].get("count", 0)})
 
-@APP.get("/api/debug")
-def debug():
-    info = {"data_path": str(DATA_PATH.resolve()), "exists": DATA_PATH.exists(), "size_bytes": DATA_PATH.stat().st_size if DATA_PATH.exists() else 0}
-    return jsonify(info)
+@app.get("/api/debug")
+def api_debug():
+    """Plain JSON so you can confirm the raw feed without the UI."""
+    data = _collect_cached()
+    # show only the first few entries to keep it readable in browser
+    sample = data.get("items", [])[:3]
+    obj = {
+        "by_source": {s["name"]: s.get("fetched", 0) for s in data.get("sources", [])},
+        "example": sample,
+        "fetched_at": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(CACHE["updated"])),
+        "total": data.get("count", 0),
+    }
+    return Response(json.dumps(obj, ensure_ascii=False), mimetype="application/json")
 
 if __name__ == "__main__":
-    APP.run(host="0.0.0.0", port=8000, debug=False)
+    app.run(host="0.0.0.0", port=8000)
