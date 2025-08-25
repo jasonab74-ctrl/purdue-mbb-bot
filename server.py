@@ -5,7 +5,7 @@ import json
 import threading
 
 # local
-import collect
+from app import collect
 
 app = Flask(__name__)
 CORS(app)
