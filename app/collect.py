@@ -1,8 +1,7 @@
 # app/collect.py
 import time, re, html, hashlib
 from typing import List, Dict, Any
-import feedparser
-import requests
+import feedparser, requests
 
 USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/122.0 Safari/537.36")
@@ -62,8 +61,7 @@ def _is_relevant(title: str, summary: str, source_name: str) -> bool:
 
 def collect_all() -> Dict[str, Any]:
     seen = set()
-    items = []
-    sources_state = []
+    items, sources_state = [], []
 
     for src in SOURCES:
         name, url = src["name"], src["url"]
@@ -98,7 +96,7 @@ def collect_all() -> Dict[str, Any]:
                     "title": title,
                     "link": link,
                     "source": name,
-                    "summary_text": summary_text,  # cleaned
+                    "summary_text": summary_text,
                     "published_ts": _epoch(e),
                 })
                 kept += 1
@@ -108,7 +106,6 @@ def collect_all() -> Dict[str, Any]:
         sources_state.append({"name": name, "url": url, "fetched": fetched, "kept": kept})
 
     items.sort(key=lambda x: x.get("published_ts",0), reverse=True)
-
     return {"count": len(items), "items": items, "sources": sources_state, "updated": int(time.time())}
 
 def collect_debug() -> Dict[str, Any]:
