@@ -95,68 +95,81 @@ HTML = """<!doctype html>
   <div class="list" id="list"></div>
 
   <script>
-    const $q = document.getElementById('q');
-    const $src = document.getElementById('source');
-    const $list = document.getElementById('list');
-    const $loaded = document.getElementById('loaded');
-    const $force = document.getElementById('force');
+(async function () {
+  // ----------------- helpers -----------------
+  function stripTags(html) {
+    if (!html) return '';
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  }
 
-    function fmtDate(s) {
-      try { return new Date(s).toLocaleString(); } catch { return s; }
-    }
-    function itemRow(it) {
-      const a = document.createElement('div');
-      a.className = 'card';
-      a.innerHTML = `
-        <div class="row">
-          <div class="left">
-            <span class="pill">${it.source}</span>
-            <a href="${it.link}" target="_blank" rel="noopener">${it.title}</a>
-          </div>
-          <small>${fmtDate(it.published)}</small>
-        </div>
-        ${it.summary ? `<small>${it.summary}</small>` : ``}
-      `;
-      return a;
-    }
+  function fmtDate(tsOrIso) {
+    if (!tsOrIso) return '';
+    // supports epoch seconds (number) or ISO string
+    const ms = typeof tsOrIso === 'number'
+      ? tsOrIso * 1000
+      : Date.parse(tsOrIso);
+    if (Number.isNaN(ms)) return '';
+    return new Date(ms).toLocaleString();
+  }
 
-    let DATA = { items: [], sources: [], updated: null };
+  function el(tag, className, text) {
+    const e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text != null) e.textContent = text;
+    return e;
+  }
 
-    function render() {
-      const q = $q.value.trim().toLowerCase();
-      const src = $src.value;
-      let rows = DATA.items.slice();
-      if (q) rows = rows.filter(r =>
-        (r.title||'').toLowerCase().includes(q) ||
-        (r.summary||'').toLowerCase().includes(q)
-      );
-      if (src) rows = rows.filter(r => r.source === src);
-      $list.replaceChildren(...rows.map(itemRow));
-      $loaded.textContent = DATA.updated ? `Loaded ${fmtDate(DATA.updated)} (${rows.length} items)` : 'Loaded';
-    }
+  // ----------------- fetch -----------------
+  const res = await fetch('/api/news', { cache: 'no-store' });
+  const data = await res.json();
 
-    async function load() {
-      const res = await fetch('/api/news');
-      const json = await res.json();
-      DATA = json;
-      // fill source dropdown
-      $src.replaceChildren(new Option('All sources', ''));
-      const uniq = [...new Set(DATA.items.map(i => i.source))].sort();
-      for (const s of uniq) $src.appendChild(new Option(s, s));
-      render();
-    }
+  // sort newest -> oldest without mutating original
+  const items = (data.items || []).slice()
+    .sort((a, b) => (b.published_ts || 0) - (a.published_ts || 0));
 
-    $q.addEventListener('input', render);
-    $src.addEventListener('change', render);
-    $force.addEventListener('click', async () => {
-      $force.disabled = true;
-      try { await fetch('/api/refresh-now', { method: 'POST' }); } catch {}
-      await load();
-      $force.disabled = false;
-    });
+  // ----------------- render -----------------
+  // IMPORTANT: make sure your list container has id="feed"
+  // (If it doesn't, just change its id to "feed" in the HTML markup.)
+  const list = document.querySelector('#feed');
+  if (!list) {
+    console.warn('No #feed container found');
+    return;
+  }
+  list.innerHTML = '';
 
-    load();
-  </script>
+  // top status line (optional — shows when data was loaded and count)
+  const status = el('div', 'status',
+    `Loaded ${fmtDate(data.updated_ts || data.updated)} • ${items.length} items`);
+  list.appendChild(status);
+
+  for (const it of items) {
+    const card = el('div', 'card');
+
+    // source + time (small line)
+    const meta = el(
+      'div',
+      'meta',
+      `${it.source || 'Source'} • ${fmtDate(it.published_ts || it.published)}`
+    );
+
+    // clean title text, clickable link (no HTML blobs)
+    const titleLink = el('a', 'title', stripTags(it.title || 'Untitled'));
+    titleLink.href = it.link || '#';
+    titleLink.target = '_blank';
+    titleLink.rel = 'noopener';
+
+    // clean summary/description (no HTML)
+    const sum = el('p', 'summary', stripTags(it.summary || it.description || ''));
+
+    card.appendChild(titleLink);
+    card.appendChild(meta);
+    card.appendChild(sum);
+    list.appendChild(card);
+  }
+})();
+</script>
 </body>
 </html>
 """
