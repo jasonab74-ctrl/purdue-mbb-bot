@@ -133,6 +133,18 @@ HTML = """<!doctype html>
   // ----------------- fetch -----------------
   const res = await fetch('/api/news', { cache: 'no-store' });
   const data = await res.json();
+  // --- Sort newest → oldest safely ---
+function itemTs(it) {
+  // prefer epoch seconds if present; otherwise parse ISO
+  if (typeof it.published_ts === 'number') return it.published_ts;
+  if (it.published) {
+    const ms = Date.parse(it.published);
+    if (!Number.isNaN(ms)) return Math.floor(ms / 1000);
+  }
+  return 0; // unknown date goes to the bottom
+}
+const items = (data.items || []).slice().sort((a, b) => itemTs(b) - itemTs(a));
+
 
   // sort newest -> oldest without mutating original
   const items = (data.items || []).slice()
