@@ -13,10 +13,7 @@ HTML = r"""<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Purdue Men's Basketball — Live Feed</title>
   <style>
-    :root {
-      --bg:#fafafa; --card:#fff; --text:#0f172a; --sub:#6b7280; --border:#e5e7eb;
-      --chip:#eef2ff; --chip-text:#3730a3; --btn:#0b1220;
-    }
+    :root { --bg:#fafafa; --card:#fff; --text:#0f172a; --sub:#6b7280; --border:#e5e7eb; --chip:#eef2ff; --chip-text:#3730a3; --btn:#0b1220; }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
     .wrap{max-width:1080px;margin:22px auto 60px;padding:0 16px}
@@ -40,7 +37,7 @@ HTML = r"""<!doctype html>
     .source{background:var(--chip);color:var(--chip-text);padding:2px 8px;border-radius:999px;font-weight:700}
     .title{font-weight:800;font-size:18px;text-decoration:none;color:#111827}
     .title:hover{text-decoration:underline}
-    /* Belt-and-suspenders: never show any snippet paragraph */
+    /* Never render any snippet, even if one sneaks in */
     .card p, .card .snippet { display:none !important; }
     @media (max-width:520px){.logo{width:44px;height:44px}.title{font-size:17px}}
   </style>
@@ -49,14 +46,14 @@ HTML = r"""<!doctype html>
   <div class="wrap">
     <div class="header">
       <div class="logo"><img alt="Purdue P" src="https://upload.wikimedia.org/wikipedia/commons/6/68/Purdue_Boilermakers_logo.svg"></div>
-      <h1>Purdue Men's Basketball — Live Feed <span class="tag">vQL8</span></h1>
+      <h1>Purdue Men's Basketball — Live Feed <span class="tag">vQL9</span></h1>
       <div class="right">
         <button id="refresh" class="btn">Force Refresh</button>
         <a href="/api/debug" target="_blank" rel="noopener" style="text-decoration:none;color:#1f3aff;font-weight:600">debug</a>
       </div>
     </div>
 
-    <!-- 🔗 Quick Links (all six) -->
+    <!-- 🔗 Quick Links (ALL 6) -->
     <div class="quicklinks">
       <a href="https://purduesports.com/sports/mens-basketball" target="_blank" rel="noopener">Official MBB</a>
       <a href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
@@ -96,7 +93,7 @@ HTML = r"""<!doctype html>
         a.className="title"; a.href = it.link || "#"; a.target="_blank"; a.rel="noopener";
         a.textContent = it.title || "(untitled)";
 
-        // Only title + meta (no summaries)
+        // ✅ Only title + meta (no summaries)
         card.append(meta,a);
         list.append(card);
       });
@@ -149,7 +146,6 @@ def _collect_cached():
 @app.get("/")
 def index():
     resp = Response(HTML, mimetype="text/html")
-    # no-cache so the new HTML (with quick links) always shows
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
     resp.headers["Expires"] = "0"
@@ -158,7 +154,7 @@ def index():
 @app.get("/api/news")
 def api_news():
     data = _collect_cached()
-    # strip summaries at the API layer so the UI can’t possibly show them
+    # Strip summaries at the API layer so the UI can’t possibly render them
     items = [{
         "title": it.get("title"),
         "link": it.get("link"),
