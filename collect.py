@@ -27,12 +27,12 @@ SOURCES = [
     {"name": "ESPN CBB",    "url": "https://www.espn.com/espn/rss/ncb/news"},
     {"name": "CBS CBB",     "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
     # Optional adds (uncomment if you want more volume):
-    # {"name": "SI College",  "url": "https://www.si.com/rss/college"},
-    # {"name": "USA Today CBB", "url": "http://rssfeeds.usatoday.com/usatodaycomcollegebasketball-topstories&x=1"},
+    {"name": "SI College",  "url": "https://www.si.com/rss/college"},
+    {"name": "USA Today CBB", "url": "http://rssfeeds.usatoday.com/usatodaycomcollegebasketball-topstories&x=1"},
     # {"name": "The Athletic CBB", "url": "https://theathletic.com/feed/ncaa-basketball/"},
     # YouTube examples (videos, not articles). Replace channel_id with ones you want:
     {"name": "YouTube: Field of 68", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
-    # {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
+    {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
 ]
 # ─────────────────────────────────────────────────────────────
 
