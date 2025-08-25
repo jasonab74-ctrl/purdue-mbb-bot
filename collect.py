@@ -95,4 +95,105 @@ def _is_recent(entry: feedparser.FeedParserDict) -> bool:
 def _host_key(link: str) -> str:
     try:
         u = urlparse(link)
-        return f"{u.netloc}{u.pa
+        return f"{u.netloc}{u.path}".lower()
+    except Exception:
+        return link.lower()
+
+
+def is_mbb_relevant(title: str, summary: str, link: str) -> bool:
+    t = _text(title, summary, link).lower()
+
+    # Hard negative filter
+    for n in NEGATIVE:
+        if f" {n} " in f" {t} ":
+            return False
+
+    # Require basketball context or known MBB names
+    has_basketball = "basketball" in t or "men's basketball" in t or "mens basketball" in t or "mbb" in t
+    has_purdue = "purdue" in t or "boilermaker" in t or "boilermakers" in t
+
+    if has_basketball and has_purdue:
+        return True
+
+    for p in POSITIVE:
+        if p in t and has_purdue:
+            return True
+
+    # Some sources are Purdue-only; allow generic “basketball” without repeating “Purdue”
+    if has_basketball:
+        return True
+
+    return False
+
+
+def collect_all() -> Dict[str, Any]:
+    items: List[Dict[str, Any]] = []
+    seen: set[str] = set()
+    debug_sources: List[Dict[str, Any]] = []
+
+    for name, url in SOURCES:
+        fetched = 0
+        kept = 0
+
+        d = parse_rss(url)
+        if d and d.entries:
+            fetched = len(d.entries)
+            for e in d.entries:
+                title = e.get("title", "")
+                summary = e.get("summary", "") or e.get("subtitle", "") or ""
+                link = e.get("link", "")
+                if not link:
+                    continue
+                if not _is_recent(e):
+                    continue
+                if not is_mbb_relevant(title, summary, link):
+                    continue
+
+                key = _host_key(link)
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                # Date handling
+                pub = None
+                try:
+                    tm = e.get("published_parsed") or e.get("updated_parsed")
+                    if tm:
+                        pub_ms = int(time.mktime(tm) * 1000)
+                        pub = pub_ms
+                except Exception:
+                    pub = None
+
+                source_title = d.feed.get("title", name) if d and getattr(d, "feed", None) else name
+                items.append({
+                    "title": _text(title),
+                    "link": link,
+                    "source": source_title,
+                    "summary": _text(summary),
+                    "published": pub,          # ms since epoch or None
+                })
+                kept += 1
+
+        debug_sources.append({
+            "name": name,
+            "url": url,
+            "fetched": fetched,
+            "kept": kept,
+        })
+
+    # Sort newest first (fallback to now for missing dates)
+    now_ms = _now_ms()
+    items.sort(key=lambda x: x.get("published") or now_ms, reverse=True)
+
+    payload = {
+        "count": len(items),
+        "items": items,
+        "sources": debug_sources,
+        "updated": now_ms,  # **milliseconds** for the UI
+    }
+    return payload
+
+
+def collect_debug_empty() -> Dict[str, Any]:
+    """A minimal empty payload used before the first refresh completes."""
+    return {"count": 0, "items": [], "sources": [{"name": n, "url": u, "fetched": 0, "kept": 0} for n, u in SOURCES], "updated": 0}
