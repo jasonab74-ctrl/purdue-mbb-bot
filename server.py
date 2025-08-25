@@ -1,224 +1,198 @@
-# server.py
-from __future__ import annotations
-import threading
-import time
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request, Response, redirect
 from flask_cors import CORS
+from datetime import datetime, timezone
+import json
+import threading
 
-import collect  # local module
+# local
+import collect
 
 app = Flask(__name__)
 CORS(app)
 
-# ----------------- cache -----------------
-_cache = collect.collect_debug_empty()
-_cache_lock = threading.Lock()
-_TTL_SEC = 15 * 60  # 15 minutes
-_refresh_running = False
-
-
-def _now() -> float:
-    return time.time()
-
-
-def _stale() -> bool:
-    # _cache["updated"] is ms; compare to seconds
-    if not _cache.get("updated"):
-        return True
-    age_s = (_now() - (_cache["updated"] / 1000.0))
-    return age_s > _TTL_SEC
-
-
-def _do_refresh():
-    global _cache, _refresh_running
-    try:
-        data = collect.collect_all()
-        with _cache_lock:
-            _cache = data
-    finally:
-        _refresh_running = False
-
-
-def _ensure_background_refresh():
-    global _refresh_running
-    if _refresh_running:
-        return
-    _refresh_running = True
-    t = threading.Thread(target=_do_refresh, daemon=True)
-    t.start()
-
-
-# --------------- routes ------------------
-
-@app.route("/")
-@app.route("/ui")
-def ui():
-    # Minimal single-file UI (kept simple on purpose)
-    HTML = """<!doctype html>
+# ---------- Minimal UI (inline SVG so the logo never breaks) ----------
+HTML = """<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Purdue Men's Basketball — Live Feed</title>
-<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/c/c4/Purdue_Boilermakers_logo.svg">
-<style>
-  :root { --bg:#f6f7fb; --card:#fff; --ink:#121417; --muted:#6b7280; --pill:#eef2ff; --pillText:#374151; }
-  * { box-sizing: border-box; }
-  body { margin: 0; font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--ink); background: var(--bg); }
-  header { display:flex; align-items:center; gap:16px; padding:20px 24px; }
-  header img { height:42px; width:42px; }
-  h1 { font-size: 28px; margin:0; }
-  .bar { display:flex; gap:12px; padding: 0 24px 12px; align-items:center; }
-  input, select { width:100%; padding:12px 14px; border:1px solid #d1d5db; border-radius:12px; background:#fff; }
-  button { padding:10px 14px; border-radius:12px; border:0; background:#0f172a; color:#fff; cursor:pointer; }
-  button:disabled { opacity:0.6; cursor:default; }
-  .meta { color: var(--muted); font-size: 13px; padding: 0 24px; }
-  .grid { padding: 12px 24px 28px; display:grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap:14px; }
-  .card { background:var(--card); border:1px solid #e5e7eb; border-radius:14px; padding:14px; display:flex; gap:10px; flex-direction:column; }
-  .title { font-weight:600; font-size:16px; }
-  .src { display:flex; gap:8px; align-items:center; }
-  .pill { background:var(--pill); color:var(--pillText); padding:4px 8px; border-radius:999px; font-size:12px; }
-  a { color:#0a58ca; text-decoration:none; }
-  a:hover { text-decoration:underline; }
-  .empty { color: var(--muted); text-align:center; margin: 60px 0 100px; }
-</style>
+  <meta charset="utf-8"/>
+  <title>Purdue Men's Basketball — Live Feed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --chip: #f3f4f6;
+      --brand: #000000;
+      --accent: #cfb991; /* Purdue gold */
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 24px;
+      font: 16px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text); background: var(--bg);
+    }
+    header { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+    h1 { font-size: clamp(22px, 2.8vw, 36px); margin:0; }
+    .toolbar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .btn {
+      appearance:none; border:0; background:#0f172a; color:#fff; padding:10px 14px; border-radius:10px;
+      font-weight:600; cursor:pointer;
+    }
+    .btn.secondary { background:#111827; }
+    .input, select {
+      width: min(100%, 1000px);
+      padding:12px 14px; border:1px solid #e5e7eb; border-radius:10px; background:#fff;
+      font-size:14px;
+    }
+    .meta { color: var(--muted); margin-top:10px; }
+    .list { margin-top:22px; display:grid; gap:10px; }
+    .card {
+      border:1px solid #e5e7eb; border-radius:12px; padding:14px; background:#fff;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .card a { color:#0f172a; text-decoration:none; font-weight:600; }
+    .card small { color:var(--muted); }
+    .logo {
+      width:52px; height:52px; display:inline-flex; align-items:center; justify-content:center;
+      border-radius:12px; background:#fff; border:1px solid #e5e7eb;
+    }
+    .pill { background: var(--chip); padding:4px 8px; border-radius:999px; font-size:12px; color:#374151; }
+    .row { display:flex; align-items:center; gap:8px; justify-content:space-between; flex-wrap:wrap; }
+    .left { display:flex; align-items:center; gap:14px; }
+    .right { display:flex; align-items:center; gap:10px; }
+  </style>
 </head>
 <body>
   <header>
-    <img alt="P" src="https://upload.wikimedia.org/wikipedia/commons/c/c4/Purdue_Boilermakers_logo.svg">
+    <div class="logo" title="Purdue">
+      <!-- inline Purdue 'P' (simple) -->
+      <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+        <defs>
+          <linearGradient id="g" x1="0" x2="1">
+            <stop offset="0" stop-color="#cfb991"/><stop offset="1" stop-color="#cfb991"/>
+          </linearGradient>
+        </defs>
+        <path fill="#000" d="M6 14h35c9 0 15 6 15 13s-6 13-15 13H23l-5 10H6l7-13H5z"/>
+        <path fill="url(#g)" d="M13 20h27c6 0 9 3 9 7s-3 7-9 7H22l-5 10h-6l7-13h-7z"/>
+      </svg>
+    </div>
     <h1>Purdue Men's Basketball — Live Feed</h1>
-    <div style="margin-left:auto; display:flex; gap:10px;">
-      <button id="btnRefresh">Force Refresh</button>
-      <a href="/api/debug" target="_blank" style="align-self:center; text-decoration:none;">debug</a>
+    <div class="right">
+      <button class="btn" id="force">Force Refresh</button>
+      <a class="pill" href="/api/debug">debug</a>
     </div>
   </header>
 
-  <div class="bar">
-    <input id="q" placeholder="Filter by keyword (e.g., 'Painter', 'Braden Smith')" />
+  <div class="toolbar">
+    <input id="q" class="input" placeholder="Filter by keyword (e.g., 'Painter', 'Braden Smith')" />
     <select id="source">
       <option value="">All sources</option>
     </select>
   </div>
+  <div class="meta" id="loaded">Loaded ...</div>
 
-  <div class="meta" id="meta">Loaded …</div>
-  <div class="grid" id="grid"></div>
-  <div class="empty" id="empty" style="display:none;">No items (try Force Refresh)</div>
+  <div class="list" id="list"></div>
 
-<script>
-const fmtTime = (ms) => ms ? new Date(ms).toLocaleString() : "never";
-const $ = (id) => document.getElementById(id);
+  <script>
+    const $q = document.getElementById('q');
+    const $src = document.getElementById('source');
+    const $list = document.getElementById('list');
+    const $loaded = document.getElementById('loaded');
+    const $force = document.getElementById('force');
 
-const state = { data: null };
-
-function render() {
-  const data = state.data || {items:[], updated:0};
-  $("meta").textContent = "Loaded " + fmtTime(data.updated) + (data.items.length ? "" : "");
-  const grid = $("grid");
-  grid.innerHTML = "";
-  const q = $("q").value.trim().toLowerCase();
-  const srcVal = $("source").value;
-
-  let items = data.items;
-  if (q) items = items.filter(it =>
-    (it.title||"").toLowerCase().includes(q) ||
-    (it.summary||"").toLowerCase().includes(q) ||
-    (it.source||"").toLowerCase().includes(q)
-  );
-  if (srcVal) items = items.filter(it => (it.source || "") === srcVal);
-
-  $("empty").style.display = items.length ? "none" : "block";
-
-  // sources dropdown
-  const uniqueSources = [...new Set((data.items||[]).map(it => it.source).filter(Boolean))].sort();
-  const sel = $("source");
-  const prior = sel.value;
-  sel.innerHTML = '<option value="">All sources</option>' + uniqueSources.map(s => `<option value="${s}">${s}</option>`).join("");
-  if (prior) sel.value = prior;
-
-  for (const it of items) {
-    const published = it.published ? new Date(it.published).toLocaleString() : "";
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="title"><a href="${it.link}" target="_blank" rel="noopener">${it.title}</a></div>
-      <div class="src">
-        <span class="pill">${it.source || "Source"}</span>
-        <span class="meta">${published}</span>
-      </div>
-    `;
-    grid.appendChild(card);
-  }
-}
-
-async function load() {
-  try {
-    const r = await fetch("/api/news");
-    state.data = await r.json();
-  } catch (e) {
-    state.data = {items:[], updated:0};
-  }
-  render();
-}
-
-async function forceRefresh() {
-  $("btnRefresh").disabled = true;
-  try {
-    await fetch("/api/refresh-now", {method:"POST"});
-  } catch {}
-  // Poll for fresh cache (up to ~12s)
-  let tries = 12;
-  const start = Date.now();
-  while (tries--) {
-    await new Promise(r => setTimeout(r, 1000));
-    const r = await fetch("/api/news?nocache=" + Date.now());
-    const data = await r.json();
-    if (data.updated && data.updated > start) {
-      state.data = data;
-      break;
+    function fmtDate(s) {
+      try { return new Date(s).toLocaleString(); } catch { return s; }
     }
-  }
-  $("btnRefresh").disabled = false;
-  render();
-}
+    function itemRow(it) {
+      const a = document.createElement('div');
+      a.className = 'card';
+      a.innerHTML = `
+        <div class="row">
+          <div class="left">
+            <span class="pill">${it.source}</span>
+            <a href="${it.link}" target="_blank" rel="noopener">${it.title}</a>
+          </div>
+          <small>${fmtDate(it.published)}</small>
+        </div>
+        ${it.summary ? `<small>${it.summary}</small>` : ``}
+      `;
+      return a;
+    }
 
-$("q").addEventListener("input", render);
-$("source").addEventListener("change", render);
-$("btnRefresh").addEventListener("click", forceRefresh);
-load();
-</script>
+    let DATA = { items: [], sources: [], updated: null };
+
+    function render() {
+      const q = $q.value.trim().toLowerCase();
+      const src = $src.value;
+      let rows = DATA.items.slice();
+      if (q) rows = rows.filter(r =>
+        (r.title||'').toLowerCase().includes(q) ||
+        (r.summary||'').toLowerCase().includes(q)
+      );
+      if (src) rows = rows.filter(r => r.source === src);
+      $list.replaceChildren(...rows.map(itemRow));
+      $loaded.textContent = DATA.updated ? `Loaded ${fmtDate(DATA.updated)} (${rows.length} items)` : 'Loaded';
+    }
+
+    async function load() {
+      const res = await fetch('/api/news');
+      const json = await res.json();
+      DATA = json;
+      // fill source dropdown
+      $src.replaceChildren(new Option('All sources', ''));
+      const uniq = [...new Set(DATA.items.map(i => i.source))].sort();
+      for (const s of uniq) $src.appendChild(new Option(s, s));
+      render();
+    }
+
+    $q.addEventListener('input', render);
+    $src.addEventListener('change', render);
+    $force.addEventListener('click', async () => {
+      $force.disabled = true;
+      try { await fetch('/api/refresh-now', { method: 'POST' }); } catch {}
+      await load();
+      $force.disabled = false;
+    });
+
+    load();
+  </script>
 </body>
-</html>"""
+</html>
+"""
+
+# -------------- Routes --------------
+
+@app.route("/")
+def ui_root():
     return Response(HTML, mimetype="text/html")
 
+@app.route("/ui")
+def ui_alias():
+    return redirect("/", code=302)
 
 @app.route("/api/news")
 def api_news():
-    # Always return cached data quickly; kick a background refresh if stale.
-    if _stale():
-        _ensure_background_refresh()
-    with _cache_lock:
-        return jsonify(_cache)
+    data = collect.get_cached_or_collect()
+    return jsonify(data)
 
+@app.route("/api/news/raw")
+def api_news_raw():
+    data = collect.get_cached_or_collect(include_raw=True)
+    return jsonify(data)
 
 @app.route("/api/refresh-now", methods=["POST"])
 def api_refresh_now():
-    _ensure_background_refresh()
-    return jsonify({"status": "refresh-started"})
-
+    # refresh in this request
+    data = collect.collect_all(force=True)
+    return jsonify({"ok": True, "count": len(data["items"])})
 
 @app.route("/api/debug")
 def api_debug():
-    # Lightweight: NEVER fetch here. Only show last-known cache & source stats.
-    with _cache_lock:
-        payload = {
-            "count": _cache.get("count", 0),
-            "items": [],  # don't dump items here; keep this light
-            "sources": _cache.get("sources", []),
-            "updated": _cache.get("updated", 0),
-        }
-    return jsonify(payload)
+    dbg = collect.collect_debug()
+    return Response(json.dumps(dbg, indent=2), mimetype="application/json")
 
 
-# ------------- local dev -------------
+# Run locally (Render uses Gunicorn: `server:app`)
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000, debug=True)
+    app.run(host="0.0.0.0", port=10000, debug=False)
