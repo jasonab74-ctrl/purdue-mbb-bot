@@ -1,138 +1,188 @@
 # app/api.py
-import os, time, threading
-from datetime import datetime, timezone
-from urllib.parse import urlparse
-from flask import Flask, jsonify, send_from_directory, request, redirect
-import feedparser
+from flask import Flask, jsonify, Response
+import json, time
+from . import collect  # uses app/collect.py
 
-# ---------- Config ----------
-FEEDS = [
-    # Two reliable test feeds to guarantee content
-    "https://hnrss.org/frontpage",
-    "https://www.espn.com/espn/rss/news",
-    # Add your college hoops / Purdue sources below
-    "https://www.espn.com/espn/rss/ncb/news",
-    "https://feeds.cbssports.com/rss/headlines/ncaab",
-    "https://www.ncaa.com/news/basketball-men/rss.xml",
-    "https://www.si.com/college/purdue/.rss/full/",
-    "https://www.on3.com/teams/purdue-boilermakers/news/feed/",
-    "https://www.247sports.com/college/purdue/Article/feed.rss",
-]
-REFRESH_SECONDS = 300
+app = Flask(__name__)
+CACHE = {"data": None, "updated": 0}
 
-app = Flask(__name__, static_folder="static", static_url_path="/static")
+HTML = r"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Purdue Men's Basketball — Live Feed</title>
+  <style>
+    :root {
+      --bg:#fafafa; --card:#fff; --text:#0f172a; --sub:#6b7280; --border:#e5e7eb;
+      --chip:#eef2ff; --chip-text:#3730a3; --btn:#0b1220;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
+    .wrap{max-width:1080px;margin:22px auto 60px;padding:0 16px}
+    .header{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .logo{width:52px;height:52px}
+    .logo img{width:100%;height:auto;display:block}
+    h1{font-size:clamp(22px,3.6vw,36px);margin:0;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+    .tag{font-weight:600;color:#6b7280;font-size:12px;margin-left:6px}
+    .right{margin-left:auto;display:flex;gap:10px;align-items:center}
+    .btn{background:var(--btn);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+    input[type="search"],select{border:1px solid var(--border);background:#fff;border-radius:10px;padding:12px}
+    input[type="search"]{flex:1 1 520px}
+    .quicklinks{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0}
+    .quicklinks a{display:inline-block;background:#fff;border:1px solid var(--border);padding:8px 12px;border-radius:999px;text-decoration:none;color:#1f3aff;font-weight:600}
+    .quicklinks a:hover{background:#f3f4f6}
+    .loaded{color:var(--sub);font-size:13px;margin:8px 0 10px}
+    .list{display:grid;gap:10px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+    .meta{color:var(--sub);font-size:13px;margin-bottom:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .source{background:var(--chip);color:var(--chip-text);padding:2px 8px;border-radius:999px;font-weight:700}
+    .title{font-weight:800;font-size:18px;text-decoration:none;color:#111827}
+    .title:hover{text-decoration:underline}
+    /* Belt-and-suspenders: never show any snippet paragraph */
+    .card p, .card .snippet { display:none !important; }
+    @media (max-width:520px){.logo{width:44px;height:44px}.title{font-size:17px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="logo"><img alt="Purdue P" src="https://upload.wikimedia.org/wikipedia/commons/6/68/Purdue_Boilermakers_logo.svg"></div>
+      <h1>Purdue Men's Basketball — Live Feed <span class="tag">vQL8</span></h1>
+      <div class="right">
+        <button id="refresh" class="btn">Force Refresh</button>
+        <a href="/api/debug" target="_blank" rel="noopener" style="text-decoration:none;color:#1f3aff;font-weight:600">debug</a>
+      </div>
+    </div>
 
-ARTICLES = []
-LAST_REFRESH = None
-LOCK = threading.Lock()
+    <!-- 🔗 Quick Links (all six) -->
+    <div class="quicklinks">
+      <a href="https://purduesports.com/sports/mens-basketball" target="_blank" rel="noopener">Official MBB</a>
+      <a href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
+      <a href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
+      <a href="https://www.hammerandrails.com/mens-basketball" target="_blank" rel="noopener">Hammer & Rails</a>
+      <a href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit r/Boilermakers</a>
+      <a href="https://www.reddit.com/r/PurdueBasketball/" target="_blank" rel="noopener">Reddit r/PurdueBasketball</a>
+    </div>
 
-FALLBACK_ARTICLES = [
-    {
-        "title": "Welcome to Purdue MBB News",
-        "link": "https://purdue.edu",
-        "summary": "If you’re seeing this, feeds are still loading. The UI is working.",
-        "published": datetime.now(timezone.utc).isoformat(),
-        "source": "purdue.edu",
-    },
-    {
-        "title": "Tip: Use the search box",
-        "link": "https://onrender.com",
-        "summary": "Type ‘Purdue’ or ‘ESPN’ to filter results once feeds load.",
-        "published": datetime.now(timezone.utc).isoformat(),
-        "source": "system",
-    },
-]
+    <div class="controls">
+      <input id="q" type="search" placeholder="Filter by keyword (e.g., 'Painter', 'Braden Smith')" />
+      <select id="src"><option value="">All sources</option></select>
+    </div>
 
-def _host(link):
-    try:
-        h = urlparse(link).netloc
-        return h.replace("www.", "")
-    except Exception:
-        return ""
+    <div id="loaded" class="loaded">Loaded …</div>
+    <div id="list" class="list"></div>
+  </div>
 
-def _norm(e):
-    title = e.get("title") or "(untitled)"
-    link = e.get("link") or ""
-    summary = (e.get("summary") or e.get("description") or "").strip()
-    ts = None
-    if getattr(e, "published_parsed", None):
-        ts = datetime(*e.published_parsed[:6], tzinfo=timezone.utc).isoformat()
-    elif getattr(e, "updated_parsed", None):
-        ts = datetime(*e.updated_parsed[:6], tzinfo=timezone.utc).isoformat()
-    return {
-        "title": title,
-        "link": link,
-        "summary": summary,
-        "published": ts or "",
-        "source": _host(link),
+  <script>
+    const $ = s => document.querySelector(s);
+    const list = $("#list"), q = $("#q"), src = $("#src"), loaded = $("#loaded"), btn = $("#refresh");
+    let DATA = {items:[], updated_ts:null};
+
+    function tsPretty(ts){ if(!ts) return ""; return new Date(ts*1000).toLocaleString(); }
+
+    function render(items){
+      list.innerHTML = "";
+      items.forEach(it=>{
+        const card = document.createElement("div"); card.className="card";
+        const meta = document.createElement("div"); meta.className="meta";
+        const chip = document.createElement("span"); chip.className="source"; chip.textContent = it.source || "RSS";
+        const dot = document.createElement("span"); dot.textContent = "•";
+        const when = document.createElement("time"); when.textContent = it.published_ts ? new Date(it.published_ts*1000).toLocaleString() : "";
+        meta.append(chip,dot,when);
+
+        const a = document.createElement("a");
+        a.className="title"; a.href = it.link || "#"; a.target="_blank"; a.rel="noopener";
+        a.textContent = it.title || "(untitled)";
+
+        // Only title + meta (no summaries)
+        card.append(meta,a);
+        list.append(card);
+      });
     }
 
-def refresh_feeds():
-    global ARTICLES, LAST_REFRESH
-    items = []
-    for url in FEEDS:
-        try:
-            d = feedparser.parse(url)
-            for e in d.entries[:40]:
-                items.append(_norm(e))
-        except Exception as ex:
-            print("Feed error:", url, ex)
-    # de-dup by (title, source)
-    seen = set()
-    unique = []
-    for a in items:
-        key = (a["title"].strip().lower(), a["source"])
-        if key in seen: 
-            continue
-        seen.add(key)
-        unique.append(a)
-    unique.sort(key=lambda a: a["published"] or "", reverse=True)
-    with LOCK:
-        ARTICLES = unique[:250]
-        LAST_REFRESH = datetime.now(timezone.utc).isoformat()
+    function applyFilters(){
+      const t = q.value.trim().toLowerCase();
+      const only = src.value;
+      const items = (DATA.items||[]).filter(it=>{
+        const okSrc = !only || it.source===only;
+        const txt = (it.title||"");
+        const okText = !t || txt.toLowerCase().includes(t);
+        return okSrc && okText;
+      });
+      render(items);
+    }
 
-def refresher():
-    while True:
-        refresh_feeds()
-        time.sleep(REFRESH_SECONDS)
+    async function load(){
+      const r = await fetch("/api/news",{cache:"no-store"});
+      const json = await r.json();
+      DATA = json || {items:[]};
+      loaded.textContent = "Loaded "+(DATA.updated_ts?tsPretty(DATA.updated_ts):"");
+      const uniques = Array.from(new Set((DATA.items||[]).map(i=>i.source).filter(Boolean))).sort();
+      src.innerHTML = '<option value="">All sources</option>'+uniques.map(s=>`<option>${s}</option>`).join("");
+      applyFilters();
+    }
 
-threading.Thread(target=refresher, daemon=True).start()
+    async function forceRefresh(){
+      btn.disabled = true;
+      try{ await fetch("/api/refresh-now",{method:"POST"}); }catch(e){}
+      await load();
+      btn.disabled = false;
+    }
 
-@app.route("/")
-def root():
-    return redirect("/ui/")
+    q.addEventListener("input", applyFilters);
+    src.addEventListener("change", applyFilters);
+    btn.addEventListener("click", forceRefresh);
+    document.addEventListener("DOMContentLoaded", load);
+  </script>
+</body>
+</html>"""
 
-@app.route("/ui/")
-def ui():
-    return send_from_directory(app.static_folder, "index.html")
+def _collect_cached():
+    now = int(time.time())
+    if (not CACHE["data"]) or now - CACHE["updated"] > 900:
+        CACHE["data"] = collect.collect_all()
+        CACHE["updated"] = now
+    return CACHE["data"]
 
-@app.route("/api/health")
-def health():
-    with LOCK:
-        return jsonify({"ok": True, "articles": len(ARTICLES), "last_refresh": LAST_REFRESH})
+@app.get("/")
+def index():
+    resp = Response(HTML, mimetype="text/html")
+    # no-cache so the new HTML (with quick links) always shows
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
-@app.route("/api/refresh-now")
-def refresh_now():
-    refresh_feeds()
-    with LOCK:
-        return jsonify({"ok": True, "articles": len(ARTICLES), "last_refresh": LAST_REFRESH})
+@app.get("/api/news")
+def api_news():
+    data = _collect_cached()
+    # strip summaries at the API layer so the UI can’t possibly show them
+    items = [{
+        "title": it.get("title"),
+        "link": it.get("link"),
+        "source": it.get("source"),
+        "published_ts": it.get("published_ts"),
+        "summary": "",
+        "summary_text": "",
+    } for it in data.get("items", [])]
+    return jsonify({"items": items, "updated_ts": data.get("updated", int(time.time()))})
 
-@app.route("/api/articles")
-def api_articles():
-    with LOCK:
-        data = list(ARTICLES) if ARTICLES else list(FALLBACK_ARTICLES)
-    return jsonify({"articles": data})
+@app.post("/api/refresh-now")
+def api_refresh_now():
+    CACHE["data"] = collect.collect_all()
+    CACHE["updated"] = int(time.time())
+    return jsonify({"ok": True, "updated_ts": CACHE["updated"], "count": CACHE["data"].get("count", 0)})
 
-@app.route("/api/search")
-def api_search():
-    q = (request.args.get("q") or "").strip().lower()
-    with LOCK:
-        base = ARTICLES if ARTICLES else FALLBACK_ARTICLES
-        if not q:
-            res = list(base)
-        else:
-            res = [a for a in base if q in a["title"].lower() or q in a["summary"].lower() or q in a["source"].lower()]
-    return jsonify({"articles": res})
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
+@app.get("/api/debug")
+def api_debug():
+    data = _collect_cached()
+    sample = data.get("items", [])[:3]
+    obj = {
+        "by_source": {s["name"]: s.get("fetched", 0) for s in data.get("sources", [])},
+        "example": sample,
+        "fetched_at": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(CACHE["updated"])),
+        "total": data.get("count", 0),
+    }
+    return Response(json.dumps(obj, ensure_ascii=False), mimetype="application/json")
