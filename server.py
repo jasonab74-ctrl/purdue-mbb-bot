@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from flask import Flask, Response, request, jsonify
-from app import collect  # <-- explicit
+
+# IMPORTANT: use the collector inside the app package
+from app import collect
 
 APP = Flask(__name__)
 DATA_PATH = Path("data/news.json")
@@ -25,21 +27,24 @@ HTML = r"""<!doctype html>
     h1{font-size:clamp(22px,3.6vw,36px);line-height:1.1;margin:0;font-weight:800;letter-spacing:-.02em}
     .right{margin-left:auto;display:flex;gap:12px;align-items:center}
     .btn{background:#0b1220;color:#fff;border:0;padding:11px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+
     .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0 8px}
     input[type="search"]{flex:1 1 520px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#fff}
     select{padding:12px;border:1px solid var(--border);border-radius:10px;background:#fff}
+
+    /* Quick links strip */
     .quicklinks{margin:10px 0 14px;padding:12px;border:1px solid var(--border);background:#fff;border-radius:12px}
     .quicklinks .title{font-weight:700;font-size:14px;color:var(--brand);margin:0 0 8px}
     .quicklinks .links{display:flex;flex-wrap:wrap;gap:10px}
     .quicklinks a{display:inline-block;text-decoration:none;border:1px solid var(--border);background:#f8fafc;padding:8px 10px;border-radius:999px;font-weight:600}
     .quicklinks a:hover{background:#eef2ff;border-color:#dbeafe}
+
     .meta{color:var(--sub);font-size:13px;margin:4px 0 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
     .source{background:var(--chip);color:var(--chip-text);padding:2px 8px;border-radius:999px;font-weight:600}
     .list{display:grid;gap:14px;margin-top:8px}
     .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
     .card a.title{font-weight:700;font-size:18px;text-decoration:none;color:var(--brand);display:inline-block}
     .card a.title:hover{text-decoration:underline}
-    .snippet{color:var(--text);opacity:.85;margin:10px 0 0}
     .loaded{color:var(--sub);font-size:13px;margin:12px 0}
     .tools a{color:#1f3aff;text-decoration:none}
     .tools a:hover{text-decoration:underline}
@@ -57,7 +62,7 @@ HTML = r"""<!doctype html>
       </div>
     </div>
 
-    <!-- Static Quick links -->
+    <!-- Static Quick links (your request) -->
     <div class="quicklinks" aria-label="Reference links">
       <p class="title">Quick links</p>
       <div class="links">
@@ -83,13 +88,12 @@ HTML = r"""<!doctype html>
 
     function fmtTime(ts){ if(!ts) return ""; const d=new Date(ts*1000); return d.toLocaleString(); }
 
-    // Strip tags so no raw <a>/<font> shows
-    function stripTags(html){ if(!html) return ""; const d=document.createElement("div"); d.innerHTML=html; return (d.textContent||d.innerText||"").replace(/\s+/g," ").trim(); }
-
+    // Render WITHOUT any snippet (removes the messy <a href> text entirely)
     function render(items){
       list.innerHTML = "";
       items.forEach(it=>{
         const card=document.createElement("div"); card.className="card";
+
         const meta=document.createElement("div"); meta.className="meta";
         const chip=document.createElement("span"); chip.className="source"; chip.textContent=it.source||"RSS";
         const dot=document.createElement("span"); dot.textContent="•";
@@ -98,14 +102,7 @@ HTML = r"""<!doctype html>
 
         const a=document.createElement("a"); a.className="title"; a.href=it.link||"#"; a.target="_blank"; a.rel="noopener"; a.textContent=it.title||"(untitled)";
 
-        const descText = stripTags(it.summary_text || it.summary || "");
-        if(descText){
-          const snip=document.createElement("p"); snip.className="snippet";
-          snip.textContent = descText.length>200 ? (descText.slice(0,200)+"…") : descText;
-          card.append(meta,a,snip);
-        } else {
-          card.append(meta,a);
-        }
+        card.append(meta,a);
         list.append(card);
       });
     }
@@ -114,7 +111,7 @@ HTML = r"""<!doctype html>
       const term=q.value.trim().toLowerCase(), only=src.value;
       const items=(DATA.items||[]).filter(it=>{
         const okSrc=!only||(it.source===only);
-        const inText=!term||((it.title||"").toLowerCase().includes(term) || stripTags(it.summary_text||it.summary||"").toLowerCase().includes(term));
+        const inText=!term||((it.title||"").toLowerCase().includes(term));
         return okSrc && inText;
       });
       render(items);
