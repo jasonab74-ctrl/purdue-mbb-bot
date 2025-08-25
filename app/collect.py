@@ -1,6 +1,6 @@
 # app/collect.py
 # Aggregate Purdue MBB feeds -> data/news.json
-# Works with feeds.py (FEEDS list). Requires: feedparser
+# Self-contained: includes FEEDS inline (no feeds.py import). Requires: feedparser
 
 import os
 import json
@@ -13,6 +13,22 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse, parse_qsl
 
 import feedparser
 
+# ---------------------- Feeds (inline) ----------------------
+# Each tuple: (display_name, feed_url)
+FEEDS = [
+    # Beat / community
+    ("Hammer & Rails", "https://www.hammerandrails.com/rss/index.xml"),
+    # Reddit communities (built-in RSS)
+    ("Reddit: r/Boilermakers", "https://www.reddit.com/r/Boilermakers/.rss"),
+    ("Reddit: r/PurdueBasketball", "https://www.reddit.com/r/PurdueBasketball/.rss"),
+    # YouTube channels (official RSS format uses channel_id)
+    ("YouTube: BoilerBall (Official)", "https://www.youtube.com/feeds/videos.xml?channel_id=UCmR15rdQ-NCp-sHQ5v9Y1TA"),
+    ("YouTube: Field of 68 (After Dark)", "https://www.youtube.com/feeds/videos.xml?channel_id=UC9by2xjmM_ldmvIwYrARCDg"),
+    ("YouTube: Sleepers Media", "https://www.youtube.com/feeds/videos.xml?channel_id=UCaqPH-Ckzu_pSoO3AKcatNw"),
+    # (Optional) keep Google News last; it’s capped below
+    ("Google News (Purdue MBB)", "https://news.google.com/rss/search?q=Purdue+Boilermakers+men%27s+basketball&hl=en-US&gl=US&ceid=US:en"),
+]
+
 # ---------------------- Config ----------------------
 
 # Where to write the merged JSON that server.py reads
@@ -21,29 +37,13 @@ DATA_PATH = Path(os.environ.get("DATA_PATH", "data/news.json"))
 # Number of items to keep overall (after sorting)
 MAX_TOTAL_ITEMS = int(os.environ.get("MAX_TOTAL_ITEMS", "500"))
 
-# If you keep a Google News feed, limit how many of its items we take
+# Limit how many Google News items we take so it doesn’t swamp others
 GOOGLE_NEWS_MAX = int(os.environ.get("GOOGLE_NEWS_MAX", "10"))
 
 # Identify ourselves for politeness / fewer 403s
 REQUEST_HEADERS = {
     "User-Agent": "Purdue-MBB-FeedBot/1.0 (+https://example.com/)"
 }
-
-# ---------------------- Feeds -----------------------
-
-try:
-    # Expect feeds.py to live alongside this file or on PYTHONPATH
-    from feeds import FEEDS  # required
-except Exception as e:
-    raise SystemExit(f"ERROR: could not import FEEDS from feeds.py: {e}")
-
-# Optional helper: if you kept a separate Google News tuple
-try:
-    from feeds import GOOGLE_NEWS_FEED  # optional
-    HAS_GOOGLE_NEWS = True
-except Exception:
-    GOOGLE_NEWS_FEED = None
-    HAS_GOOGLE_NEWS = False
 
 # ---------------------- Utils ----------------------
 
@@ -154,8 +154,6 @@ def collect_all() -> dict:
     t0 = time.time()
 
     feed_list = list(FEEDS)
-    if HAS_GOOGLE_NEWS and isinstance(GOOGLE_NEWS_FEED, tuple):
-        feed_list.append(GOOGLE_NEWS_FEED)
 
     all_items: list[dict] = []
     for name, url in feed_list:
