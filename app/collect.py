@@ -1,214 +1,152 @@
-# app/collect.py
-# Aggregate Purdue MBB feeds -> data/news.json
-# Self-contained: includes FEEDS inline (no feeds.py import). Requires: feedparser
-
-import os
-import json
-import time
-import re
-import html
-import logging
-from pathlib import Path
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse, parse_qsl
-
+# collect.py
+import time, re, html, hashlib
+from typing import List, Dict, Any
 import feedparser
+import requests
 
-# ---------------------- Feeds (inline) ----------------------
-# Each tuple: (display_name, feed_url)
-FEEDS = [
-    # Beat / community
-    ("Hammer & Rails", "https://www.hammerandrails.com/rss/index.xml"),
-    # Reddit communities (built-in RSS)
-    ("Reddit: r/Boilermakers", "https://www.reddit.com/r/Boilermakers/.rss"),
-    ("Reddit: r/PurdueBasketball", "https://www.reddit.com/r/PurdueBasketball/.rss"),
-    # YouTube channels (official RSS format uses channel_id)
-    ("YouTube: BoilerBall (Official)", "https://www.youtube.com/feeds/videos.xml?channel_id=UCmR15rdQ-NCp-sHQ5v9Y1TA"),
-    ("YouTube: Field of 68 (After Dark)", "https://www.youtube.com/feeds/videos.xml?channel_id=UC9by2xjmM_ldmvIwYrARCDg"),
-    ("YouTube: Sleepers Media", "https://www.youtube.com/feeds/videos.xml?channel_id=UCaqPH-Ckzu_pSoO3AKcatNw"),
-    # (Optional) keep Google News last; it’s capped below
-    ("Google News (Purdue MBB)", "https://news.google.com/rss/search?q=Purdue+Boilermakers+men%27s+basketball&hl=en-US&gl=US&ceid=US:en"),
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/122.0 Safari/537.36"
+)
+REQ_TIMEOUT = (6, 15)  # (connect, read)
+
+SOURCES: List[Dict[str, str]] = [
+    # Google News – multiple focused queries to increase volume but stay MBB
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Matt%20Painter%22%20Purdue&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Braden%20Smith%22%20Purdue&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Fletcher%20Loyer%22%20Purdue&hl=en-US&gl=US&ceid=US:en"},
+
+    # Team/beat sites (some occasionally rate-limit; we fail soft)
+    {"name": "Hammer & Rails", "url": "https://www.hammerandrails.com/rss/index.xml"},
+    {"name": "Sports Illustrated (Purdue)", "url": "https://www.si.com/college/purdue/.rss"},
+    {"name": "Journal & Courier Purdue", "url": "https://rss.app/feeds/2iN67Qv7t9C1p7dS.xml"},
+    {"name": "Purdue Exponent", "url": "https://www.purdueexponent.org/search/?f=rss&c=news%2Csports&t=article&l=25&s=start_time&sd=desc"},
+    {"name": "GoldandBlack", "url": "https://www.on3.com/feeds/goldandblack/purdue/"},
+
+    # Reddit (soft-fail if 429)
+    {"name": "Reddit r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/search.rss?q=Purdue%20men%27s%20basketball&restrict_sr=on&sort=new&t=month"},
 ]
 
-# ---------------------- Config ----------------------
+POSITIVE = [
+    "basketball", "men's basketball", "mbb", "matt painter", "purdue hoops",
+    "boilers hoops", "mackey", "braden smith", "fletcher loyer", "caleb furst",
+    "trey kaufman", "will berg", "jack benter", "camden", "purdue guard",
+    "purdue forward", "boilermakers guard", "big ten tournament", "ncaa tournament",
+]
 
-# Where to write the merged JSON that server.py reads
-DATA_PATH = Path(os.environ.get("DATA_PATH", "data/news.json"))
+NEGATIVE = [
+    "football","soccer","baseball","softball","volleyball","wrestling","hockey",
+    "track","cross country","swimming","golf","tennis","rowing","women's",
+    "women’s","wbb","wbasketball","soft launch", "recruiting visit (football)"
+]
 
-# Number of items to keep overall (after sorting)
-MAX_TOTAL_ITEMS = int(os.environ.get("MAX_TOTAL_ITEMS", "500"))
-
-# Limit how many Google News items we take so it doesn’t swamp others
-GOOGLE_NEWS_MAX = int(os.environ.get("GOOGLE_NEWS_MAX", "10"))
-
-# Identify ourselves for politeness / fewer 403s
-REQUEST_HEADERS = {
-    "User-Agent": "Purdue-MBB-FeedBot/1.0 (+https://example.com/)"
-}
-
-# ---------------------- Utils ----------------------
-
-
-def strip_tags(s: str) -> str:
-    """Turn HTML into plain text (UI shows summary_text)."""
+def _clean_text(s: str) -> str:
     if not s:
         return ""
-    s = html.unescape(s)
-    s = re.sub(r"<[^>]+>", " ", s)
-    s = re.sub(r"\s+", " ", s).strip()
-    return s
+    # decode HTML entities twice (some feeds double-escape)
+    t = html.unescape(html.unescape(s))
+    # strip tags
+    t = re.sub(r"<[^>]+>", " ", t, flags=re.S)
+    # collapse whitespace
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
 
+def _is_mbb_relevant(title: str, summary: str) -> bool:
+    T = f"{title} {summary}".lower()
+    if not any(k in T for k in POSITIVE):
+        # allow Purdue + generic "roster" or "schedule" mentions if not negs
+        if not (("purdue" in T) and ("basket" in T)):
+            return False
+    if any(k in T for k in NEGATIVE):
+        # allow if explicitly men's basketball appears
+        if "men" not in T or "basket" not in T:
+            return False
+    return True
 
-def unwrap_google_news(url: str) -> str:
-    """If this is a news.google.com link, return the embedded original URL."""
-    try:
-        p = urlparse(url)
-        if "news.google.com" in p.netloc:
-            q = parse_qs(p.query)
-            if "url" in q and q["url"]:
-                return q["url"][0]
-    except Exception:
-        pass
-    return url
-
-
-def canonicalize_url(url: str) -> str:
-    """Normalize URL (remove UTM etc.) for dedupe."""
-    if not url:
-        return url
-    url = unwrap_google_news(url)
-
-    p = urlparse(url)
-    # strip tracking params commonly seen
-    allow = []
-    for k, v in parse_qsl(p.query, keep_blank_values=True):
-        if not k.lower().startswith(("utm_", "gclid", "oc")):
-            allow.append((k, v))
-    new_qs = urlencode(allow, doseq=True)
-
-    p = p._replace(netloc=p.netloc.lower(), scheme=p.scheme.lower(), query=new_qs)
-    return urlunparse(p)
-
-
-def as_epoch(struct_time) -> int | None:
-    try:
-        return int(time.mktime(struct_time))
-    except Exception:
-        return None
-
-
-def best_published_ts(entry) -> int:
-    """Pick the best available timestamp for an entry; fallback to 'now'."""
+def _epoch(entry: Any) -> int:
     for key in ("published_parsed", "updated_parsed", "created_parsed"):
-        st = entry.get(key)
-        if st:
-            ts = as_epoch(st)
-            if ts:
-                return ts
+        v = entry.get(key)
+        if v:
+            try:
+                return int(time.mktime(v))
+            except Exception:
+                pass
     return int(time.time())
 
+def _fetch_bytes(url: str) -> bytes:
+    try:
+        r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=REQ_TIMEOUT)
+        r.raise_for_status()
+        return r.content
+    except Exception:
+        return b""
 
-def parse_feed(name: str, url: str) -> list[dict]:
-    """Return list of normalized items from a single feed."""
-    logging.info("Fetching: %s — %s", name, url)
-    d = feedparser.parse(url, request_headers=REQUEST_HEADERS)
+def parse_rss(url: str) -> feedparser.FeedParserDict:
+    blob = _fetch_bytes(url)
+    if blob:
+        return feedparser.parse(blob)
+    # fallback to feedparser’s internal fetcher (still with UA)
+    return feedparser.parse(url, request_headers={"User-Agent": USER_AGENT})
 
-    items = []
-    for e in d.entries:
-        title = e.get("title") or "(untitled)"
-        link = e.get("link") or ""
-
-        # Prefer 'content' -> 'summary' -> ''
-        summary_html = ""
-        if "content" in e and e.content:
-            summary_html = " ".join(part.get("value", "") for part in e.content)
-        else:
-            summary_html = e.get("summary", "") or e.get("description", "")
-
-        pub_ts = best_published_ts(e)
-        link = canonicalize_url(link)
-
-        items.append(
-            {
-                "source": name,
-                "title": strip_tags(title),
-                "link": link,
-                "summary": summary_html,      # keep raw; UI also has summary_text
-                "summary_text": strip_tags(summary_html),
-                "published_ts": pub_ts,
-                "published": e.get("published", "") or e.get("updated", "") or "",
-                "id": e.get("id") or link,
-            }
-        )
-
-    if "google news" in name.lower():
-        items = items[:GOOGLE_NEWS_MAX]
-
-    return items
-
-
-# ---------------------- Core -----------------------
-
-
-def collect_all() -> dict:
-    """Fetch all feeds, merge, dedupe, sort newest->oldest, write JSON."""
-    t0 = time.time()
-
-    feed_list = list(FEEDS)
-
-    all_items: list[dict] = []
-    for name, url in feed_list:
-        try:
-            all_items.extend(parse_feed(name, url))
-        except Exception as e:
-            logging.exception("Feed failed: %s — %s", name, e)
-
-    # De-dupe by canonical link first, then fallback to (title, source)
+def collect_all() -> Dict[str, Any]:
     seen = set()
-    deduped: list[dict] = []
-    for it in all_items:
-        k1 = (it.get("link") or "").lower()
-        if k1 and k1 not in seen:
-            seen.add(k1)
-            deduped.append(it)
-            continue
-        k2 = (it.get("title", "").lower(), it.get("source", "").lower())
-        if k2 not in seen:
-            seen.add(k2)
-            deduped.append(it)
+    items: List[Dict[str, Any]] = []
+    sources_state: List[Dict[str, Any]] = []
+    for src in SOURCES:
+        name, url = src["name"], src["url"]
+        kept = 0
+        try:
+            d = parse_rss(url)
+            fetched = len(d.entries or [])
+            for e in d.entries or []:
+                title = _clean_text(getattr(e, "title", "") or e.get("title", ""))
+                link = (getattr(e, "link", "") or e.get("link", "") or "").strip()
+                # pick first available body
+                raw = e.get("summary", "") or e.get("description", "")
+                if not raw and e.get("content"):
+                    try:
+                        raw = e["content"][0].get("value", "")
+                    except Exception:
+                        pass
+                summary_text = _clean_text(raw)
+                if not title and summary_text:
+                    title = summary_text[:120] + "…"
+                if not link:
+                    # build a stable pseudo-link to dedupe
+                    link = "about:blank#" + hashlib.md5((title + summary_text).encode("utf-8")).hexdigest()
 
-    deduped.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
+                if not _is_mbb_relevant(title, summary_text):
+                    continue
 
-    if len(deduped) > MAX_TOTAL_ITEMS:
-        deduped = deduped[:MAX_TOTAL_ITEMS]
+                key = (name, link)
+                if key in seen:
+                    continue
+                seen.add(key)
 
-    out = {
-        "updated_ts": int(time.time()),
-        "items": deduped,
-        "took_ms": int((time.time() - t0) * 1000),
-        "count": len(deduped),
+                item = {
+                    "title": title,
+                    "link": link,
+                    "source": name,
+                    "summary_text": summary_text,
+                    "published_ts": _epoch(e),
+                }
+                items.append(item)
+                kept += 1
+        except Exception:
+            fetched = 0
+        sources_state.append({"name": name, "url": url, "fetched": fetched, "kept": kept})
+
+    items.sort(key=lambda x: x["published_ts"], reverse=True)
+    return {
+        "count": len(items),
+        "items": items,
+        "sources": sources_state,
+        "updated": int(time.time()),
     }
 
-    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-    tmp = DATA_PATH.with_suffix(".json.tmp")
-    with tmp.open("w", encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False)
-    tmp.replace(DATA_PATH)
-
-    logging.info("Wrote %s items to %s in %d ms", len(deduped), DATA_PATH, out["took_ms"])
-    return out
-
-
-# ---------------------- CLI ------------------------
-
-
-def main():
-    logging.basicConfig(
-        level=os.environ.get("LOGLEVEL", "INFO"),
-        format="%(asctime)s %(levelname)s %(message)s",
-    )
-    out = collect_all()
-    print(json.dumps({"count": out["count"], "updated_ts": out["updated_ts"]}))
-
-
-if __name__ == "__main__":
-    main()
+# Utilities used by server.py
+def collect_debug() -> Dict[str, Any]:
+    return collect_all()
