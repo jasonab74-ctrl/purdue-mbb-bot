@@ -1,112 +1,123 @@
-from __future__ import annotations
-import time, re, html
-from typing import Dict, List
+import time
+import re
+import html
+from typing import List, Dict, Any, Tuple
 import requests
 import feedparser
 
-UA = "purdue-mbb-bot/1.0 (+https://purdue-mbb-api.onrender.com)"
-CONNECT_TO = 5
-READ_TO = 10
+# --- Tunables ---------------------------------------------------------------
+REQUEST_TIMEOUT = 12            # seconds per HTTP GET
+TOTAL_COLLECT_BUDGET = 40       # hard cap for one full refresh
+MAX_ITEMS = 200                 # keep it reasonable
+USER_AGENT = "purdue-mbb-bot/1.0 (+https://github.com/yourrepo)"
 
-# Sources: keep it small & fast so gunicorn doesn’t time out
-GOOGLE_NEWS = (
-    'https://news.google.com/rss/search?q='
-    '"Purdue%20men%27s%20basketball"%20OR%20'
-    '"Boilermakers%20basketball"%20OR%20'
-    '"Matt%20Painter"%20OR%20'
-    '"Purdue%20Boilermakers"%20basketball&hl=en-US&gl=US&ceid=US:en'
-)
-REDDIT_RSS = (
-    "https://www.reddit.com/r/Boilermakers/search.rss"
-    "?q=Purdue%20men%27s%20basketball&restrict_sr=on&sort=new&t=month"
-)
+# Sources (RSS/Atom) — add/remove freely. Filters below keep only MBB.
+SOURCES: List[Tuple[str, str]] = [
+    ("Hammer & Rails", "https://www.hammerandrails.com/rss/index.xml"),
+    ("Journal & Courier Purdue", "https://rss.app/feeds/2iN67Qv7t9C1p7dS.xml"),  # fallback feed; fine if 404/slow; we'll skip.
+    ("Sports Illustrated (Purdue)", "https://www.si.com/college/purdue/.rss"),
+    ("Purdue Exponent", "https://www.purdueexponent.org/search/?f=atom&c=news%2Csports&t=article"),
+    ("GoldandBlack", "https://www.on3.com/feeds/goldandblack/purdue/"),  # many sites block; skip on error
+    # Reddit: search inside r/Boilermakers (we’ll be respectful + skip on 429)
+    ("Reddit r/Boilermakers",
+     "https://www.reddit.com/r/Boilermakers/search.rss?q=Purdue%20men%27s%20basketball&restrict_sr=on&sort=new&t=month"),
+]
 
-NEG = re.compile(
-    r"\b(football|soccer|volleyball|softball|baseball|women'?s|wbb|hockey|wrestling|golf|swim|track)\b",
-    re.I,
-)
-# Require Purdue + basketball context somewhere
-REQ = re.compile(r"\b(purdue|boilermaker)\b.*\b(basketball|mbb|painter)\b", re.I)
+# --- Helpers ----------------------------------------------------------------
 
-_last_errors: List[str] = []
-_last_skips: List[str] = []
-
-def _get(url: str) -> bytes | None:
+def _http_get(url: str) -> str | None:
+    """Fetch text with UA + timeout. Returns response.text or None."""
     try:
-        r = requests.get(url, headers={"User-Agent": UA}, timeout=(CONNECT_TO, READ_TO))
+        r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=REQUEST_TIMEOUT)
+        # handle “Too Many Requests” from Reddit or others without blowing up:
+        if r.status_code == 429:
+            return None
         r.raise_for_status()
-        return r.content
-    except Exception as e:
-        _last_errors.append(f"[get-fail] {url} -> {e}")
+        ct = r.headers.get("content-type","").lower()
+        # feedparser is fine with XML/Atom/HTML as text
+        r.encoding = r.encoding or ("utf-8" if "charset" not in ct else None)
+        return r.text
+    except Exception:
         return None
 
-def parse_rss(url: str, label: str) -> List[Dict]:
-    data = _get(url)
-    if data is None:
+def parse_rss(url: str) -> List[Dict[str, Any]]:
+    """Best-effort parse of a feed URL."""
+    text = _http_get(url)
+    if not text:
         return []
-    d = feedparser.parse(data)
+    d = feedparser.parse(text)
     items = []
-    for e in d.entries[:40]:
-        title = html.unescape(getattr(e, "title", "") or "")
-        summary = html.unescape(getattr(e, "summary", "") or "")
-        link = getattr(e, "link", "") or ""
+    for e in d.entries[:100]:
+        title = html.unescape(getattr(e, "title", "").strip())
+        link = getattr(e, "link", "").strip()
+        summary = html.unescape(getattr(e, "summary", getattr(e, "description", ""))).strip()
+        # Normalize published date if present
         published = getattr(e, "published", "") or getattr(e, "updated", "") or ""
-        text = f"{title} {summary}"
-
-        # MBB-only filter
-        if NEG.search(text):
-            _last_skips.append(f"[neg] {label} :: {title[:70]}")
-            continue
-        if not (("purdue" in text.lower() or "boilermaker" in text.lower()) and ("basketball" in text.lower() or "painter" in text.lower() or "mbb" in text.lower())):
-            _last_skips.append(f"[not-mbb] {label} :: {title[:70]}")
-            continue
-
+        source = getattr(d.feed, "title", "") or url
         items.append({
-            "title": title.strip(),
-            "summary": summary.strip(),
-            "link": link,
-            "published": published,
-            "source": label,
+            "title": title, "link": link, "summary": summary,
+            "published": published, "source": source
         })
     return items
 
-def collect_all() -> Dict:
-    start = time.time()
-    items: List[Dict] = []
-    stats = {"by_source": {}, "errors": [], "skips": 0}
+# Strong “MBB-only” filter.
+_NEG = re.compile(r"\b(women|wbb|football|soccer|volleyball|baseball|softball|wrestling|track|golf|tennis|swim|minors?)\b", re.I)
+_POS_ANY = re.compile(r"\b(basketball|mbb|m\.?b\.?b\.?|march madness|mackey|big ten|b1g)\b", re.I)
+_PURDUE = re.compile(r"\b(purdue|boilermakers?|boilers)\b", re.I)
 
-    # Google News
-    g = parse_rss(GOOGLE_NEWS, "Google News")
-    items.extend(g); stats["by_source"]["Google News"] = len(g)
+def is_mbb(item: Dict[str, Any]) -> bool:
+    text = f"{item.get('title','')} {item.get('summary','')} {item.get('link','')}"
+    if _NEG.search(text):
+        return False
+    if _PURDUE.search(text) and _POS_ANY.search(text):
+        return True
+    # Allow some known sources to pass with “basketball” only
+    if _POS_ANY.search(text) and any(k in (item.get("source","").lower()) for k in ("hammer & rails","journal","si.com","goldandblack","exponent")):
+        return True
+    return False
 
-    # Reddit (skip cleanly if rate-limited)
-    before_errs = len(_last_errors)
-    r = parse_rss(REDDIT_RSS, "Reddit")
-    items.extend(r); stats["by_source"]["Reddit"] = len(r)
-    if len(_last_errors) > before_errs and "429" in _last_errors[-1]:
-        # mark that we skipped due to rate limit
-        stats["by_source"]["Reddit_note"] = "rate-limited; skipped"
+def collect_all() -> Dict[str, Any]:
+    """Fetch from all sources with a total time budget and return curated items."""
+    started = time.monotonic()
+    all_items: List[Dict[str, Any]] = []
+    per_source = []
 
-    # sort newest-ish first when pub date string present
-    def _key(x):  # crude; feedparser dates vary widely
-        return x.get("published", ""), x.get("title", "")
-    items.sort(key=_key, reverse=True)
+    for name, url in SOURCES:
+        if time.monotonic() - started > TOTAL_COLLECT_BUDGET:
+            per_source.append({"name": name, "url": url, "error": "budget_exceeded"})
+            break
+        try:
+            batch = parse_rss(url)
+            kept = [x | {"source": name} for x in batch if is_mbb(x | {"source": name})]
+            all_items.extend(kept)
+            per_source.append({"name": name, "url": url, "fetched": len(batch), "kept": len(kept)})
+        except Exception as e:
+            per_source.append({"name": name, "url": url, "error": str(e)})
 
-    # trim to 150 to keep payloads tight
-    items = items[:150]
+    # de-dup by link, keep most recent first by published text (not perfect but fine)
+    seen = set()
+    unique = []
+    for item in all_items:
+        link = item.get("link","")
+        if link in seen: 
+            continue
+        seen.add(link)
+        unique.append(item)
 
-    stats["skips"] = len(_last_skips)
-    stats["errors"] = list(_last_errors)[-8:]
-    stats["elapsed_ms"] = int((time.time() - start) * 1000)
-
-    # Reset skip log between runs so it doesn’t grow forever
-    _last_skips.clear()
-    return {"items": items, "stats": stats}
-
-def collect_debug() -> Dict:
-    # One lightweight sample to show counters without doing a full scrape
+    # simple recency sort on string (feeds vary; we just keep the list stable)
+    unique = unique[:MAX_ITEMS]
     return {
-        "sources": ["Google News", "Reddit"],
-        "notes": "Filters men’s basketball only; excludes football/baseball/etc; Reddit may rate-limit (we skip).",
-        "errors_tail": list(_last_errors)[-8:],
+        "updated": int(time.time()),
+        "count": len(unique),
+        "items": unique,
+        "sources": per_source,
+    }
+
+def collect_debug() -> Dict[str, Any]:
+    sample = collect_all()
+    return {
+        "updated": sample["updated"],
+        "count": sample["count"],
+        "sources": sample["sources"],
+        "example": sample["items"][:3],
     }
