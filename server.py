@@ -11,187 +11,177 @@ app = Flask(__name__)
 CORS(app)
 
 # ---------- Minimal UI (inline SVG so the logo never breaks) ----------
-HTML = """<!doctype html>
+HTML = r"""<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Purdue Men's Basketball — Live Feed</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <style>
     :root {
-      --bg: #ffffff;
+      --bg: #fafafa;
+      --card: #ffffff;
       --text: #111827;
-      --muted: #6b7280;
-      --chip: #f3f4f6;
-      --brand: #000000;
-      --accent: #cfb991; /* Purdue gold */
+      --sub: #6b7280;
+      --brand: #0f172a;
+      --chip: #eef2ff;
+      --chip-text: #3730a3;
+      --border: #e5e7eb;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0; padding: 24px;
-      font: 16px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color: var(--text); background: var(--bg);
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
+    .wrap { max-width: 1080px; margin: 24px auto 56px; padding: 0 16px; }
+    .header { display:flex; align-items:center; gap:18px; margin-bottom:14px; }
+    .logo { width:54px; height:54px; flex:0 0 54px; display:flex; align-items:center; justify-content:center; }
+    .logo img { width:100%; height:auto; display:block; }
+    h1 { font-size: clamp(22px, 3.6vw, 36px); line-height:1.1; margin:0; font-weight:800; letter-spacing:-0.02em; }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:14px 0 8px; }
+    input[type="search"] { flex:1 1 520px; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:white; }
+    select { padding:12px; border:1px solid var(--border); border-radius:10px; background:white; }
+    .right { margin-left:auto; display:flex; gap:12px; align-items:center; }
+    .btn { background:#0b1220; color:#fff; border:0; padding:11px 14px; border-radius:10px; font-weight:600; cursor:pointer; }
+    .meta { color:var(--sub); font-size:13px; margin:4px 0 10px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .source { background:var(--chip); color:var(--chip-text); padding:2px 8px; border-radius:999px; font-weight:600; }
+    .list { display:grid; gap:14px; margin-top:8px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; }
+    .card a.title { font-weight:700; font-size:18px; text-decoration:none; color:var(--brand); display:inline-block; }
+    .card a.title:hover { text-decoration:underline; }
+    .snippet { color:var(--text); opacity:.85; margin:10px 0 0; }
+    .loaded { color:var(--sub); font-size:13px; margin:12px 0; }
+    .tools a { color:#1f3aff; text-decoration:none; }
+    .tools a:hover { text-decoration:underline; }
+    @media (max-width: 520px) {
+      .logo { width:46px; height:46px; flex-basis:46px; }
+      .btn { padding:10px 12px; }
+      .card a.title { font-size:17px; }
     }
-    header { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
-    h1 { font-size: clamp(22px, 2.8vw, 36px); margin:0; }
-    .toolbar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .btn {
-      appearance:none; border:0; background:#0f172a; color:#fff; padding:10px 14px; border-radius:10px;
-      font-weight:600; cursor:pointer;
-    }
-    .btn.secondary { background:#111827; }
-    .input, select {
-      width: min(100%, 1000px);
-      padding:12px 14px; border:1px solid #e5e7eb; border-radius:10px; background:#fff;
-      font-size:14px;
-    }
-    .meta { color: var(--muted); margin-top:10px; }
-    .list { margin-top:22px; display:grid; gap:10px; }
-    .card {
-      border:1px solid #e5e7eb; border-radius:12px; padding:14px; background:#fff;
-      display:flex; flex-direction:column; gap:6px;
-    }
-    .card a { color:#0f172a; text-decoration:none; font-weight:600; }
-    .card small { color:var(--muted); }
-    .logo {
-      width:52px; height:52px; display:inline-flex; align-items:center; justify-content:center;
-      border-radius:12px; background:#fff; border:1px solid #e5e7eb;
-    }
-    .pill { background: var(--chip); padding:4px 8px; border-radius:999px; font-size:12px; color:#374151; }
-    .row { display:flex; align-items:center; gap:8px; justify-content:space-between; flex-wrap:wrap; }
-    .left { display:flex; align-items:center; gap:14px; }
-    .right { display:flex; align-items:center; gap:10px; }
   </style>
-  <style>
-  /* Safe, light polish — matches classes used in the script */
-  .status { font-size: 12px; color: #666; margin: 6px 0 12px; }
-  .card { padding: 12px 14px; border: 1px solid #eee; border-radius: 10px; margin: 10px 0; }
-  .title { font-weight: 700; text-decoration: none; display: inline-block; margin-bottom: 6px; }
-  .title:hover { text-decoration: underline; }
-  .meta { font-size: 12px; color: #777; margin-bottom: 8px; }
-  .summary { margin: 0; line-height: 1.4; }
-</style>
 </head>
 <body>
-  <header>
-    <div class="logo" title="Purdue">
-      <!-- inline Purdue 'P' (simple) -->
-      <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
-        <defs>
-          <linearGradient id="g" x1="0" x2="1">
-            <stop offset="0" stop-color="#cfb991"/><stop offset="1" stop-color="#cfb991"/>
-          </linearGradient>
-        </defs>
-        <path fill="#000" d="M6 14h35c9 0 15 6 15 13s-6 13-15 13H23l-5 10H6l7-13H5z"/>
-        <path fill="url(#g)" d="M13 20h27c6 0 9 3 9 7s-3 7-9 7H22l-5 10h-6l7-13h-7z"/>
-      </svg>
+  <div class="wrap">
+    <div class="header">
+      <div class="logo"><img alt="Purdue P" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Purdue_Boilermakers_logo.svg/120px-Purdue_Boilermakers_logo.svg.png" /></div>
+      <h1>Purdue Men's Basketball — Live Feed</h1>
+      <div class="right">
+        <button id="refresh" class="btn">Force Refresh</button>
+        <span class="tools"><a href="/api/debug" target="_blank" rel="noopener">debug</a></span>
+      </div>
     </div>
-    <h1>Purdue Men's Basketball — Live Feed</h1>
-    <div class="right">
-      <button class="btn" id="force">Force Refresh</button>
-      <a class="pill" href="/api/debug">debug</a>
-    </div>
-  </header>
 
-  <div class="toolbar">
-    <input id="q" class="input" placeholder="Filter by keyword (e.g., 'Painter', 'Braden Smith')" />
-    <select id="source">
-      <option value="">All sources</option>
-    </select>
+    <div class="controls">
+      <input id="q" type="search" placeholder="Filter by keyword (e.g., 'Painter', 'Braden Smith')" />
+      <select id="src"><option value="">All sources</option></select>
+    </div>
+
+    <div id="loaded" class="loaded">Loaded …</div>
+    <div id="list" class="list"></div>
   </div>
-  <div class="meta" id="loaded">Loaded ...</div>
-
-  <div class="list" id="list"></div>
 
   <script>
-(async function () {
-  // ----------------- helpers -----------------
-  function stripTags(html) {
-    if (!html) return '';
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.textContent || div.innerText || '';
-  }
+    const $ = (sel) => document.querySelector(sel);
+    const list = $("#list");
+    const q = $("#q");
+    const src = $("#src");
+    const loaded = $("#loaded");
+    const refreshBtn = $("#refresh");
 
-  function fmtDate(tsOrIso) {
-    if (!tsOrIso) return '';
-    // supports epoch seconds (number) or ISO string
-    const ms = typeof tsOrIso === 'number'
-      ? tsOrIso * 1000
-      : Date.parse(tsOrIso);
-    if (Number.isNaN(ms)) return '';
-    return new Date(ms).toLocaleString();
-  }
+    let DATA = { items: [], updated_ts: null };
 
-  function el(tag, className, text) {
-    const e = document.createElement(tag);
-    if (className) e.className = className;
-    if (text != null) e.textContent = text;
-    return e;
-  }
+    function fmtTime(ts) {
+      if (!ts) return "";
+      const d = new Date(ts * 1000);
+      return d.toLocaleString();
+    }
 
-  // ----------------- fetch -----------------
-  const res = await fetch('/api/news', { cache: 'no-store' });
-  const data = await res.json();
+    // Turn HTML string into plain text
+    function stripTags(html) {
+      if (!html) return "";
+      const d = document.createElement("div");
+      d.innerHTML = html;
+      return (d.textContent || d.innerText || "").replace(/\s+/g," ").trim();
+    }
 
-// --- Sort newest → oldest safely ---
-function itemTs(it) {
-  // prefer epoch seconds if present; otherwise parse ISO
-  if (typeof it.published_ts === 'number') return it.published_ts;
-  if (it.published) {
-    const ms = Date.parse(it.published);
-    if (!Number.isNaN(ms)) return Math.floor(ms / 1000);
-  }
-  return 0; // unknown date goes to the bottom
-}
+    function render(items) {
+      list.innerHTML = "";
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
 
-const items = (data.items || [])
-  .slice()
-  .sort((a, b) => itemTs(b) - itemTs(a));
-  // ----------------- render -----------------
-  // IMPORTANT: make sure your list container has id="feed"
-  // (If it doesn't, just change its id to "feed" in the HTML markup.)
-  const list = document.querySelector('#feed');
-  if (!list) {
-    console.warn('No #feed container found');
-    return;
-  }
-  list.innerHTML = '';
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        const chip = document.createElement("span");
+        chip.className = "source";
+        chip.textContent = item.source || "RSS";
+        const dot = document.createElement("span");
+        dot.textContent = "•";
+        const when = document.createElement("time");
+        when.textContent = item.published_ts ? new Date(item.published_ts * 1000).toLocaleString() : (item.published || "");
+        meta.append(chip, dot, when);
 
-  // top status line (optional — shows when data was loaded and count)
-  const status = el('div', 'status',
-    `Loaded ${fmtDate(data.updated_ts || data.updated)} • ${items.length} items`);
-  list.appendChild(status);
+        const a = document.createElement("a");
+        a.className = "title";
+        a.href = item.link || "#";
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = item.title || "(untitled)";
 
-  for (const it of items) {
-    const card = el('div', 'card');
+        const descText = stripTags(item.summary_text || item.summary || "");
+        if (descText) {
+          const snip = document.createElement("p");
+          snip.className = "snippet";
+          snip.textContent = descText.length > 200 ? (descText.slice(0,200) + "…") : descText;
+          card.append(meta, a, snip);
+        } else {
+          card.append(meta, a);
+        }
 
-    // source + time (small line)
-    const meta = el(
-      'div',
-      'meta',
-      `${it.source || 'Source'} • ${fmtDate(it.published_ts || it.published)}`
-    );
+        list.append(card);
+      });
+    }
 
-    // clean title text, clickable link (no HTML blobs)
-    const titleLink = el('a', 'title', stripTags(it.title || 'Untitled'));
-    titleLink.href = it.link || '#';
-    titleLink.target = '_blank';
-    titleLink.rel = 'noopener';
+    function applyFilters() {
+      const term = q.value.trim().toLowerCase();
+      const only = src.value;
+      const items = DATA.items.filter(it => {
+        const okSrc = !only || (it.source === only);
+        const inText = !term || (
+          (it.title || "").toLowerCase().includes(term) ||
+          stripTags(it.summary_text || it.summary || "").toLowerCase().includes(term)
+        );
+        return okSrc && inText;
+      });
+      render(items);
+    }
 
-    // clean summary/description (no HTML)
-    const sum = el('p', 'summary', stripTags(it.summary || it.description || ''));
+    async function load() {
+      const r = await fetch("/api/news", { cache: "no-store" });
+      const json = await r.json();
+      DATA = json || { items: [] };
+      loaded.textContent = "Loaded " + (DATA.updated_ts ? fmtTime(DATA.updated_ts) : "");
+      // build sources
+      const unique = Array.from(new Set((DATA.items || []).map(i => i.source).filter(Boolean))).sort();
+      src.innerHTML = '<option value="">All sources</option>' + unique.map(s => `<option>${s}</option>`).join("");
+      applyFilters();
+    }
 
-    card.appendChild(titleLink);
-    card.appendChild(meta);
-    card.appendChild(sum);
-    list.appendChild(card);
-  }
-})();
-</script>
+    async function forceRefresh() {
+      refreshBtn.disabled = true;
+      try {
+        await fetch("/api/refresh-now", { method: "POST" });
+      } catch {}
+      await load();
+      refreshBtn.disabled = false;
+    }
+
+    q.addEventListener("input", applyFilters);
+    src.addEventListener("change", applyFilters);
+    refreshBtn.addEventListener("click", forceRefresh);
+
+    document.addEventListener("DOMContentLoaded", load);
+  </script>
 </body>
-</html>
-"""
+</html>"""
+
 
 # -------------- Routes --------------
 
