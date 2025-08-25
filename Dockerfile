@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Gunicorn serves Flask app object named "app" inside server.py
-CMD ["gunicorn","-w","2","-t","60","-b","0.0.0.0:10000","server:app"]
+CMD ["bash","-lc","exec gunicorn -w 2 -t 60 -b 0.0.0.0:${PORT:-10000} server:app"]
