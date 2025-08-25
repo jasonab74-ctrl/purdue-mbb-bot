@@ -10,4 +10,4 @@ COPY . .
 
 # Render will detect port; we expose for clarity
 ENV PORT=10000
-CMD ["gunicorn", "-w", "2", "-t", "60", "-b", "0.0.0.0:10000", "server:app"]
+CMD gunicorn app.api:app --bind 0.0.0.0:${PORT:-8000} --workers 2
