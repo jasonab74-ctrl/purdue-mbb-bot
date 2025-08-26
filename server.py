@@ -78,7 +78,6 @@ def home():
     .pill .dot{{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block}}
 
     .quicklinks{{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0;overflow:hidden;
-      /* smooth collapse */
       max-height:160px; opacity:1; transition:max-height .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease, margin .18s ease;}}
     .chipbtn{{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;background:var(--btn-bg);color:var(--btn-ink);
       text-decoration:none;border:1px solid var(--btn-border);border-radius:12px;box-shadow:var(--shadow);
@@ -111,7 +110,6 @@ def home():
       .snippet{{ font-size:.95rem; }}
     }}
 
-    /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce){{
       *{{transition:none !important; animation:none !important;}}
     }}
@@ -142,9 +140,9 @@ def home():
   </div>
 
   <script>
-    // Smoothly toggle 'shrink' using rAF + hysteresis thresholds (prevents flicker)
+    // Smooth shrink on scroll with hysteresis
     const header = document.querySelector('.header');
-    const ENTER = 40, EXIT = 10;  // scroll px to shrink/expand
+    const ENTER = 40, EXIT = 10;
     let ticking = false;
     function applyShrink(){
       const y = window.scrollY || 0;
@@ -153,12 +151,8 @@ def home():
       ticking = false;
     }
     window.addEventListener('scroll', () => {
-      if (!ticking) {
-        window.requestAnimationFrame(applyShrink);
-        ticking = true;
-      }
+      if (!ticking) { window.requestAnimationFrame(applyShrink); ticking = true; }
     });
-    // run once on load
     applyShrink();
 
     const lastEl = document.getElementById("last");
@@ -196,7 +190,7 @@ def home():
       if(m && m.modified) setLast(m.modified);
     }
     load();
-    setInterval(load, 5*60*1000); // UI refetch every 5 min
+    setInterval(load, 5*60*1000);
   </script>
 </body>
 </html>
@@ -210,7 +204,8 @@ def api_items():
 def last_mod():
     return jsonify({"modified": mtime_iso(DATA_FILE)})
 
-@app.route("/api/refresh-now", methods=["POST"])
+# Accept GET and POST so browser visits work too
+@app.route("/api/refresh-now", methods=["GET","POST"])
 def refresh_now():
     need = os.getenv("REFRESH_KEY", "")
     key = request.args.get("key") or request.headers.get("X-Refresh-Key") or ""
