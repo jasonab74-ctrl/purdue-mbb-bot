@@ -84,6 +84,8 @@ def home():
       font-weight:600;font-size:.92rem;}}
     .chipbtn:hover{{background:var(--btn-bg-hover)}}
     .chip{{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 1px #e6dab0 inset;display:inline-block}}
+    .videobadge{{font-weight:700;color:#0a0;background:linear-gradient(135deg,#f4fff4,#ecffec);
+      border:1px solid #cfe9cf;padding:4px 8px;border-radius:999px}}
 
     #list{{margin-top:18px}}
     .card{{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}}
@@ -94,7 +96,7 @@ def home():
     .snippet{{color:#333;margin:.25rem 0 0}}
     .last{{font-size:.78rem;color:#555;margin-left:8px}}
 
-    /* Shrunk state */
+    /* Shrunk state (smooth) */
     .header.shrink{{ padding:6px 10px; }}
     .header.shrink .logo{{ width:38px; height:38px; }}
     .header.shrink .logo img{{ width:32px; height:32px; }}
@@ -172,15 +174,34 @@ def home():
       list.innerHTML="";
       items.forEach(it=>{
         const card=document.createElement("div"); card.className="card";
+
         const meta=document.createElement("div"); meta.className="meta";
         const src=document.createElement("span"); src.className="badge"; src.textContent=it.source||"RSS";
         const when=document.createElement("time"); when.textContent=it.published_ts?new Date(it.published_ts*1000).toLocaleString():"";
         meta.append(src,document.createTextNode("•"),when);
-        const a=document.createElement("a"); a.className="title-link"; a.href=it.link||"#"; a.target="_blank"; a.rel="noopener";
+
+        // 🎥 Add a video badge for YouTube sources
+        const isVideo = (it.source||"").toLowerCase().startsWith("youtube:");
+        if (isVideo){
+          const vb = document.createElement("span");
+          vb.className = "videobadge";
+          vb.textContent = "🎥 Video";
+          meta.append(document.createTextNode("• "), vb);
+        }
+
+        const a=document.createElement("a");
+        a.className="title-link"; a.href=it.link||"#"; a.target="_blank"; a.rel="noopener";
         a.textContent=it.title||"(untitled)";
-        const raw=it.summary_text||it.summary||""; const desc=clean(raw);
+
+        const raw=it.summary_text||it.summary||"";
+        const desc=clean(raw);
+
         card.append(meta,a);
-        if(desc){ const p=document.createElement("p"); p.className="snippet"; p.textContent=desc.length>220 ? (desc.slice(0,220)+"…") : desc; card.append(p);}
+        if(desc){
+          const p=document.createElement("p"); p.className="snippet";
+          p.textContent=desc.length>220 ? (desc.slice(0,220)+"…") : desc;
+          card.append(p);
+        }
         list.append(card);
       });
     }
@@ -190,7 +211,7 @@ def home():
       if(m && m.modified) setLast(m.modified);
     }
     load();
-    setInterval(load, 5*60*1000);
+    setInterval(load, 5*60*1000); // UI refetch every 5 min
   </script>
 </body>
 </html>
@@ -204,7 +225,7 @@ def api_items():
 def last_mod():
     return jsonify({"modified": mtime_iso(DATA_FILE)})
 
-# Accept GET and POST so browser visits work too
+# Accept GET and POST so you can click it in the browser if you like
 @app.route("/api/refresh-now", methods=["GET","POST"])
 def refresh_now():
     need = os.getenv("REFRESH_KEY", "")
