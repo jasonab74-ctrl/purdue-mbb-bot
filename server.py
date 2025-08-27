@@ -1,8 +1,9 @@
-# server.py — Purdue MBB News (Sites dropdown, search; replaces old Videos button with a Fight Song button)
-from flask import Flask, jsonify, request
+# server.py — Purdue MBB News (Sites dropdown, search; Fight Song button using /fight.mp3)
+from flask import Flask, jsonify, request, send_from_directory, abort
 import json, os, time
 
-app = Flask(__name__)
+# Explicit static mapping
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 DATA_FILE = "data.json"
 
@@ -25,7 +26,7 @@ def mtime_iso(path):
 def home():
     base = (request.url_root or "").rstrip("/")
     logo_url = f"{base}/static/logo.png"
-    og_local = os.path.join("static", "og.png")
+    og_local = os.path.join(app.static_folder, "og.png")
     og_url = f"{base}/static/og.png" if os.path.exists(og_local) else logo_url
 
     return f"""
@@ -164,8 +165,8 @@ def home():
     <div id="list"></div>
   </div>
 
-  <!-- Fight song audio (place file at /static/fight.mp3) -->
-  <audio id="fightAudio" src="/static/fight.mp3" preload="auto"></audio>
+  <!-- Fight song audio (served via explicit /fight.mp3 route) -->
+  <audio id="fightAudio" src="/fight.mp3" preload="auto"></audio>
 
   <script>
     // Smooth shrink on scroll
@@ -372,6 +373,15 @@ def refresh_now():
 @app.route("/api/health")
 def health():
     return jsonify({"status":"ok"})
+
+# Explicit fallback route for the fight song (bypasses any static mapping weirdness)
+@app.route("/fight.mp3")
+def fight_song():
+    sf = app.static_folder  # "static"
+    path = os.path.join(sf, "fight.mp3")
+    if os.path.exists(path):
+        return send_from_directory(sf, "fight.mp3", mimetype="audio/mpeg", conditional=True)
+    abort(404)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
