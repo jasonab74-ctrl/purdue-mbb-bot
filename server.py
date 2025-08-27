@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import os, json
+import os, json, subprocess
 from flask import Flask, Response, request, send_from_directory
 
 app = Flask(__name__, static_url_path="/static", static_folder="static")
 
-# ---------- API ----------
+# ---------------- API ----------------
 @app.get("/api/items")
 def api_items():
     try:
@@ -29,14 +29,13 @@ def api_refresh_now():
     key = request.args.get("key", "")
     if not expected or key != expected:
         return Response(json.dumps({"ok": False}), status=403, mimetype="application/json")
-    import subprocess
     try:
         subprocess.check_call(["python", "collect.py"])
         return Response(json.dumps({"ok": True}), mimetype="application/json")
     except Exception as e:
         return Response(json.dumps({"ok": False, "err": str(e)}), status=500, mimetype="application/json")
 
-# ---------- UI ----------
+# ---------------- UI ----------------
 HTML = r"""
 <!doctype html>
 <html lang="en">
@@ -61,10 +60,8 @@ body{
 }
 a{color:inherit;text-decoration:none}
 
-.header{
-  position:sticky; top:0; z-index:10; background:var(--bg);
-  transition:all .25s ease; border-bottom:1px solid transparent;
-}
+.header{position:sticky; top:0; z-index:10; background:var(--bg);
+  transition:all .25s ease; border-bottom:1px solid transparent;}
 .header.shrink{box-shadow:0 8px 30px -12px rgba(0,0,0,.25); border-bottom-color:var(--border)}
 
 .wrap{max-width:950px; margin:0 auto; padding:14px}
@@ -74,32 +71,20 @@ a{color:inherit;text-decoration:none}
 .logo{width:40px; height:40px; border-radius:10px; background:#f5d87c url('/static/logo.png') center/70% no-repeat; border:1px solid var(--border)}
 .h1{font-weight:800; font-size:22px; line-height:1.15; letter-spacing:-.2px}
 .badge{display:inline-flex; gap:8px; align-items:center; background:#111; color:#fff; border-radius:999px; padding:.28rem .65rem; font-size:.8rem}
-
 .metaTop{margin-left:auto; color:var(--muted); font-size:.86rem; white-space:nowrap}
 
-/* chip row (no clipping—so dropdown can escape) */
-.pills{
-  display:flex; gap:10px; align-items:center;
-  padding:0 12px 10px 12px;
-  overflow-x:hidden;   /* desktop */
-  overflow-y:visible;
-}
+/* chip row */
+.pills{display:flex; gap:10px; align-items:center; padding:0 12px 10px 12px; overflow-x:auto; overflow-y:visible}
+.pills::-webkit-scrollbar{display:none}
 .pill{display:inline-flex; gap:10px; align-items:center; background:var(--pill);
   padding:.6rem .9rem; border-radius:999px; border:1px solid var(--border); white-space:nowrap}
 .btn{cursor:pointer; background:#fff}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--pill-dot)}
 
-/* distinct fight-song button */
-.songBtn{
-  background:var(--gold);
-  color:var(--gold-ink);
-  font-weight:700;
-  border-color:#dfc35f;
-  box-shadow:0 2px 0 rgba(0,0,0,.06) inset;
-}
-.songBtn.playing{
-  background:#111; color:#fff; border-color:#111;
-}
+/* fight song distinct */
+.songBtn{background:var(--gold); color:var(--gold-ink); font-weight:700; border-color:#dfc35f;
+  box-shadow:0 2px 0 rgba(0,0,0,.06) inset}
+.songBtn.playing{background:#111; color:#fff; border-color:#111}
 
 /* controls */
 .controls{display:flex; gap:10px; align-items:center; padding:0 12px 12px 12px}
@@ -113,23 +98,22 @@ a{color:inherit;text-decoration:none}
 .source{font-weight:600; color:#444}
 .title{font-weight:800; font-size:18px; line-height:1.25}
 .sum{color:#474747; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
-
 .tag{margin-left:6px; font-size:.72rem; border:1px solid var(--border); border-radius:999px; padding:.1rem .45rem; background:#eef3ff}
 
-.dd{position:relative}
-.menu{
-  position:absolute; left:0; top:110%;
-  background:#fff; border:1px solid var(--border); border-radius:10px;
-  box-shadow:0 10px 26px rgba(0,0,0,.12); padding:8px; display:none; min-width:220px;
-  z-index:9999;  /* ensure above everything */
-}
-.menu a{display:block; padding:.45rem .6rem; border-radius:8px}
-.menu a:hover{background:#f5f5f5}
-.show{display:block}
-.small{font-size:.85rem}
+/* ---------- Sites overlay (replaces dropdown) ---------- */
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; z-index:9999; align-items:center; justify-content:center; padding:16px}
+.overlay.show{display:flex}
+.sheet{background:#fff; border-radius:14px; border:1px solid var(--border); box-shadow:0 20px 40px rgba(0,0,0,.25);
+  width:min(720px, 92vw); max-height:85vh; overflow:auto}
+.sheetHead{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--border)}
+.sheetTitle{font-weight:800}
+.xBtn{background:#f3f3f3; border:1px solid var(--border); border-radius:10px; padding:.4rem .6rem; cursor:pointer}
+.links{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; padding:14px 16px}
+.links a{display:block; padding:.55rem .6rem; border:1px solid var(--border); border-radius:10px}
+.links a:hover{background:#fafafa}
 
-/* ——————— Mobile polish ——————— */
-@media (max-width: 680px){
+/* Mobile */
+@media (max-width:680px){
   body{font-size:15px}
   .wrap{padding:10px}
   .card{border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,.06)}
@@ -139,11 +123,6 @@ a{color:inherit;text-decoration:none}
   .badge{font-size:.75rem; padding:.22rem .55rem}
   .metaTop{font-size:.78rem}
 
-  /* horizontally scrollable chips; menu still visible (y visible) */
-  .pills{overflow-x:auto; overflow-y:visible; -webkit-overflow-scrolling:touch; padding-bottom:6px; gap:8px}
-  .pills::-webkit-scrollbar{display:none}
-  .pill{padding:.54rem .8rem; border-radius:999px}
-
   .controls{position:sticky; top:64px; z-index:7; background:var(--bg); padding:8px 10px 10px 10px}
   .header.shrink + main .controls{top:52px}
   .search{padding:.8rem .95rem; font-size:16px}
@@ -152,8 +131,7 @@ a{color:inherit;text-decoration:none}
   .title{font-size:17px}
   .meta{font-size:.78rem}
 }
-
-@media (max-width: 380px){
+@media (max-width:380px){
   .h1{font-size:19px}
   .badge{display:none}
   .metaTop{display:none}
@@ -173,23 +151,7 @@ a{color:inherit;text-decoration:none}
     </div>
 
     <div class="pills" id="pillsRow">
-      <div class="dd">
-        <button class="pill btn" id="sitesBtn" aria-haspopup="true" aria-expanded="false">More Sites ▾</button>
-        <div class="menu" id="sitesMenu" role="menu">
-          <a target="_blank" href="https://www.hammerandrails.com/">Hammer &amp; Rails</a>
-          <a target="_blank" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers">ESPN Purdue MBB</a>
-          <a target="_blank" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/">CBS Purdue MBB</a>
-          <a target="_blank" href="https://goldandblack.com/">GoldandBlack</a>
-          <a target="_blank" href="https://www.barstoolsports.com/tag/purdue-boilermakers">Barstool (Purdue tag)</a>
-          <div style="height:6px"></div>
-          <a target="_blank" href="https://www.youtube.com/@TheFieldOf68">YouTube: Field of 68</a>
-          <a target="_blank" href="https://www.youtube.com/@SleepersMedia">YouTube: Sleepers Media</a>
-          <a target="_blank" href="https://www.reddit.com/r/Boilermakers/">Reddit /r/Boilermakers</a>
-          <a target="_blank" href="https://purduesports.com/sports/mens-basketball/schedule">Schedule</a>
-          <a target="_blank" href="https://purduesports.com/sports/mens-basketball/roster">Roster</a>
-        </div>
-      </div>
-
+      <button class="pill btn" id="sitesBtn" aria-haspopup="dialog" aria-expanded="false">More Sites ▾</button>
       <button class="pill btn songBtn" id="songBtn" aria-pressed="false">► Play Fight Song</button>
     </div>
 
@@ -200,12 +162,34 @@ a{color:inherit;text-decoration:none}
   </div>
 </header>
 
+<!-- Sites overlay -->
+<div class="overlay" id="sitesOverlay" role="dialog" aria-modal="true" aria-labelledby="sitesTitle">
+  <div class="sheet" role="document">
+    <div class="sheetHead">
+      <div class="sheetTitle" id="sitesTitle">Quick Links</div>
+      <button class="xBtn" id="closeSites" aria-label="Close">✕</button>
+    </div>
+    <div class="links">
+      <a target="_blank" href="https://www.hammerandrails.com/">Hammer &amp; Rails</a>
+      <a target="_blank" href="https://goldandblack.com/">GoldandBlack</a>
+      <a target="_blank" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers">ESPN — Purdue MBB</a>
+      <a target="_blank" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/">CBS — Purdue MBB</a>
+      <a target="_blank" href="https://www.barstoolsports.com/tag/purdue-boilermakers">Barstool — Purdue tag</a>
+      <a target="_blank" href="https://www.youtube.com/@TheFieldOf68">YouTube — Field of 68</a>
+      <a target="_blank" href="https://www.youtube.com/@SleepersMedia">YouTube — Sleepers Media</a>
+      <a target="_blank" href="https://www.reddit.com/r/Boilermakers/">Reddit /r/Boilermakers</a>
+      <a target="_blank" href="https://purduesports.com/sports/mens-basketball/schedule">Purdue — Schedule</a>
+      <a target="_blank" href="https://purduesports.com/sports/mens-basketball/roster">Purdue — Roster</a>
+    </div>
+  </div>
+</div>
+
 <main class="wrap">
   <div id="list" class="list"></div>
 </main>
 
 <script>
-// smooth shrink on scroll
+// smooth shrink
 (function(){
   const header=document.querySelector('.header');
   let ticking=false;
@@ -214,22 +198,22 @@ a{color:inherit;text-decoration:none}
     if(y>40) header.classList.add('shrink'); else if(y<10) header.classList.remove('shrink');
     ticking=false;
   }
-  window.addEventListener('scroll',()=>{ if(!ticking){ window.requestAnimationFrame(applyShrink); ticking=true; }});
+  window.addEventListener('scroll',()=>{ if(!ticking){ requestAnimationFrame(applyShrink); ticking=true; }});
   applyShrink();
 })();
 
-// dropdown (fixed clipping)
-const sitesBtn=document.getElementById('sitesBtn');
-const sitesMenu=document.getElementById('sitesMenu');
-function toggleMenu(show){
-  const willShow = (show===undefined) ? !sitesMenu.classList.contains('show') : !!show;
-  sitesMenu.classList.toggle('show', willShow);
-  sitesBtn.setAttribute('aria-expanded', String(willShow));
-}
-sitesBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleMenu(); });
-document.addEventListener('click', (e)=>{ if(!sitesMenu.contains(e.target)) toggleMenu(false); });
+// Sites overlay
+const sitesBtn = document.getElementById('sitesBtn');
+const overlay  = document.getElementById('sitesOverlay');
+const closeBtn = document.getElementById('closeSites');
+function openSites(){ overlay.classList.add('show'); sitesBtn.setAttribute('aria-expanded','true'); }
+function closeSites(){ overlay.classList.remove('show'); sitesBtn.setAttribute('aria-expanded','false'); }
+sitesBtn.addEventListener('click', openSites);
+closeBtn.addEventListener('click', closeSites);
+overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeSites(); });
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeSites(); });
 
-// fight song toggle
+// Fight song toggle
 const songBtn=document.getElementById('songBtn');
 let audio;
 function setSongState(playing){
@@ -241,7 +225,7 @@ songBtn.addEventListener('click', ()=>{
   if(!audio){
     audio=new Audio('/static/fight.mp3');
     audio.addEventListener('error',()=>alert('fight.mp3 not found in /static/'));
-    audio.addEventListener('ended',()=>setSongState(false)); // auto-reset label when track finishes
+    audio.addEventListener('ended',()=>setSongState(false));
   }
   if(songBtn.classList.contains('playing')){
     audio.pause(); audio.currentTime=0; setSongState(false);
@@ -250,7 +234,7 @@ songBtn.addEventListener('click', ()=>{
   }
 });
 
-// rendering
+// Render items
 function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 function pill(tag){ return `<span class="tag">${tag}</span>`; }
 function fmtDate(iso){ try{ return new Date(iso).toLocaleString(); }catch{ return iso||''; } }
@@ -271,7 +255,6 @@ function row(it){
     ${it.summary ? `<div class="sum">${esc(it.summary)}</div>` : ``}
   </a>`;
 }
-
 function render(){
   const q=(qEl.value||'').trim().toLowerCase();
   const filtered = !q ? ALL : ALL.filter(it=>{
@@ -281,7 +264,6 @@ function render(){
   countEl.textContent = filtered.length;
   listEl.innerHTML = filtered.map(row).join('');
 }
-
 fetch('/api/items').then(r=>r.json()).then(items=>{ ALL=items||[]; render(); });
 fetch('/api/last-mod').then(r=>r.json()).then(b=>{
   if(b && b.modified) updEl.textContent = 'Updated: ' + b.modified.replace('T',' ');
