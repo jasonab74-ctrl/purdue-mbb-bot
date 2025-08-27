@@ -1,144 +1,214 @@
-import feedparser, time, json, os, socket, re, hashlib
-from html import unescape
+# collect.py  — unified feed collector for Purdue Men's Basketball News
+# ---------------------------------------------------------------
+# - Adds Yahoo Sports (via Google News site filter)
+# - Includes Hammer & Rails, ESPN NCB, CBS CBB, Barstool, On3/GoldandBlack
+# - Google/Bing news searches, Reddit, YouTube channels + searches
+# - De-dupes, normalizes, and filters to Purdue MEN'S basketball
+#
+# After editing, deploy and run:
+#   GET  /api/refresh-now?key=YOUR_REFRESH_KEY
+# or POST with header X-Refresh-Key
 
-socket.setdefaulttimeout(8)
+import os
+import re
+import time
+import json
+import html
+import hashlib
+from datetime import datetime, timezone
 
-REQ_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                  "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-}
-
-_TAGS = re.compile(r"<[^>]+>")
-
-def strip_html(s: str) -> str:
-    s = unescape(s or "")
-    s = _TAGS.sub(" ", s)
-    return " ".join(s.split())
-
-# ─────────────────────────────────────────
-# SOURCES
-SOURCES = [
-    {"name": "Hammer & Rails", "url": "https://www.hammerandrails.com/rss/index.xml"},
-    {"name": "ESPN CBB",       "url": "https://www.espn.com/espn/rss/ncb/news"},
-    {"name": "CBS CBB",        "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
-    {"name": "Bing News",      "url": "https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball&format=RSS"},
-
-    {"name": "Google News",    "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Google News",    "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20basketball&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Google News (ESPN)", "url": "https://news.google.com/rss/search?q=site:espn.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Google News (Barstool)", "url": "https://news.google.com/rss/search?q=site:barstoolsports.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
-
-    {"name": "YouTube: Field of 68",    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
-    {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
-]
-# ─────────────────────────────────────────
+import requests
+import feedparser
 
 DATA_FILE = "data.json"
+USER_AGENT = "purdue-mbb-bot/1.0 (+https://purdue-mbb-api-2.onrender.com)"
+TIMEOUT = 20
 
-BASKETBALL_TOKENS = [
-    "basketball", "mbb", "hoops",
-    "ncaa", "tournament", "final four",
-    "mackey", "paint crew",
-    "matt painter", "painter",
-    "guard", "forward", "center",
-    "3-pointer", "three-pointer", "assist", "rebound", "double-double",
-    "big ten", "b1g",
-]
-PURDUE_TOKENS = ["purdue", "boiler", "boilers", "boilermaker", "boilermakers", "west lafayette"]
-NAME_TOKENS = [
-    "zach edey", "braden smith", "fletcher loyer", "mason gillis",
-    "trey kaufman", "kaufman-renn", "caleb furst", "myles colvin",
-    "camden heide", "lance jones", "omer mayer"
-]
-ANTI_TOKENS = [
-    "football", "cfb", "gridiron", "bowl", "kickoff", "touchdown", "punt", "field goal",
-    "quarterback", "qb", "wide receiver", "wr", "running back", "rb",
-    "linebacker", "lb", "cornerback", "safety", "defensive back", "db",
-    "offensive line", "defensive line", "ol", "dl",
-    "ryan walters", "ross-ade",
-    "women", "wbb", "volleyball", "softball", "baseball", "soccer",
+# ---------------------------------------------------------------
+# 🔧 Sources (RSS/Atom). Keep names short; URLs must be RSS/ATOM.
+# ---------------------------------------------------------------
+SOURCES = [
+    # Core Purdue
+    {"name": "Hammer & Rails", "url": "https://www.hammerandrails.com/rss/index.xml"},
+
+    # Broad news (two flavors of Google News for better coverage)
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20basketball&hl=en-US&gl=US&ceid=US:en"},
+
+    # Bing News (often surfaces different outlets)
+    {"name": "Bing News", "url": "https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball&format=RSS"},
+
+    # Major CBB wires
+    {"name": "ESPN CBB", "url": "https://www.espn.com/espn/rss/ncb/news"},
+    {"name": "CBS CBB",  "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
+
+    # Yahoo Sports via Google News site filter (Yahoo no longer exposes stable RSS)
+    {"name": "Yahoo Sports", "url": "https://news.google.com/rss/search?q=site:sports.yahoo.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
+
+    # GoldandBlack/On3 + Barstool via site filters
+    {"name": "GoldandBlack", "url": "https://news.google.com/rss/search?q=site:on3.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Barstool",      "url": "https://news.google.com/rss/search?q=site:barstoolsports.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
+
+    # Community
+    {"name": "Reddit", "url": "https://www.reddit.com/r/Boilermakers/.rss"},
+
+    # YouTube — channels
+    {"name": "YouTube: Field of 68", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
+    {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
+
+    # YouTube — searches (pull relevant Purdue videos from ANY channel)
+    {"name": "YouTube Search", "url": "https://www.youtube.com/feeds/videos.xml?search_query=Purdue+basketball"},
+    {"name": "YouTube Search", "url": "https://www.youtube.com/feeds/videos.xml?search_query=Purdue+Boilermakers+basketball"},
 ]
 
-def is_basketball_item(title: str, summary_text: str, link: str, source_name: str) -> bool:
-    t = f"{title} {summary_text}".lower()
-    url = (link or "").lower()
+# ---------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------
 
-    if "football" in url:
+_re_whitespace = re.compile(r"\s+")
+_re_html_tag = re.compile(r"<[^>]+>")
+_re_youtube = re.compile(r"(youtube\.com|youtu\.be)", re.I)
+
+NAMES = [
+    "matt painter", "zach edey", "edey", "braden smith", "fletcher loyer",
+    "trey kaufman", "lance jones", "caleb first", "mason gillis", "myles colvin",
+    "camden", "riddell", "b1g", "big ten", "mackey"
+]
+
+def fetch_bytes(url: str) -> bytes:
+    r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
+    r.raise_for_status()
+    return r.content
+
+def norm_text(s: str) -> str:
+    if not s:
+        return ""
+    s = html.unescape(s)
+    s = _re_html_tag.sub("", s)
+    s = _re_whitespace.sub(" ", s)
+    return s.strip()
+
+def to_epoch(entry) -> int:
+    t = None
+    for key in ("published_parsed", "updated_parsed"):
+        if getattr(entry, key, None):
+            t = getattr(entry, key)
+            break
+    if t:
+        try:
+            return int(time.mktime(t))
+        except Exception:
+            pass
+    # Fallback to now to keep ordering sane
+    return int(time.time())
+
+def is_youtube(source_name: str, link: str) -> bool:
+    if source_name.lower().startswith("youtube"):
+        return True
+    return bool(_re_youtube.search(link or ""))
+
+def is_basketball_item(source_name: str, title: str, summary: str) -> bool:
+    """
+    Heuristic filter for MEN'S basketball + Purdue.
+    """
+    t = f"{title} {summary}".lower()
+
+    # Fast-path drops
+    if "football" in t and "basketball" not in t:
         return False
-    if any(a in t for a in ANTI_TOKENS):
+    if "women" in t or "wbb" in t or "women's" in t:
+        # Keep women’s basketball out for now per project scope
         return False
 
-    has_purdue = any(k in t for k in PURDUE_TOKENS)
-    has_ball   = any(k in t for k in BASKETBALL_TOKENS)
-    has_name   = any(k in t for k in NAME_TOKENS)
+    has_purdue = "purdue" in t or "boilermaker" in t or "boilers" in t
+    has_hoops  = "basketball" in t or "mbb" in t or "ncaa" in t
 
-    if ("matt painter" in t) or ("mackey" in t):
+    # Looser for YouTube to catch talk shows/pods
+    if is_youtube(source_name, ""):
+        return has_purdue or any(n in t for n in NAMES) or "big ten" in t or "b1g" in t
+
+    # News/wires: require Purdue and either hoops or program/name hints
+    if has_purdue and (has_hoops or any(n in t for n in NAMES) or "mackey" in t):
         return True
 
-    # Looser for YouTube so Purdue mentions show
-    if source_name.lower().startswith("youtube:"):
-        return has_purdue or has_name or ("boiler" in t)
+    # Occasionally Google/Bing include generic CBB lists/awards; allow with Purdue mention
+    if has_purdue and ("rank" in t or "poll" in t or "award" in t or "preseason" in t):
+        return True
 
-    return has_purdue and (has_ball or has_name)
+    return False
 
-def parse_rss(url):
-    return feedparser.parse(url, request_headers=REQ_HEADERS).entries
+def fingerprint(link: str, title: str) -> str:
+    base = (link or "").strip() or (title or "").strip()
+    return hashlib.sha1(base.encode("utf-8", "ignore")).hexdigest()
 
-def key(item):
-    base = f"{(item.get('title') or '').strip()}|{(item.get('link') or '').strip()}"
-    return hashlib.md5(base.encode("utf-8")).hexdigest()
+def normalize_item(feed_name: str, entry) -> dict:
+    title = norm_text(getattr(entry, "title", "") or "")
+    link  = getattr(entry, "link", "") or ""
 
-def collect():
-    items, seen = [], set()
-    now_ts = int(time.time())
+    # summary content preference
+    summary = ""
+    if getattr(entry, "content", None):
+        try:
+            summary = entry.content[0].value
+        except Exception:
+            pass
+    if not summary:
+        summary = getattr(entry, "summary", "") or ""
+    summary = norm_text(summary)
+
+    ts = to_epoch(entry)
+    src = feed_name or "RSS"
+
+    return {
+        "title": title or "(untitled)",
+        "link": link,
+        "summary_text": summary,
+        "published_ts": ts,
+        "source": src,
+    }
+
+def collect() -> list:
+    items = []
+    seen = set()
 
     for src in SOURCES:
+        name = src["name"]
+        url  = src["url"]
         try:
-            source_name = (src["name"] or "").strip()
-            for e in parse_rss(src["url"])[:50]:
-                title = e.get("title", "").strip()
-                link = e.get("link", "").strip()
+            raw = fetch_bytes(url)
+            parsed = feedparser.parse(raw)
+        except Exception:
+            continue
 
-                published = e.get("published_parsed") or e.get("updated_parsed")
-                ts = int(time.mktime(published)) if published else now_ts
+        # Prefer the configured name; if YouTube channel exposes a good title, append
+        feed_title = parsed.feed.title if getattr(parsed, "feed", None) and getattr(parsed.feed, "title", None) else ""
+        label = name
+        if name.startswith("YouTube:") and feed_title and "Uploads" not in feed_title:
+            # e.g., "YouTube: Field of 68 – Rob Dauster" (nice but keep short)
+            label = name
 
-                summary_raw = (
-                    e.get("summary")
-                    or e.get("description")
-                    or e.get("media_description")
-                    or (e.get("content")[0]["value"] if isinstance(e.get("content"), list) and e.get("content") else "")
-                    or ""
-                )
-                summary_text = strip_html(summary_raw)
+        for e in parsed.entries:
+            itm = normalize_item(label, e)
+            fp = fingerprint(itm["link"], itm["title"])
+            if fp in seen:
+                continue
+            seen.add(fp)
 
-                if not is_basketball_item(title, summary_text, link, source_name):
-                    continue
+            if is_basketball_item(label, itm["title"], itm["summary_text"]):
+                items.append(itm)
 
-                item = {
-                    "title": title,
-                    "link": link,
-                    "source": source_name,
-                    "published_ts": ts,
-                    "summary": summary_raw,
-                    "summary_text": summary_text,
-                }
-                k = key(item)
-                if k in seen: 
-                    continue
-                seen.add(k)
-                items.append(item)
-        except Exception as ex:
-            print("Error fetching", src["url"], ex)
-
-    items.sort(key=lambda x: x["published_ts"], reverse=True)
+    # Sort newest first
+    items.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
     return items
 
-def save(items):
+def save(items: list):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(items, f, indent=2)
+        json.dump(items, f, ensure_ascii=False)
 
+# ---------------------------------------------------------------
+# CLI support
+# ---------------------------------------------------------------
 if __name__ == "__main__":
     data = collect()
     save(data)
-    print("Saved", len(data), "items")
+    print(f"Saved {len(data)} items to {DATA_FILE}")
