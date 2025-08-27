@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Purdue Men's Basketball News</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+<header class="card header">
+  <div class="head-row">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Purdue"/>
+      <div class="title">Purdue Men's Basketball News</div>
+    </div>
+    <div class="badges">
+      <span class="chip primary">CURATED &amp; DE-CLUTTERED</span>
+      <span class="muted updated">Updated: <span id="updated">{{ modified }}</span></span>
+    </div>
+  </div>
+
+  <div class="link-row">
+    <a class="chip" target="_blank" href="https://www.hammerandrails.com/">H&R</a>
+    <a class="chip" target="_blank" href="https://www.espn.com/mens-college-basketball/">ESPN</a>
+    <a class="chip" target="_blank" href="https://www.on3.com/teams/purdue-boilermakers/">GoldandBlack</a>
+    <a class="chip" target="_blank" href="https://purduesports.com/sports/mens-basketball/schedule">Schedule</a>
+    <a class="chip" target="_blank" href="https://purduesports.com/sports/mens-basketball/roster">Roster</a>
+    <a class="chip" target="_blank" href="https://www.reddit.com/r/Boilermakers/">Reddit</a>
+
+    <div class="menu-wrapper">
+      <button id="moreBtn" class="chip ghost">More Sites ▾</button>
+      <div id="menu" class="menu card">
+        <div class="menu-grid">
+          <a target="_blank" href="https://www.cbssports.com/college-basketball/">CBS — CBB</a>
+          <a target="_blank" href="https://sports.yahoo.com/college-basketball/">Yahoo — CBB</a>
+          <a target="_blank" href="https://www.youtube.com/@TheFieldOf68/videos">YouTube — Field of 68</a>
+          <a target="_blank" href="https://www.youtube.com/@SleepersMedia/videos">YouTube — Sleepers</a>
+          <a target="_blank" href="https://www.barstoolsports.com/tag/purdue">Barstool — Purdue</a>
+        </div>
+      </div>
+    </div>
+
+    <button id="fightBtn" class="chip accent" aria-pressed="false">▶︎ Fight Song</button>
+    <audio id="fightAudio" src="{{ url_for('static', filename='fight.mp3') }}"></audio>
+  </div>
+
+  <div class="tools">
+    <input id="q" class="search" type="search" placeholder="Search news (e.g., Edey, Field of 68)"/>
+    <span class="count"><span id="count">0</span> results</span>
+  </div>
+</header>
+
+<main id="list" class="stack"></main>
+
+<script>
+const listEl  = document.getElementById('list');
+const qEl     = document.getElementById('q');
+const countEl = document.getElementById('count');
+const menu    = document.getElementById('menu');
+const moreBtn = document.getElementById('moreBtn');
+const fightBtn= document.getElementById('fightBtn');
+const fightAu = document.getElementById('fightAudio');
+
+let ITEMS = [];
+
+function fmt(ts){ return new Date(ts*1000).toLocaleString(); }
+
+function renderCard(it){
+  const el = document.createElement('article'); el.className='card item';
+
+  const row = document.createElement('div'); row.className='row';
+  const src = document.createElement('div'); src.className='src';  src.textContent = it.source;
+  const when= document.createElement('div'); when.className='when'; when.textContent = fmt(it.ts);
+  row.append(src, when);
+
+  const a = document.createElement('a');
+  a.className='title'; a.href = it.link; a.target='_blank'; a.rel='noopener';
+  a.textContent = it.title;
+
+  el.append(row, a);
+
+  if(it.summary){
+    const s = document.createElement('div'); s.className='sum'; s.textContent = it.summary;
+    el.appendChild(s);
+  }
+  return el;
+}
+
+function render(q=''){
+  const f = q.trim().toLowerCase();
+  const data = f ? ITEMS.filter(x => (x.title+' '+x.summary+' '+x.source).toLowerCase().includes(f)) : ITEMS;
+  listEl.innerHTML = '';
+  data.forEach(it => listEl.appendChild(renderCard(it)));
+  countEl.textContent = data.length;
+}
+
+async function load(){
+  const r = await fetch('/api/items'); const j = await r.json();
+  ITEMS = j.items || []; render('');
+}
+load();
+
+qEl.addEventListener('input', () => render(qEl.value));
+
+moreBtn.addEventListener('click', () => menu.classList.toggle('open'));
+document.addEventListener('click', (e)=>{
+  if(!menu.contains(e.target) && e.target !== moreBtn) menu.classList.remove('open');
+});
+
+fightBtn.addEventListener('click', async ()=>{
+  const on = fightBtn.getAttribute('aria-pressed') === 'true';
+  if(on){
+    fightAu.pause(); fightAu.currentTime = 0;
+    fightBtn.setAttribute('aria-pressed','false');
+    fightBtn.textContent = '▶︎ Fight Song';
+  }else{
+    try{ await fightAu.play(); }catch(_){}
+    fightBtn.setAttribute('aria-pressed','true');
+    fightBtn.textContent = '⏸︎ Stop Song';
+  }
+});
+</script>
+</body>
+</html>
