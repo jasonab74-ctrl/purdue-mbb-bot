@@ -85,6 +85,12 @@ def home():
     .chipbtn:hover{{background:var(--btn-bg-hover)}}
     .chip{{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 1px #e6dab0 inset;display:inline-block}}
 
+    /* Search */
+    .searchbar{{display:flex;align-items:center;gap:10px;margin-top:10px}}
+    .search-input{{flex:1;min-width:220px;padding:10px 12px;border:1px solid var(--btn-border);border-radius:12px;
+      background:#fff;box-shadow:var(--shadow);font-size:.96rem}}
+    .count{{font-size:.85rem;color:var(--muted)}}
+
     #list{{margin-top:18px}}
     .card{{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}}
     .title-link{{font-size:1.02rem;font-weight:800;text-decoration:none;color:var(--ink);display:block;margin:.15rem 0 .35rem}}
@@ -95,6 +101,7 @@ def home():
     .last{{font-size:.78rem;color:#555;margin-left:8px}}
     .videobadge{{font-weight:700;color:#0a0;background:linear-gradient(135deg,#f4fff4,#ecffec);
       border:1px solid #cfe9cf;padding:4px 8px;border-radius:999px}}
+    .empty{{text-align:center;color:#666;padding:18px}}
 
     /* Shrunk state */
     .header.shrink{{ padding:6px 10px; }}
@@ -132,6 +139,12 @@ def home():
           <a class="chipbtn" href="https://www.barstoolsports.com/topics/college-basketball" target="_blank" rel="noopener"><span class="chip"></span> Barstool</a>
           <a class="chipbtn" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener"><span class="chip"></span> Reddit</a>
         </nav>
+
+        <!-- Search -->
+        <div class="searchbar">
+          <input id="q" class="search-input" type="search" placeholder="Search news (e.g., Edey, Field of 68)" aria-label="Search news">
+          <span id="count" class="count"></span>
+        </div>
       </div>
     </header>
 
@@ -139,7 +152,7 @@ def home():
   </div>
 
   <script>
-    // Smooth shrink on scroll (braces doubled for f-string safety)
+    // Smooth shrink on scroll
     const header = document.querySelector('.header');
     const ENTER = 40, EXIT = 10;
     let ticking = false;
@@ -154,8 +167,20 @@ def home():
     }});
     applyShrink();
 
+    // Search helpers
+    function getParam(name){{ 
+      const u = new URL(window.location.href);
+      return u.searchParams.get(name) || "";
+    }}
+    function setParam(name, value){{ 
+      const u = new URL(window.location.href);
+      if (value) u.searchParams.set(name, value);
+      else u.searchParams.delete(name);
+      history.replaceState(null, "", u.toString());
+    }}
+
     const lastEl = document.getElementById("last");
-    function setLast(s){{ lastEl.textContent = s ? "Updated: " + s : ""; }}
+    function setLast(s){{ lastEl.textContent = s ? "Updated: "+s : ""; }}
 
     function decodeEntities(s){{ const el=document.createElement("textarea"); el.innerHTML=String(s||""); return el.value; }}
     function clean(input){{ 
@@ -166,9 +191,21 @@ def home():
       s=(doc.body?doc.body.textContent||"":s);
       return s.replace(/\\s+/g," ").trim();
     }}
+
+    const listEl = document.getElementById("list");
+    const qEl = document.getElementById("q");
+    const countEl = document.getElementById("count");
+    let ALL = [];
+
     function render(items){{ 
-      const list=document.querySelector("#list");
-      list.innerHTML="";
+      listEl.innerHTML = "";
+      if (!items.length) {{
+        listEl.innerHTML = '<div class="empty">No results. Try another search.</div>';
+        countEl.textContent = "0 results";
+        return;
+      }}
+      countEl.textContent = items.length + (items.length === 1 ? " result" : " results");
+
       items.forEach(it=>{{
         const card=document.createElement("div"); card.className="card";
 
@@ -198,16 +235,40 @@ def home():
           p.textContent=desc.length>220 ? (desc.slice(0,220)+"…") : desc;
           card.append(p);
         }}
-        list.append(card);
+        listEl.append(card);
       }});
     }}
+
+    function applyFilter(){{ 
+      const q = (qEl.value || "").trim().toLowerCase();
+      setParam("q", q);
+      if (!q) {{ render(ALL.slice()); return; }}
+      const filtered = ALL.filter(it => {{
+        const t = ((it.title||"") + " " + (it.source||"") + " " + (it.summary_text||it.summary||"")).toLowerCase();
+        return t.includes(q);
+      }});
+      render(filtered);
+    }}
+
+    // Debounce input
+    let tmr;
+    qEl.addEventListener("input", () => {{
+      clearTimeout(tmr);
+      tmr = setTimeout(applyFilter, 120);
+    }});
+
     async function load(){{ 
       const r = await fetch("/api/items"); 
-      const data = await r.json(); 
-      render(data);
+      ALL = await r.json(); 
       const m = await fetch("/api/last-mod").then(x=>x.json()).catch(()=>null);
       if(m && m.modified) setLast(m.modified);
+
+      // seed from URL param
+      const seed = getParam("q");
+      if (seed) qEl.value = seed;
+      applyFilter();
     }}
+
     load();
     setInterval(load, 5*60*1000);
   </script>
