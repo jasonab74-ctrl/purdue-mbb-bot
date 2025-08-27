@@ -35,7 +35,6 @@ def home():
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Purdue MBB News</title>
 
-  <!-- Icons & social preview -->
   <link rel="icon" type="image/png" sizes="32x32" href="{logo_url}">
   <link rel="icon" type="image/png" sizes="16x16" href="{logo_url}">
   <link rel="apple-touch-icon" href="{logo_url}">
@@ -61,7 +60,6 @@ def home():
     body{{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;background:var(--bg);color:var(--ink);}}
     .wrap{{max-width:860px;margin:0 auto;padding:20px}}
 
-    /* Header */
     .header{{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border:1px solid var(--border);
       border-radius:16px;box-shadow:var(--shadow);position:sticky;top:12px;z-index:10;
       transition:padding .22s cubic-bezier(.2,.8,.2,1);}}
@@ -77,7 +75,6 @@ def home():
       text-transform:uppercase;padding:6px 10px;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);}}
     .pill .dot{{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block}}
 
-    /* Compact dropdown for static sites */
     .sites{{position:relative;display:inline-block;margin-top:6px}}
     .chipbtn{{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;background:var(--btn-bg);color:var(--btn-ink);
       text-decoration:none;border:1px solid var(--btn-border);border-radius:12px;box-shadow:var(--shadow);
@@ -91,7 +88,6 @@ def home():
     .menu a:hover{{background:var(--btn-bg-hover)}}
     .chip{{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 1px #e6dab0 inset;display:inline-block}}
 
-    /* Search + Videos toggle */
     .searchrow{{display:flex;align-items:center;gap:10px;margin-top:10px}}
     .search-input{{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--btn-border);border-radius:12px;
       background:#fff;box-shadow:var(--shadow);font-size:.96rem}}
@@ -111,7 +107,6 @@ def home():
       border:1px solid #cfe9cf;padding:4px 8px;border-radius:999px}}
     .empty{{text-align:center;color:#666;padding:18px}}
 
-    /* Shrunk state hides the sites button for max space */
     .header.shrink{{ padding:6px 10px; }}
     .header.shrink .logo{{ width:38px; height:38px; }}
     .header.shrink .logo img{{ width:32px; height:32px; }}
@@ -138,7 +133,6 @@ def home():
           <span id="last" class="last"></span>
         </div>
 
-        <!-- Sites dropdown (compact) -->
         <div class="sites">
           <button id="sitesBtn" class="chipbtn" type="button" aria-haspopup="true" aria-expanded="false">Sites ▾</button>
           <div id="sitesMenu" class="menu" role="menu" aria-hidden="true">
@@ -152,7 +146,6 @@ def home():
           </div>
         </div>
 
-        <!-- Search + Videos toggle -->
         <div class="searchrow">
           <input id="q" class="search-input" type="search" placeholder="Search news (e.g., Edey, Field of 68)" aria-label="Search news">
           <button id="vidbtn" class="chipbtn chip-toggle" type="button" role="button" aria-pressed="false" title="Show YouTube only">🎥 Videos only</button>
@@ -165,7 +158,6 @@ def home():
   </div>
 
   <script>
-    // Smooth shrink on scroll
     const header = document.querySelector('.header');
     const ENTER = 40, EXIT = 10;
     let ticking = false;
@@ -204,7 +196,7 @@ def home():
     }});
     window.addEventListener('keydown', (e)=>{{ if (e.key === 'Escape') closeMenu(); }});
 
-    // URL param helpers
+    // URL params helpers
     function getParam(name){{ 
       const u = new URL(window.location.href);
       return u.searchParams.get(name) || "";
@@ -253,7 +245,11 @@ def home():
         const when=document.createElement("time"); when.textContent=it.published_ts?new Date(it.published_ts*1000).toLocaleString():"";
         meta.append(src,document.createTextNode("•"),when);
 
-        const isVideo = (it.source||"").toLowerCase().startsWith("youtube:");
+        // Improved video detection: source label OR any YouTube URL
+        const isVideo = (
+          (it.source||"").toLowerCase().startsWith("youtube:") ||
+          /youtube\\.com|youtu\\.be/i.test(it.link||"")
+        );
         if (isVideo){{ 
           const vb = document.createElement("span");
           vb.className = "videobadge";
@@ -290,13 +286,16 @@ def home():
       }}
 
       if (VIDEOS_ONLY) {{
-        items = items.filter(it => (it.source||"").toLowerCase().startsWith("youtube:"));
+        items = items.filter(it => {{
+          const s = (it.source||"").toLowerCase();
+          const l = it.link||"";
+          return s.startsWith("youtube:") || /youtube\\.com|youtu\\.be/i.test(l);
+        }});
       }}
 
       render(items);
     }}
 
-    // Debounce search input
     let tmr;
     qEl.addEventListener("input", () => {{
       setParam("q", qEl.value.trim());
@@ -304,7 +303,6 @@ def home():
       tmr = setTimeout(filterNow, 120);
     }});
 
-    // Toggle Videos only
     function setVideosOnly(on){{ 
       VIDEOS_ONLY = !!on;
       vidBtn.setAttribute("aria-pressed", VIDEOS_ONLY ? "true" : "false");
@@ -344,7 +342,6 @@ def api_items():
 def last_mod():
     return jsonify({"modified": mtime_iso(DATA_FILE)})
 
-# Allow GET and POST so you can click it
 @app.route("/api/refresh-now", methods=["GET","POST"])
 def refresh_now():
     need = os.getenv("REFRESH_KEY", "")
