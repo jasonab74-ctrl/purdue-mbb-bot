@@ -1,10 +1,10 @@
-# server.py — Purdue MBB News (Sites dropdown, search, Fight Song)
+# server.py — root-based app (Sites dropdown, search, Fight Song)
 from flask import Flask, jsonify, request, send_from_directory, abort
 import json, os, time
 
-APP_VERSION = "v15"  # bump this whenever you deploy to confirm which build is live
+APP_VERSION = "v17"  # bump to confirm the live build
 
-# Explicit static mapping
+# Static is at repo-root/static
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 DATA_FILE = "data.json"
@@ -12,11 +12,11 @@ DATA_FILE = "data.json"
 def load_data():
     if not os.path.exists(DATA_FILE):
         return []
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        try:
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-        except Exception:
-            return []
+    except Exception:
+        return []
 
 def mtime_iso(path):
     try:
@@ -28,8 +28,7 @@ def mtime_iso(path):
 def home():
     base = (request.url_root or "").rstrip("/")
     logo_url = f"{base}/static/logo.png"
-    og_local = os.path.join(app.static_folder, "og.png")
-    og_url = f"{base}/static/og.png" if os.path.exists(og_local) else logo_url
+    og_url = f"{base}/static/og.png" if os.path.exists(os.path.join(app.static_folder, "og.png")) else logo_url
 
     return f"""
 <!DOCTYPE html>
@@ -114,7 +113,7 @@ def home():
       border:1px solid #cfe9cf;padding:4px 8px;border-radius:999px}}
     .empty{{text-align:center;color:#666;padding:18px}}
 
-    /* Shrunk state hides the sites button for max space */
+    /* Shrink header on scroll */
     .header.shrink{{ padding:6px 10px; }}
     .header.shrink .logo{{ width:38px; height:38px; }}
     .header.shrink .logo img{{ width:32px; height:32px; }}
@@ -141,7 +140,7 @@ def home():
           <span id="last" class="last"></span>
         </div>
 
-        <!-- Sites dropdown (compact) -->
+        <!-- Sites dropdown -->
         <div class="sites">
           <button id="sitesBtn" class="chipbtn" type="button" aria-haspopup="true" aria-expanded="false">Sites ▾</button>
           <div id="sitesMenu" class="menu" role="menu" aria-hidden="true">
@@ -155,7 +154,7 @@ def home():
           </div>
         </div>
 
-        <!-- Search + Fight Song button -->
+        <!-- Search + Fight Song -->
         <div class="searchrow">
           <input id="q" class="search-input" type="search" placeholder="Search news (e.g., Edey, Field of 68)" aria-label="Search news">
           <button id="fightBtn" class="chipbtn" type="button" aria-pressed="false" title="Play the Purdue Fight Song">🎵 Fight Song</button>
@@ -167,7 +166,6 @@ def home():
     <div id="list"></div>
   </div>
 
-  <!-- Fight song audio (served via explicit /fight.mp3 route) -->
   <audio id="fightAudio" src="/fight.mp3" preload="auto"></audio>
 
   <script>
@@ -175,79 +173,62 @@ def home():
     const header = document.querySelector('.header');
     const ENTER = 40, EXIT = 10;
     let ticking = false;
-    function applyShrink(){{
+    function applyShrink(){
       const y = window.scrollY || 0;
       if (y > ENTER) header.classList.add('shrink');
       else if (y < EXIT) header.classList.remove('shrink');
       ticking = false;
-    }}
-    window.addEventListener('scroll', () => {{
-      if (!ticking) {{ window.requestAnimationFrame(applyShrink); ticking = true; }}
-    }});
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) { window.requestAnimationFrame(applyShrink); ticking = true; }
+    });
     applyShrink();
 
     // Sites dropdown
     const sitesBtn = document.getElementById('sitesBtn');
     const sitesMenu = document.getElementById('sitesMenu');
-    function closeMenu(){{
-      sitesMenu.classList.remove('show');
-      sitesBtn.setAttribute('aria-expanded','false');
-      sitesMenu.setAttribute('aria-hidden','true');
-    }}
-    function toggleMenu(){{
+    function closeMenu(){ sitesMenu.classList.remove('show'); sitesBtn.setAttribute('aria-expanded','false'); sitesMenu.setAttribute('aria-hidden','true'); }
+    function toggleMenu(){
       const open = !sitesMenu.classList.contains('show');
-      if (open) {{
-        sitesMenu.classList.add('show');
-        sitesBtn.setAttribute('aria-expanded','true');
-        sitesMenu.setAttribute('aria-hidden','false');
-      }} else {{
-        closeMenu();
-      }}
-    }}
-    sitesBtn.addEventListener('click', (e)=>{{ e.stopPropagation(); toggleMenu(); }});
-    document.addEventListener('click', (e)=>{{ if (!sitesMenu.contains(e.target) && e.target !== sitesBtn) closeMenu(); }});
-    window.addEventListener('keydown', (e)=>{{ if (e.key === 'Escape') closeMenu(); }});
+      if (open) { sitesMenu.classList.add('show'); sitesBtn.setAttribute('aria-expanded','true'); sitesMenu.setAttribute('aria-hidden','false'); }
+      else { closeMenu(); }
+    }
+    sitesBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleMenu(); });
+    document.addEventListener('click', (e)=>{ if (!sitesMenu.contains(e.target) && e.target !== sitesBtn) closeMenu(); });
+    window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeMenu(); });
 
-    // URL param helpers
-    function getParam(name){{
-      const u = new URL(window.location.href);
-      return u.searchParams.get(name) || "";
-    }}
-    function setParam(name, value){{
-      const u = new URL(window.location.href);
-      if (value) u.searchParams.set(name, value);
-      else u.searchParams.delete(name);
-      history.replaceState(null, "", u.toString());
-    }}
+    // Query helpers
+    function getParam(name){ const u = new URL(window.location.href); return u.searchParams.get(name) || ""; }
+    function setParam(name, value){ const u = new URL(window.location.href); if (value) u.searchParams.set(name, value); else u.searchParams.delete(name); history.replaceState(null, "", u.toString()); }
 
     const lastEl = document.getElementById("last");
-    function setLast(s){{ lastEl.textContent = s ? "Updated: "+s : ""; }}
+    function setLast(s){ lastEl.textContent = s ? "Updated: "+s : ""; }
 
-    function decodeEntities(s){{ const el=document.createElement("textarea"); el.innerHTML=String(s||""); return el.value; }}
-    function clean(input){{
+    function decodeEntities(s){ const el=document.createElement("textarea"); el.innerHTML=String(s||""); return el.value; }
+    function clean(input){
       if(!input) return "";
       let s=String(input);
-      for(let i=0;i<2;i++){{ let d=decodeEntities(s); if(d===s) break; s=d; }}
+      for(let i=0;i<2;i++){ let d=decodeEntities(s); if(d===s) break; s=d; }
       const doc=new DOMParser().parseFromString(s,"text/html");
       s=(doc.body?doc.body.textContent||"":s);
       return s.replace(/\\s+/g," ").trim();
-    }}
+    }
 
     const listEl = document.getElementById("list");
     const qEl = document.getElementById("q");
     const countEl = document.getElementById("count");
     let ALL = [];
 
-    function render(items){{
+    function render(items){
       listEl.innerHTML = "";
-      if (!items.length) {{
+      if (!items.length) {
         listEl.innerHTML = '<div class="empty">No results. Try another search.</div>';
         countEl.textContent = "0 results";
         return;
-      }}
+      }
       countEl.textContent = items.length + (items.length === 1 ? " result" : " results");
 
-      items.forEach(it=>{{
+      items.forEach(it=>{
         const card=document.createElement("div"); card.className="card";
 
         const meta=document.createElement("div"); meta.className="meta";
@@ -255,17 +236,17 @@ def home():
         const when=document.createElement("time"); when.textContent=it.published_ts?new Date(it.published_ts*1000).toLocaleString():"";
         meta.append(src,document.createTextNode("•"),when);
 
-        // Badge if this looks like a video (source label OR any YouTube URL)
+        // Video badge if it looks like video
         const isVideo = (
           (it.source||"").toLowerCase().startsWith("youtube:") ||
           /youtube\\.com|youtu\\.be/i.test(it.link||"")
         );
-        if (isVideo){{ 
+        if (isVideo){
           const vb = document.createElement("span");
           vb.className = "videobadge";
           vb.textContent = "🎥 Video";
           meta.append(document.createTextNode(" • "), vb);
-        }}
+        }
 
         const a=document.createElement("a");
         a.className="title-link"; a.href=it.link||"#"; a.target="_blank"; a.rel="noopener";
@@ -275,38 +256,32 @@ def home():
         const desc=clean(raw);
 
         card.append(meta,a);
-        if(desc){{ 
+        if(desc){
           const p=document.createElement("p"); p.className="snippet";
           p.textContent=desc.length>220 ? (desc.slice(0,220)+"…") : desc;
           card.append(p);
-        }}
+        }
         listEl.append(card);
-      }});
-    }}
+      });
+    }
 
-    function filterNow(){{
+    function filterNow(){
       const q = (qEl.value || "").trim().toLowerCase();
       let items = ALL;
 
-      if (q) {{
-        items = items.filter(it => {{
+      if (q) {
+        items = items.filter(it => {
           const t = ((it.title||"") + " " + (it.source||"") + " " + (it.summary_text||it.summary||"")).toLowerCase();
           return t.includes(q);
-        }});
-      }}
-
+        });
+      }
       render(items);
-    }}
+    }
 
-    // Debounce search input
     let tmr;
-    qEl.addEventListener("input", () => {{
-      setParam("q", qEl.value.trim());
-      clearTimeout(tmr);
-      tmr = setTimeout(filterNow, 120);
-    }});
+    qEl.addEventListener("input", () => { setParam("q", qEl.value.trim()); clearTimeout(tmr); tmr = setTimeout(filterNow, 120); });
 
-    async function load(){{
+    async function load(){
       const r = await fetch("/api/items"); 
       ALL = await r.json(); 
       const m = await fetch("/api/last-mod").then(x=>x.json()).catch(()=>null);
@@ -314,34 +289,34 @@ def home():
 
       const seedQ = getParam("q"); if (seedQ) qEl.value = seedQ;
       filterNow();
-    }}
+    }
 
     load();
     setInterval(load, 5*60*1000);
 
-    // Fight song player
+    // Fight song
     const fightBtn = document.getElementById('fightBtn');
     const fightAudio = document.getElementById('fightAudio');
-    function syncFightBtn(){{
+    function syncFightBtn(){
       const on = fightAudio && !fightAudio.paused;
       fightBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       fightBtn.textContent = on ? '⏸ Fight Song' : '🎵 Fight Song';
-    }}
-    if (fightBtn && fightAudio) {{
-      fightBtn.addEventListener('click', async () => {{
-        try {{
-          if (fightAudio.paused) {{
+    }
+    if (fightBtn && fightAudio) {
+      fightBtn.addEventListener('click', async () => {
+        try {
+          if (fightAudio.paused) {
             fightAudio.currentTime = 0;
             fightAudio.volume = 0.6;
             await fightAudio.play();
-          }} else {{
+          } else {
             fightAudio.pause();
-          }}
-        }} catch (e) {{}}
-      }});
+          }
+        } catch (e) {}
+      });
       ['play','playing','pause','ended','error'].forEach(ev => fightAudio.addEventListener(ev, syncFightBtn));
       syncFightBtn();
-    }}
+    }
   </script>
 </body>
 </html>
@@ -355,7 +330,7 @@ def api_items():
 def last_mod():
     return jsonify({"modified": mtime_iso(DATA_FILE)})
 
-# Allow GET and POST so you can click it
+# Allow GET or POST so clicking the URL works
 @app.route("/api/refresh-now", methods=["GET","POST"])
 def refresh_now():
     need = os.getenv("REFRESH_KEY", "")
@@ -374,16 +349,16 @@ def refresh_now():
 def health():
     return jsonify({"status":"ok"})
 
-# Explicit fallback route for the fight song (bypasses any static mapping weirdness)
+# Explicit route for fight song (served from /static)
 @app.route("/fight.mp3")
 def fight_song():
-    sf = app.static_folder  # "static"
+    sf = app.static_folder
     path = os.path.join(sf, "fight.mp3")
     if os.path.exists(path):
         return send_from_directory(sf, "fight.mp3", mimetype="audio/mpeg", conditional=True)
     abort(404)
 
-# Simple version probe so you can confirm the active build
+# Version probe
 @app.route("/__version")
 def version():
     return APP_VERSION, 200, {"Content-Type": "text/plain; charset=utf-8"}
