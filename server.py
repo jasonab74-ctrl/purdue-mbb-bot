@@ -64,7 +64,7 @@ def home():
     /* Header */
     .header{{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border:1px solid var(--border);
       border-radius:16px;box-shadow:var(--shadow);position:sticky;top:12px;z-index:10;
-      transition:padding .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease;}}
+      transition:padding .22s cubic-bezier(.2,.8,.2,1);}}
     .logo{{width:44px;height:44px;border-radius:10px;overflow:hidden;display:grid;place-items:center;
       background:linear-gradient(135deg,var(--gold),#e8d9a6);border:1px solid #d4c79d;
       transition:width .22s cubic-bezier(.2,.8,.2,1), height .22s cubic-bezier(.2,.8,.2,1);}}
@@ -96,14 +96,12 @@ def home():
     .snippet{{color:#333;margin:.25rem 0 0}}
     .last{{font-size:.78rem;color:#555;margin-left:8px}}
 
-    /* Shrunk state (smooth) */
     .header.shrink{{ padding:6px 10px; }}
     .header.shrink .logo{{ width:38px; height:38px; }}
     .header.shrink .logo img{{ width:32px; height:32px; }}
     .header.shrink .title{{ font-size:clamp(16px,4.2vw,22px); }}
     .header.shrink .quicklinks{{ max-height:0; opacity:0; margin-top:0; pointer-events:none; }}
 
-    /* Mobile tweaks */
     @media (max-width: 640px){{
       .header{{ top:8px; }}
       .quicklinks .chipbtn{{ padding:8px 10px; font-size:.86rem; border-radius:10px; }}
@@ -111,7 +109,6 @@ def home():
       .title-link{{ font-size:1rem; }}
       .snippet{{ font-size:.95rem; }}
     }}
-
     @media (prefers-reduced-motion: reduce){{
       *{{transition:none !important; animation:none !important;}}
     }}
@@ -129,10 +126,11 @@ def home():
         </div>
         <nav class="quicklinks">
           <a class="chipbtn" href="https://www.hammerandrails.com/purdue-basketball" target="_blank" rel="noopener"><span class="chip"></span> H&amp;R</a>
-          <a class="chipbtn" href="https://www.si.com/college/purdue" target="_blank" rel="noopener"><span class="chip"></span> SI Purdue</a>
+          <a class="chipbtn" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener"><span class="chip"></span> ESPN</a>
           <a class="chipbtn" href="https://www.on3.com/teams/purdue-boilermakers/" target="_blank" rel="noopener"><span class="chip"></span> GoldandBlack</a>
           <a class="chipbtn" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener"><span class="chip"></span> Schedule</a>
           <a class="chipbtn" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener"><span class="chip"></span> Roster</a>
+          <a class="chipbtn" href="https://www.barstoolsports.com/topics/college-basketball" target="_blank" rel="noopener"><span class="chip"></span> Barstool</a>
           <a class="chipbtn" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener"><span class="chip"></span> Reddit</a>
         </nav>
       </div>
@@ -142,7 +140,6 @@ def home():
   </div>
 
   <script>
-    // Smooth shrink on scroll with hysteresis
     const header = document.querySelector('.header');
     const ENTER = 40, EXIT = 10;
     let ticking = false;
@@ -180,13 +177,12 @@ def home():
         const when=document.createElement("time"); when.textContent=it.published_ts?new Date(it.published_ts*1000).toLocaleString():"";
         meta.append(src,document.createTextNode("•"),when);
 
-        // 🎥 Add a video badge for YouTube sources
         const isVideo = (it.source||"").toLowerCase().startsWith("youtube:");
         if (isVideo){
           const vb = document.createElement("span");
           vb.className = "videobadge";
           vb.textContent = "🎥 Video";
-          meta.append(document.createTextNode("• "), vb);
+          meta.append(document.createTextNode(" • "), vb);
         }
 
         const a=document.createElement("a");
@@ -211,7 +207,7 @@ def home():
       if(m && m.modified) setLast(m.modified);
     }
     load();
-    setInterval(load, 5*60*1000); // UI refetch every 5 min
+    setInterval(load, 5*60*1000);
   </script>
 </body>
 </html>
@@ -225,7 +221,7 @@ def api_items():
 def last_mod():
     return jsonify({"modified": mtime_iso(DATA_FILE)})
 
-# Accept GET and POST so you can click it in the browser if you like
+# Accept GET and POST so you can click the URL if you want
 @app.route("/api/refresh-now", methods=["GET","POST"])
 def refresh_now():
     need = os.getenv("REFRESH_KEY", "")
