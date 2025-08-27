@@ -1,4 +1,4 @@
-# server.py  — Purdue MBB News (clean header, Sites dropdown, search; no "Videos only" button)
+# server.py — Purdue MBB News (Sites dropdown, search; replaces old Videos button with a Fight Song button)
 from flask import Flask, jsonify, request
 import json, os, time
 
@@ -84,6 +84,7 @@ def home():
       text-decoration:none;border:1px solid var(--btn-border);border-radius:12px;box-shadow:var(--shadow);
       font-weight:600;font-size:.92rem;}}
     .chipbtn:hover{{background:var(--btn-bg-hover)}}
+    .chipbtn[aria-pressed="true"]{{ background:#111; color:#fff; }}
     .menu{{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--border);
       border-radius:12px;box-shadow:var(--shadow);padding:6px;min-width:240px;display:none}}
     .menu.show{{display:block}}
@@ -151,9 +152,10 @@ def home():
           </div>
         </div>
 
-        <!-- Search -->
+        <!-- Search + Fight Song button -->
         <div class="searchrow">
           <input id="q" class="search-input" type="search" placeholder="Search news (e.g., Edey, Field of 68)" aria-label="Search news">
+          <button id="fightBtn" class="chipbtn" type="button" aria-pressed="false" title="Play the Purdue Fight Song">🎵 Fight Song</button>
           <span id="count" class="count"></span>
         </div>
       </div>
@@ -161,6 +163,9 @@ def home():
 
     <div id="list"></div>
   </div>
+
+  <!-- Fight song audio (place file at /static/fight.mp3) -->
+  <audio id="fightAudio" src="/static/fight.mp3" preload="auto"></audio>
 
   <script>
     // Smooth shrink on scroll
@@ -312,6 +317,30 @@ def home():
 
     load();
     setInterval(load, 5*60*1000);
+
+    // Fight song player
+    const fightBtn = document.getElementById('fightBtn');
+    const fightAudio = document.getElementById('fightAudio');
+    function syncFightBtn(){{ 
+      const on = fightAudio && !fightAudio.paused;
+      fightBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      fightBtn.textContent = on ? '⏸ Fight Song' : '🎵 Fight Song';
+    }}
+    if (fightBtn && fightAudio) {{
+      fightBtn.addEventListener('click', async () => {{
+        try {{
+          if (fightAudio.paused) {{
+            fightAudio.currentTime = 0;
+            fightAudio.volume = 0.6;
+            await fightAudio.play();
+          }} else {{
+            fightAudio.pause();
+          }}
+        }} catch (e) {{}}
+      }});
+      ['play','playing','pause','ended','error'].forEach(ev => fightAudio.addEventListener(ev, syncFightBtn));
+      syncFightBtn();
+    }}
   </script>
 </body>
 </html>
