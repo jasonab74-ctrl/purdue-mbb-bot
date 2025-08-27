@@ -49,6 +49,7 @@ HTML = r"""
 :root{
   --bg:#f6f3ec; --card:#ffffff; --ink:#1f1f1f; --muted:#6c6c6c;
   --pill:#f1ede3; --pill-dot:#c19a00; --border:rgba(0,0,0,.08);
+  --gold:#f5d87c; --gold-ink:#16130a;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -76,20 +77,36 @@ a{color:inherit;text-decoration:none}
 
 .metaTop{margin-left:auto; color:var(--muted); font-size:.86rem; white-space:nowrap}
 
+/* chip row (no clipping—so dropdown can escape) */
 .pills{
   display:flex; gap:10px; align-items:center;
   padding:0 12px 10px 12px;
-  overflow:hidden; /* desktop default */
+  overflow-x:hidden;   /* desktop */
+  overflow-y:visible;
 }
 .pill{display:inline-flex; gap:10px; align-items:center; background:var(--pill);
   padding:.6rem .9rem; border-radius:999px; border:1px solid var(--border); white-space:nowrap}
 .btn{cursor:pointer; background:#fff}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--pill-dot)}
 
+/* distinct fight-song button */
+.songBtn{
+  background:var(--gold);
+  color:var(--gold-ink);
+  font-weight:700;
+  border-color:#dfc35f;
+  box-shadow:0 2px 0 rgba(0,0,0,.06) inset;
+}
+.songBtn.playing{
+  background:#111; color:#fff; border-color:#111;
+}
+
+/* controls */
 .controls{display:flex; gap:10px; align-items:center; padding:0 12px 12px 12px}
 .search{flex:1; border:1px solid var(--border); border-radius:12px; background:#fff; padding:.75rem .9rem; font-size:16px}
 .count{color:var(--muted); font-size:12px}
 
+/* list */
 .list{display:flex; flex-direction:column; gap:12px; margin-top:12px}
 .item{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 14px}
 .meta{display:flex; gap:8px; align-items:center; font-size:.82rem; color:var(--muted); margin-bottom:6px; flex-wrap:wrap}
@@ -100,7 +117,12 @@ a{color:inherit;text-decoration:none}
 .tag{margin-left:6px; font-size:.72rem; border:1px solid var(--border); border-radius:999px; padding:.1rem .45rem; background:#eef3ff}
 
 .dd{position:relative}
-.menu{position:absolute; left:0; top:110%; background:#fff; border:1px solid var(--border); border-radius:10px; box-shadow:0 10px 26px rgba(0,0,0,.12); padding:8px; display:none; min-width:220px}
+.menu{
+  position:absolute; left:0; top:110%;
+  background:#fff; border:1px solid var(--border); border-radius:10px;
+  box-shadow:0 10px 26px rgba(0,0,0,.12); padding:8px; display:none; min-width:220px;
+  z-index:9999;  /* ensure above everything */
+}
 .menu a{display:block; padding:.45rem .6rem; border-radius:8px}
 .menu a:hover{background:#f5f5f5}
 .show{display:block}
@@ -117,26 +139,23 @@ a{color:inherit;text-decoration:none}
   .badge{font-size:.75rem; padding:.22rem .55rem}
   .metaTop{font-size:.78rem}
 
-  /* make the chips horizontally scrollable & comfy on thumb */
-  .pills{overflow:auto; -webkit-overflow-scrolling:touch; padding-bottom:6px; gap:8px}
+  /* horizontally scrollable chips; menu still visible (y visible) */
+  .pills{overflow-x:auto; overflow-y:visible; -webkit-overflow-scrolling:touch; padding-bottom:6px; gap:8px}
   .pills::-webkit-scrollbar{display:none}
   .pill{padding:.54rem .8rem; border-radius:999px}
 
-  /* search bar a bit taller; stick under header for quick access */
   .controls{position:sticky; top:64px; z-index:7; background:var(--bg); padding:8px 10px 10px 10px}
   .header.shrink + main .controls{top:52px}
   .search{padding:.8rem .95rem; font-size:16px}
 
-  /* tighter list cards */
   .item{padding:12px}
   .title{font-size:17px}
   .meta{font-size:.78rem}
 }
 
-/* Extra small phones */
 @media (max-width: 380px){
   .h1{font-size:19px}
-  .badge{display:none} /* keep header short */
+  .badge{display:none}
   .metaTop{display:none}
 }
 </style>
@@ -155,8 +174,8 @@ a{color:inherit;text-decoration:none}
 
     <div class="pills" id="pillsRow">
       <div class="dd">
-        <button class="pill btn" id="sitesBtn">More Sites ▾</button>
-        <div class="menu" id="sitesMenu">
+        <button class="pill btn" id="sitesBtn" aria-haspopup="true" aria-expanded="false">More Sites ▾</button>
+        <div class="menu" id="sitesMenu" role="menu">
           <a target="_blank" href="https://www.hammerandrails.com/">Hammer &amp; Rails</a>
           <a target="_blank" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers">ESPN Purdue MBB</a>
           <a target="_blank" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/">CBS Purdue MBB</a>
@@ -170,7 +189,8 @@ a{color:inherit;text-decoration:none}
           <a target="_blank" href="https://purduesports.com/sports/mens-basketball/roster">Roster</a>
         </div>
       </div>
-      <button class="pill btn" id="songBtn">♪ Fight Song</button>
+
+      <button class="pill btn songBtn" id="songBtn" aria-pressed="false">► Play Fight Song</button>
     </div>
 
     <div class="controls">
@@ -198,21 +218,39 @@ a{color:inherit;text-decoration:none}
   applyShrink();
 })();
 
-// dropdown
+// dropdown (fixed clipping)
 const sitesBtn=document.getElementById('sitesBtn');
 const sitesMenu=document.getElementById('sitesMenu');
-sitesBtn.addEventListener('click',()=>{ sitesMenu.classList.toggle('show'); });
-document.addEventListener('click',(e)=>{ if(!sitesBtn.contains(e.target) && !sitesMenu.contains(e.target)) sitesMenu.classList.remove('show'); });
+function toggleMenu(show){
+  const willShow = (show===undefined) ? !sitesMenu.classList.contains('show') : !!show;
+  sitesMenu.classList.toggle('show', willShow);
+  sitesBtn.setAttribute('aria-expanded', String(willShow));
+}
+sitesBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleMenu(); });
+document.addEventListener('click', (e)=>{ if(!sitesMenu.contains(e.target)) toggleMenu(false); });
 
-// fight song
+// fight song toggle
 const songBtn=document.getElementById('songBtn');
 let audio;
-songBtn.addEventListener('click',()=>{
-  if(!audio){ audio=new Audio('/static/fight.mp3'); audio.addEventListener('error',()=>alert('fight.mp3 not found in /static')); }
-  audio.currentTime=0; audio.play();
+function setSongState(playing){
+  songBtn.classList.toggle('playing', playing);
+  songBtn.textContent = playing ? '⏸ Stop Fight Song' : '► Play Fight Song';
+  songBtn.setAttribute('aria-pressed', String(playing));
+}
+songBtn.addEventListener('click', ()=>{
+  if(!audio){
+    audio=new Audio('/static/fight.mp3');
+    audio.addEventListener('error',()=>alert('fight.mp3 not found in /static/'));
+    audio.addEventListener('ended',()=>setSongState(false)); // auto-reset label when track finishes
+  }
+  if(songBtn.classList.contains('playing')){
+    audio.pause(); audio.currentTime=0; setSongState(false);
+  }else{
+    audio.currentTime=0; audio.play(); setSongState(true);
+  }
 });
 
-// render
+// rendering
 function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 function pill(tag){ return `<span class="tag">${tag}</span>`; }
 function fmtDate(iso){ try{ return new Date(iso).toLocaleString(); }catch{ return iso||''; } }
