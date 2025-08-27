@@ -11,13 +11,13 @@ def load_data():
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         try:
             return json.load(f)
-        except:
+        except Exception:
             return []
 
 def mtime_iso(path):
     try:
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(os.path.getmtime(path)))
-    except:
+    except Exception:
         return None
 
 @app.route("/")
@@ -35,6 +35,7 @@ def home():
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Purdue MBB News</title>
 
+  <!-- Icons & social preview -->
   <link rel="icon" type="image/png" sizes="32x32" href="{logo_url}">
   <link rel="icon" type="image/png" sizes="16x16" href="{logo_url}">
   <link rel="apple-touch-icon" href="{logo_url}">
@@ -60,6 +61,7 @@ def home():
     body{{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;background:var(--bg);color:var(--ink);}}
     .wrap{{max-width:860px;margin:0 auto;padding:20px}}
 
+    /* Header */
     .header{{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border:1px solid var(--border);
       border-radius:16px;box-shadow:var(--shadow);position:sticky;top:12px;z-index:10;
       transition:padding .22s cubic-bezier(.2,.8,.2,1);}}
@@ -94,19 +96,21 @@ def home():
     .videobadge{{font-weight:700;color:#0a0;background:linear-gradient(135deg,#f4fff4,#ecffec);
       border:1px solid #cfe9cf;padding:4px 8px;border-radius:999px}}
 
+    /* Shrunk state */
     .header.shrink{{ padding:6px 10px; }}
     .header.shrink .logo{{ width:38px; height:38px; }}
     .header.shrink .logo img{{ width:32px; height:32px; }}
     .header.shrink .title{{ font-size:clamp(16px,4.2vw,22px); }}
     .header.shrink .quicklinks{{ max-height:0; opacity:0; margin-top:0; pointer-events:none; }}
 
-    @media (max-width: 640px){{
+    @media (max-width: 640px){{ 
       .header{{ top:8px; }}
       .quicklinks .chipbtn{{ padding:8px 10px; font-size:.86rem; border-radius:10px; }}
       .card{{ padding:10px 12px; }}
       .title-link{{ font-size:1rem; }}
       .snippet{{ font-size:.95rem; }}
     }}
+    @media (prefers-reduced-motion: reduce){{ *{{transition:none !important; animation:none !important;}} }}
   </style>
 </head>
 <body>
@@ -135,33 +139,37 @@ def home():
   </div>
 
   <script>
-    // smooth shrink on scroll
+    // Smooth shrink on scroll (braces doubled for f-string safety)
     const header = document.querySelector('.header');
     const ENTER = 40, EXIT = 10;
     let ticking = false;
-    function applyShrink(){ const y = window.scrollY||0;
+    function applyShrink(){{ 
+      const y = window.scrollY || 0;
       if (y > ENTER) header.classList.add('shrink');
       else if (y < EXIT) header.classList.remove('shrink');
-      ticking=false; }
-    window.addEventListener('scroll', ()=>{ if(!ticking){ requestAnimationFrame(applyShrink); ticking=true; }});
+      ticking = false;
+    }}
+    window.addEventListener('scroll', () => {{
+      if (!ticking) {{ window.requestAnimationFrame(applyShrink); ticking = true; }}
+    }});
     applyShrink();
 
     const lastEl = document.getElementById("last");
-    function setLast(s){ lastEl.textContent = s ? "Updated: "+s : ""; }
+    function setLast(s){{ lastEl.textContent = s ? "Updated: " + s : ""; }}
 
-    function decodeEntities(s){ const el=document.createElement("textarea"); el.innerHTML=String(s||""); return el.value; }
-    function clean(input){
+    function decodeEntities(s){{ const el=document.createElement("textarea"); el.innerHTML=String(s||""); return el.value; }}
+    function clean(input){{ 
       if(!input) return "";
       let s=String(input);
-      for(let i=0;i<2;i++){let d=decodeEntities(s); if(d===s) break; s=d;}
+      for(let i=0;i<2;i++){{ let d=decodeEntities(s); if(d===s) break; s=d; }}
       const doc=new DOMParser().parseFromString(s,"text/html");
       s=(doc.body?doc.body.textContent||"":s);
-      return s.replace(/\s+/g," ").trim();
-    }
-    function render(items){
+      return s.replace(/\\s+/g," ").trim();
+    }}
+    function render(items){{ 
       const list=document.querySelector("#list");
       list.innerHTML="";
-      items.forEach(it=>{
+      items.forEach(it=>{{
         const card=document.createElement("div"); card.className="card";
 
         const meta=document.createElement("div"); meta.className="meta";
@@ -169,11 +177,13 @@ def home():
         const when=document.createElement("time"); when.textContent=it.published_ts?new Date(it.published_ts*1000).toLocaleString():"";
         meta.append(src,document.createTextNode("•"),when);
 
-        const isVideo=(it.source||"").toLowerCase().startsWith("youtube:");
-        if(isVideo){
-          const vb=document.createElement("span"); vb.className="videobadge"; vb.textContent="🎥 Video";
+        const isVideo = (it.source||"").toLowerCase().startsWith("youtube:");
+        if (isVideo){{ 
+          const vb = document.createElement("span");
+          vb.className = "videobadge";
+          vb.textContent = "🎥 Video";
           meta.append(document.createTextNode(" • "), vb);
-        }
+        }}
 
         const a=document.createElement("a");
         a.className="title-link"; a.href=it.link||"#"; a.target="_blank"; a.rel="noopener";
@@ -183,19 +193,21 @@ def home():
         const desc=clean(raw);
 
         card.append(meta,a);
-        if(desc){
+        if(desc){{ 
           const p=document.createElement("p"); p.className="snippet";
           p.textContent=desc.length>220 ? (desc.slice(0,220)+"…") : desc;
           card.append(p);
-        }
+        }}
         list.append(card);
-      });
-    }
-    async function load(){
-      const r = await fetch("/api/items"); const data = await r.json(); render(data);
+      }});
+    }}
+    async function load(){{ 
+      const r = await fetch("/api/items"); 
+      const data = await r.json(); 
+      render(data);
       const m = await fetch("/api/last-mod").then(x=>x.json()).catch(()=>null);
       if(m && m.modified) setLast(m.modified);
-    }
+    }}
     load();
     setInterval(load, 5*60*1000);
   </script>
@@ -211,7 +223,7 @@ def api_items():
 def last_mod():
     return jsonify({"modified": mtime_iso(DATA_FILE)})
 
-# Accept GET and POST so you can click it
+# Allow GET and POST so you can click it
 @app.route("/api/refresh-now", methods=["GET","POST"])
 def refresh_now():
     need = os.getenv("REFRESH_KEY", "")
