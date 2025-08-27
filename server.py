@@ -35,7 +35,6 @@ def home():
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Purdue MBB News</title>
 
-  <!-- Icons & social preview -->
   <link rel="icon" type="image/png" sizes="32x32" href="{logo_url}">
   <link rel="icon" type="image/png" sizes="16x16" href="{logo_url}">
   <link rel="apple-touch-icon" href="{logo_url}">
@@ -61,31 +60,28 @@ def home():
     body{{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;background:var(--bg);color:var(--ink);}}
     .wrap{{max-width:860px;margin:0 auto;padding:20px}}
 
-    /* Header */
     .header{{display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border:1px solid var(--border);
       border-radius:16px;box-shadow:var(--shadow);position:sticky;top:12px;z-index:10;
       transition:padding .22s cubic-bezier(.2,.8,.2,1);}}
     .logo{{width:44px;height:44px;border-radius:10px;overflow:hidden;display:grid;place-items:center;
       background:linear-gradient(135deg,var(--gold),#e8d9a6);border:1px solid #d4c79d;
-      transition:width .22s cubic-bezier(.2,.8,.2,1), height .22s cubic-bezier(.2,.8,.2,1);}}
+      transition:width .22s,height .22s;}}
     .logo img{{width:38px;height:38px;object-fit:contain;display:block;filter:drop-shadow(0 1px 0 rgba(0,0,0,.12));
-      transition:width .22s cubic-bezier(.2,.8,.2,1), height .22s cubic-bezier(.2,.8,.2,1);}}
+      transition:width .22s,height .22s;}}
     .title-wrap{{display:flex;flex-direction:column;gap:6px;flex:1}}
-    .title{{font-size:clamp(20px,2.6vw,28px);line-height:1.2;margin:0;transition:font-size .22s cubic-bezier(.2,.8,.2,1);}}
+    .title{{font-size:clamp(20px,2.6vw,28px);line-height:1.2;margin:0;transition:font-size .22s;}}
     .row{{display:flex;gap:10px;align-items:center;flex-wrap:wrap}}
     .pill{{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;letter-spacing:.3px;
       text-transform:uppercase;padding:6px 10px;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);}}
     .pill .dot{{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block}}
 
     .quicklinks{{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0;overflow:hidden;
-      max-height:160px; opacity:1; transition:max-height .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease, margin .18s ease;}}
+      max-height:160px; opacity:1; transition:max-height .22s, opacity .18s, margin .18s;}}
     .chipbtn{{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;background:var(--btn-bg);color:var(--btn-ink);
       text-decoration:none;border:1px solid var(--btn-border);border-radius:12px;box-shadow:var(--shadow);
       font-weight:600;font-size:.92rem;}}
     .chipbtn:hover{{background:var(--btn-bg-hover)}}
     .chip{{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 1px #e6dab0 inset;display:inline-block}}
-    .videobadge{{font-weight:700;color:#0a0;background:linear-gradient(135deg,#f4fff4,#ecffec);
-      border:1px solid #cfe9cf;padding:4px 8px;border-radius:999px}}
 
     #list{{margin-top:18px}}
     .card{{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}}
@@ -95,6 +91,8 @@ def home():
       padding:4px 8px;border-radius:999px}}
     .snippet{{color:#333;margin:.25rem 0 0}}
     .last{{font-size:.78rem;color:#555;margin-left:8px}}
+    .videobadge{{font-weight:700;color:#0a0;background:linear-gradient(135deg,#f4fff4,#ecffec);
+      border:1px solid #cfe9cf;padding:4px 8px;border-radius:999px}}
 
     .header.shrink{{ padding:6px 10px; }}
     .header.shrink .logo{{ width:38px; height:38px; }}
@@ -108,9 +106,6 @@ def home():
       .card{{ padding:10px 12px; }}
       .title-link{{ font-size:1rem; }}
       .snippet{{ font-size:.95rem; }}
-    }}
-    @media (prefers-reduced-motion: reduce){{
-      *{{transition:none !important; animation:none !important;}}
     }}
   </style>
 </head>
@@ -140,18 +135,15 @@ def home():
   </div>
 
   <script>
+    // smooth shrink on scroll
     const header = document.querySelector('.header');
     const ENTER = 40, EXIT = 10;
     let ticking = false;
-    function applyShrink(){
-      const y = window.scrollY || 0;
+    function applyShrink(){ const y = window.scrollY||0;
       if (y > ENTER) header.classList.add('shrink');
       else if (y < EXIT) header.classList.remove('shrink');
-      ticking = false;
-    }
-    window.addEventListener('scroll', () => {
-      if (!ticking) { window.requestAnimationFrame(applyShrink); ticking = true; }
-    });
+      ticking=false; }
+    window.addEventListener('scroll', ()=>{ if(!ticking){ requestAnimationFrame(applyShrink); ticking=true; }});
     applyShrink();
 
     const lastEl = document.getElementById("last");
@@ -164,7 +156,7 @@ def home():
       for(let i=0;i<2;i++){let d=decodeEntities(s); if(d===s) break; s=d;}
       const doc=new DOMParser().parseFromString(s,"text/html");
       s=(doc.body?doc.body.textContent||"":s);
-      return s.replace(/\\s+/g," ").trim();
+      return s.replace(/\s+/g," ").trim();
     }
     function render(items){
       const list=document.querySelector("#list");
@@ -177,11 +169,9 @@ def home():
         const when=document.createElement("time"); when.textContent=it.published_ts?new Date(it.published_ts*1000).toLocaleString():"";
         meta.append(src,document.createTextNode("•"),when);
 
-        const isVideo = (it.source||"").toLowerCase().startsWith("youtube:");
-        if (isVideo){
-          const vb = document.createElement("span");
-          vb.className = "videobadge";
-          vb.textContent = "🎥 Video";
+        const isVideo=(it.source||"").toLowerCase().startsWith("youtube:");
+        if(isVideo){
+          const vb=document.createElement("span"); vb.className="videobadge"; vb.textContent="🎥 Video";
           meta.append(document.createTextNode(" • "), vb);
         }
 
@@ -221,7 +211,7 @@ def api_items():
 def last_mod():
     return jsonify({"modified": mtime_iso(DATA_FILE)})
 
-# Accept GET and POST so you can click the URL if you want
+# Accept GET and POST so you can click it
 @app.route("/api/refresh-now", methods=["GET","POST"])
 def refresh_now():
     need = os.getenv("REFRESH_KEY", "")
