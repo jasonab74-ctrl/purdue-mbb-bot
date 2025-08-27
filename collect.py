@@ -1,189 +1,168 @@
-# collect.py — adds focused Sleepers Media feed + strong Purdue MBB filtering
-import os
-import re
-import time
-import json
-import html
-import hashlib
-import requests
+#!/usr/bin/env python3
+import os, json, time, datetime, hashlib
+from typing import List, Dict, Any
 import feedparser
 
-DATA_FILE = "data.json"
-USER_AGENT = "purdue-mbb-bot/1.0 (+https://purdue-mbb-api-2.onrender.com)"
-TIMEOUT = 20
+DATA_FILE = "items.json"
+LAST_FILE = "last_modified.json"
 
-# Feeds (keep names short; URLs must be RSS/Atom)
-SOURCES = [
-    # Core Purdue
+# ——————————————————————————————————————————————————
+# Sources (RSS/ATOM). YouTube feeds are valid ATOM.
+# Curated for men’s hoops; Google/Bing queries exclude “football”.
+SOURCES: List[Dict[str, str]] = [
     {"name": "Hammer & Rails", "url": "https://www.hammerandrails.com/rss/index.xml"},
 
-    # Broad news
-    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20basketball&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Bing News",   "url": "https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball&format=RSS"},
+    {"name": "Google News",
+     "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22%20-football&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News",
+     "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20%22men%27s%20basketball%22%20-football&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Bing News",
+     "url": "https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball+-football&format=RSS"},
 
-    # Major CBB wires
     {"name": "ESPN CBB", "url": "https://www.espn.com/espn/rss/ncb/news"},
     {"name": "CBS CBB",  "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
-    {"name": "Yahoo Sports", "url": "https://news.google.com/rss/search?q=site:sports.yahoo.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
 
-    # GoldandBlack / Barstool via site filters
-    {"name": "GoldandBlack", "url": "https://news.google.com/rss/search?q=site:on3.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Barstool",     "url": "https://news.google.com/rss/search?q=site:barstoolsports.com%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
-
-    # Community
-    {"name": "Reddit", "url": "https://www.reddit.com/r/Boilermakers/.rss"},
-
-    # YouTube — channels
-    {"name": "YouTube: Field of 68",    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
-    {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
-
-    # YouTube — searches (broad Purdue)
-    {"name": "YouTube Search", "url": "https://www.youtube.com/feeds/videos.xml?search_query=Purdue+basketball"},
-    {"name": "YouTube Search", "url": "https://www.youtube.com/feeds/videos.xml?search_query=Purdue+Boilermakers+basketball"},
-
-    # YouTube — focused Sleepers Media + Purdue (your request)
-    {"name": "YouTube Search: Sleepers Media Purdue", "url": "https://www.youtube.com/feeds/videos.xml?search_query=Sleepers+Media+Purdue"},
+    # — YouTube channels (videos). Only episodes mentioning “Purdue” will pass the filter.
+    {"name": "YouTube: Field of 68",
+     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
+    {"name": "YouTube: Sleepers Media",
+     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
 ]
+# ——————————————————————————————————————————————————
 
-# Helpers
-_re_whitespace = re.compile(r"\s+")
-_re_html_tag  = re.compile(r"<[^>]+>")
-_re_youtube   = re.compile(r"(youtube\.com|youtu\.be)", re.I)
+# Obvious football tokens we don’t want. (lowercase)
+NEGATIVE_KEYWORDS = {
+    "football", "cfb", "gridiron", "kickoff", "touchdown",
+    "quarterback", "qb", "running back", "receiver", "tight end",
+    "defensive line", "offensive line", "secondary",
+    "walters", "ross-ade", "spring game", "nfl"
+}
 
-# Key names/terms to catch Purdue MBB context
-NAMES = [
-    "matt painter", "zach edey", "edey", "braden smith", "fletcher loyer",
-    "trey kaufman", "kaufman-renn", "lance jones", "caleb furst", "mason gillis",
-    "myles colvin", "camden heide", "mackey", "b1g", "big ten"
-]
+# Basketball-positive hints (lowercase). If any are present, we keep the item.
+POSITIVE_HINTS = {
+    "basketball", "mbb", "ncaa", "men's college basketball", "men’s college basketball",
+    "matt painter", "mackey", "purdue hoops", "boiler hoops",
+    "zach edey", "braden smith", "fletcher loyer", "lance jones", "tre kaufman", "caleb", "swanigan"
+}
 
-ANTI_TOKENS = [
-    "football", "cfb", "gridiron", "kickoff", "touchdown", "quarterback", "ryan walters",
-    "wbb", "women", "women's basketball", "volleyball", "baseball", "softball", "soccer"
-]
-
-def fetch_bytes(url: str) -> bytes:
-    r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
-    r.raise_for_status()
-    return r.content
-
-def norm_text(s: str) -> str:
-    if not s:
-        return ""
-    s = html.unescape(s)
-    s = _re_html_tag.sub(" ", s)
-    s = _re_whitespace.sub(" ", s)
-    return s.strip()
-
-def to_epoch(entry) -> int:
-    t = None
-    for key in ("published_parsed", "updated_parsed"):
+def _ts(entry: Any) -> float:
+    """Extract a timestamp (epoch) from a feed entry; fall back to now."""
+    for key in ("published_parsed", "updated_parsed", "created_parsed"):
         if getattr(entry, key, None):
-            t = getattr(entry, key)
-            break
-    if t:
-        try:
-            return int(time.mktime(t))
-        except Exception:
-            pass
-    return int(time.time())
+            try:
+                return time.mktime(getattr(entry, key))
+            except Exception:
+                pass
+        if isinstance(entry, dict) and key in entry and entry[key]:
+            try:
+                return time.mktime(entry[key])
+            except Exception:
+                pass
+    return time.time()
 
-def is_youtube(source_name: str, link: str) -> bool:
-    if source_name.lower().startswith("youtube"):
-        return True
-    return bool(_re_youtube.search(link or ""))
+def _hash(link: str) -> str:
+    return hashlib.sha256(link.encode("utf-8", "ignore")).hexdigest()[:16]
 
-def is_basketball_item(source_name: str, title: str, summary: str, link: str) -> bool:
-    t = f"{title} {summary}".lower()
+def _standardize(entry: Any, source_name: str) -> Dict[str, Any]:
+    """Normalize a feed entry into our item shape."""
+    title = (
+        getattr(entry, "title", None)
+        or (entry.get("title") if isinstance(entry, dict) else None)
+        or ""
+    )
+    link = (
+        getattr(entry, "link", None)
+        or (entry.get("link") if isinstance(entry, dict) else None)
+        or ""
+    )
+    summary = (
+        getattr(entry, "summary", None)
+        or getattr(entry, "description", None)
+        or (entry.get("summary") if isinstance(entry, dict) else None)
+        or (entry.get("description") if isinstance(entry, dict) else None)
+        or ""
+    )
 
-    # Hard drops
-    if any(a in t for a in ANTI_TOKENS):
-        # allow if explicitly says basketball too
-        if "basketball" not in t and "mbb" not in t:
-            return False
+    # YouTube links sometimes come as watch URLs in links or via id
+    is_video = ("youtube.com" in link) or ("youtu.be" in link)
+    if not is_video:
+        # YouTube atom entries carry 'yt_videoid' or links in entry.links
+        vid = None
+        if isinstance(entry, dict):
+            vid = entry.get("yt_videoid") or entry.get("yt:videoid")
+        else:
+            vid = getattr(entry, "yt_videoid", None) or getattr(entry, "yt:videoid", None)
+        if vid:
+            link = f"https://www.youtube.com/watch?v={vid}"
+            is_video = True
 
-    has_purdue = ("purdue" in t) or ("boilermaker" in t) or ("boilers" in t)
-    has_hoops  = ("basketball" in t) or ("mbb" in t) or ("ncaa" in t)
-    has_name   = any(n in t for n in NAMES)
-
-    # Looser for YouTube to catch talk shows & segment titles
-    if is_youtube(source_name, link):
-        return has_purdue or has_name or ("big ten" in t) or ("b1g" in t)
-
-    # News/wires
-    if has_purdue and (has_hoops or has_name or "mackey" in t):
-        return True
-
-    # Rankings/awards/etc with Purdue mention
-    if has_purdue and any(k in t for k in ["rank", "poll", "award", "preseason"]):
-        return True
-
-    return False
-
-def fingerprint(link: str, title: str) -> str:
-    base = (link or "").strip() or (title or "").strip()
-    return hashlib.sha1(base.encode("utf-8", "ignore")).hexdigest()
-
-def normalize_item(feed_name: str, entry) -> dict:
-    title = norm_text(getattr(entry, "title", "") or "")
-    link  = getattr(entry, "link", "") or ""
-
-    # prefer content value then summary/description
-    summary = ""
-    if getattr(entry, "content", None):
-        try:
-            summary = entry.content[0].value
-        except Exception:
-            pass
-    if not summary:
-        summary = getattr(entry, "summary", "") or ""
-    summary = norm_text(summary)
-
-    ts = to_epoch(entry)
-    src = feed_name or "RSS"
+    ts = _ts(entry)
+    iso = datetime.datetime.utcfromtimestamp(ts).isoformat(timespec="seconds") + "Z"
 
     return {
-        "title": title or "(untitled)",
-        "link": link,
-        "summary_text": summary,
-        "published_ts": ts,
-        "source": src,
+        "id": _hash(link or (title + source_name + iso)),
+        "title": title.strip(),
+        "link": link.strip(),
+        "summary": summary.strip(),
+        "source": source_name,
+        "is_video": bool(is_video),
+        "ts": ts,
+        "iso": iso,
     }
 
-def collect() -> list:
-    items = []
-    seen = set()
+def _looks_like_basketball(item: Dict[str, Any]) -> bool:
+    """Purdue men’s hoops heuristic."""
+    text = " ".join([item.get("title",""), item.get("summary",""), item.get("link","")]).lower()
+
+    # must be Purdue-related
+    if "purdue" not in text and "boilermaker" not in text:
+        return False
+
+    # If football words appear and we don’t see strong hoops hints, drop it.
+    if any(w in text for w in NEGATIVE_KEYWORDS) and not any(h in text for h in POSITIVE_HINTS):
+        return False
+
+    # Favor hoopsy URLs quickly
+    link = item.get("link", "").lower()
+    if ("basketball" in link) or ("college-basket" in link) or ("mens-college-basketball" in link):
+        return True
+
+    # Otherwise keep if any hoop hints exist
+    return any(h in text for h in POSITIVE_HINTS) or "basketball" in text or "mbb" in text
+
+def collect_all() -> List[Dict[str, Any]]:
+    items: List[Dict[str, Any]] = []
+    seen_links = set()
 
     for src in SOURCES:
-        name = src["name"]
-        url  = src["url"]
         try:
-            raw = fetch_bytes(url)
-            parsed = feedparser.parse(raw)
-        except Exception:
-            continue
+            feed = feedparser.parse(src["url"])
+            for entry in getattr(feed, "entries", []) or []:
+                item = _standardize(entry, src["name"])
+                # Drop non-hoops
+                if not _looks_like_basketball(item):
+                    continue
+                # De-dupe by link (or id)
+                key = item["link"] or item["id"]
+                if key in seen_links:
+                    continue
+                seen_links.add(key)
+                items.append(item)
+        except Exception as e:
+            # Keep going on bad feeds
+            print(f"[collect] Error on {src['name']}: {e}")
 
-        label = name  # keep configured short name
+    # Sort newest first, cap to ~300
+    items.sort(key=lambda x: x["ts"], reverse=True)
+    return items[:300]
 
-        for e in parsed.entries:
-            itm = normalize_item(label, e)
-            fp = fingerprint(itm["link"], itm["title"])
-            if fp in seen:
-                continue
-            seen.add(fp)
-
-            if is_basketball_item(label, itm["title"], itm["summary_text"], itm["link"]):
-                items.append(itm)
-
-    items.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
-    return items
-
-def save(items: list):
+def save_items(items: List[Dict[str, Any]]) -> None:
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(items, f, ensure_ascii=False)
+    with open(LAST_FILE, "w", encoding="utf-8") as f:
+        json.dump({"modified": datetime.datetime.utcnow().isoformat(timespec="seconds")}, f)
 
 if __name__ == "__main__":
-    data = collect()
-    save(data)
-    print(f"Saved {len(data)} items to {DATA_FILE}")
+    data = collect_all()
+    save_items(data)
+    print(f"[collect] wrote {len(data)} items")
