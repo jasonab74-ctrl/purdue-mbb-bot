@@ -100,11 +100,16 @@ a{color:inherit;text-decoration:none}
 .sum{color:#474747; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
 .tag{margin-left:6px; font-size:.72rem; border:1px solid var(--border); border-radius:999px; padding:.1rem .45rem; background:#eef3ff}
 
-/* ---------- Sites overlay (replaces dropdown) ---------- */
-.overlay{position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; z-index:9999; align-items:center; justify-content:center; padding:16px}
-.overlay.show{display:flex}
-.sheet{background:#fff; border-radius:14px; border:1px solid var(--border); box-shadow:0 20px 40px rgba(0,0,0,.25);
-  width:min(720px, 92vw); max-height:85vh; overflow:auto}
+/* ---------- Sites overlay ---------- */
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,.35);
+  display:none; z-index:9999; align-items:center; justify-content:center; padding:16px;
+  opacity:0; transition:opacity .15s ease}
+.overlay.show{display:flex; opacity:1}
+.sheet{background:#fff; border-radius:14px; border:1px solid var(--border);
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+  width:min(720px, 92vw); max-height:85vh; overflow:auto;
+  transform:translateY(6px); transition:transform .18s ease}
+.overlay.show .sheet{transform:translateY(0)}
 .sheetHead{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--border)}
 .sheetTitle{font-weight:800}
 .xBtn{background:#f3f3f3; border:1px solid var(--border); border-radius:10px; padding:.4rem .6rem; cursor:pointer}
@@ -202,12 +207,41 @@ a{color:inherit;text-decoration:none}
   applyShrink();
 })();
 
+// --- Helpers to lock body without layout shift ---
+let _lockScrollTop = 0;
+function lockBody(){
+  // compute scrollbar width to avoid horizontal jump
+  const sbw = window.innerWidth - document.documentElement.clientWidth;
+  _lockScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.style.paddingRight = sbw > 0 ? sbw + 'px' : '';
+  // prevent background scroll but keep visual position
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${_lockScrollTop}px`;
+  document.body.style.width = '100%';
+}
+function unlockBody(){
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.body.style.paddingRight = '';
+  window.scrollTo(0, _lockScrollTop);
+}
+
 // Sites overlay
 const sitesBtn = document.getElementById('sitesBtn');
 const overlay  = document.getElementById('sitesOverlay');
 const closeBtn = document.getElementById('closeSites');
-function openSites(){ overlay.classList.add('show'); sitesBtn.setAttribute('aria-expanded','true'); }
-function closeSites(){ overlay.classList.remove('show'); sitesBtn.setAttribute('aria-expanded','false'); }
+function openSites(){
+  lockBody();
+  overlay.classList.add('show');
+  sitesBtn.setAttribute('aria-expanded','true');
+}
+function closeSites(){
+  overlay.classList.remove('show');
+  sitesBtn.setAttribute('aria-expanded','false');
+  // wait for fade to end so we don't flash
+  setTimeout(unlockBody, 120);
+}
 sitesBtn.addEventListener('click', openSites);
 closeBtn.addEventListener('click', closeSites);
 overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeSites(); });
