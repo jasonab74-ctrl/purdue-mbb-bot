@@ -77,19 +77,27 @@ def home():
       text-transform:uppercase;padding:6px 10px;border-radius:999px;background:var(--pill-bg);color:var(--pill-ink);}}
     .pill .dot{{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block}}
 
-    .quicklinks{{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0;overflow:hidden;
-      max-height:160px; opacity:1; transition:max-height .22s, opacity .18s, margin .18s;}}
+    /* Compact dropdown for static sites */
+    .sites{{position:relative;display:inline-block;margin-top:6px}}
     .chipbtn{{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;background:var(--btn-bg);color:var(--btn-ink);
       text-decoration:none;border:1px solid var(--btn-border);border-radius:12px;box-shadow:var(--shadow);
       font-weight:600;font-size:.92rem;}}
     .chipbtn:hover{{background:var(--btn-bg-hover)}}
+    .menu{{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--border);
+      border-radius:12px;box-shadow:var(--shadow);padding:6px;min-width:240px;display:none}}
+    .menu.show{{display:block}}
+    .menu a{{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;color:var(--ink);
+      text-decoration:none;font-weight:600}}
+    .menu a:hover{{background:var(--btn-bg-hover)}}
     .chip{{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 1px #e6dab0 inset;display:inline-block}}
 
-    /* Search */
-    .searchbar{{display:flex;align-items:center;gap:10px;margin-top:10px}}
-    .search-input{{flex:1;min-width:220px;padding:10px 12px;border:1px solid var(--btn-border);border-radius:12px;
+    /* Search + Videos toggle */
+    .searchrow{{display:flex;align-items:center;gap:10px;margin-top:10px}}
+    .search-input{{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--btn-border);border-radius:12px;
       background:#fff;box-shadow:var(--shadow);font-size:.96rem}}
     .count{{font-size:.85rem;color:var(--muted)}}
+    .chip-toggle{{cursor:pointer; user-select:none; white-space:nowrap}}
+    .chip-toggle[aria-pressed="true"]{{ background:#111; color:#fff; }}
 
     #list{{margin-top:18px}}
     .card{{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}}
@@ -103,16 +111,15 @@ def home():
       border:1px solid #cfe9cf;padding:4px 8px;border-radius:999px}}
     .empty{{text-align:center;color:#666;padding:18px}}
 
-    /* Shrunk state */
+    /* Shrunk state hides the sites button for max space */
     .header.shrink{{ padding:6px 10px; }}
     .header.shrink .logo{{ width:38px; height:38px; }}
     .header.shrink .logo img{{ width:32px; height:32px; }}
     .header.shrink .title{{ font-size:clamp(16px,4.2vw,22px); }}
-    .header.shrink .quicklinks{{ max-height:0; opacity:0; margin-top:0; pointer-events:none; }}
+    .header.shrink .sites{{ display:none; }}
 
     @media (max-width: 640px){{ 
       .header{{ top:8px; }}
-      .quicklinks .chipbtn{{ padding:8px 10px; font-size:.86rem; border-radius:10px; }}
       .card{{ padding:10px 12px; }}
       .title-link{{ font-size:1rem; }}
       .snippet{{ font-size:.95rem; }}
@@ -130,19 +137,25 @@ def home():
           <div class="pill"><span class="dot"></span> Curated &amp; de-cluttered</div>
           <span id="last" class="last"></span>
         </div>
-        <nav class="quicklinks">
-          <a class="chipbtn" href="https://www.hammerandrails.com/purdue-basketball" target="_blank" rel="noopener"><span class="chip"></span> H&amp;R</a>
-          <a class="chipbtn" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener"><span class="chip"></span> ESPN</a>
-          <a class="chipbtn" href="https://www.on3.com/teams/purdue-boilermakers/" target="_blank" rel="noopener"><span class="chip"></span> GoldandBlack</a>
-          <a class="chipbtn" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener"><span class="chip"></span> Schedule</a>
-          <a class="chipbtn" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener"><span class="chip"></span> Roster</a>
-          <a class="chipbtn" href="https://www.barstoolsports.com/topics/college-basketball" target="_blank" rel="noopener"><span class="chip"></span> Barstool</a>
-          <a class="chipbtn" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener"><span class="chip"></span> Reddit</a>
-        </nav>
 
-        <!-- Search -->
-        <div class="searchbar">
+        <!-- Sites dropdown (compact) -->
+        <div class="sites">
+          <button id="sitesBtn" class="chipbtn" type="button" aria-haspopup="true" aria-expanded="false">Sites ▾</button>
+          <div id="sitesMenu" class="menu" role="menu" aria-hidden="true">
+            <a href="https://www.hammerandrails.com/purdue-basketball" target="_blank" rel="noopener"><span class="chip"></span> H&amp;R</a>
+            <a href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener"><span class="chip"></span> ESPN</a>
+            <a href="https://www.on3.com/teams/purdue-boilermakers/" target="_blank" rel="noopener"><span class="chip"></span> GoldandBlack</a>
+            <a href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener"><span class="chip"></span> Schedule</a>
+            <a href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener"><span class="chip"></span> Roster</a>
+            <a href="https://www.barstoolsports.com/topics/college-basketball" target="_blank" rel="noopener"><span class="chip"></span> Barstool</a>
+            <a href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener"><span class="chip"></span> Reddit</a>
+          </div>
+        </div>
+
+        <!-- Search + Videos toggle -->
+        <div class="searchrow">
           <input id="q" class="search-input" type="search" placeholder="Search news (e.g., Edey, Field of 68)" aria-label="Search news">
+          <button id="vidbtn" class="chipbtn chip-toggle" type="button" role="button" aria-pressed="false" title="Show YouTube only">🎥 Videos only</button>
           <span id="count" class="count"></span>
         </div>
       </div>
@@ -167,7 +180,31 @@ def home():
     }});
     applyShrink();
 
-    // Search helpers
+    // Sites dropdown
+    const sitesBtn = document.getElementById('sitesBtn');
+    const sitesMenu = document.getElementById('sitesMenu');
+    function closeMenu(){{ 
+      sitesMenu.classList.remove('show');
+      sitesBtn.setAttribute('aria-expanded','false');
+      sitesMenu.setAttribute('aria-hidden','true');
+    }}
+    function toggleMenu(){{ 
+      const open = !sitesMenu.classList.contains('show');
+      if (open) {{
+        sitesMenu.classList.add('show');
+        sitesBtn.setAttribute('aria-expanded','true');
+        sitesMenu.setAttribute('aria-hidden','false');
+      }} else {{
+        closeMenu();
+      }}
+    }}
+    sitesBtn.addEventListener('click', (e)=>{{ e.stopPropagation(); toggleMenu(); }});
+    document.addEventListener('click', (e)=>{{ 
+      if (!sitesMenu.contains(e.target) && e.target !== sitesBtn) closeMenu();
+    }});
+    window.addEventListener('keydown', (e)=>{{ if (e.key === 'Escape') closeMenu(); }});
+
+    // URL param helpers
     function getParam(name){{ 
       const u = new URL(window.location.href);
       return u.searchParams.get(name) || "";
@@ -195,7 +232,9 @@ def home():
     const listEl = document.getElementById("list");
     const qEl = document.getElementById("q");
     const countEl = document.getElementById("count");
+    const vidBtn = document.getElementById("vidbtn");
     let ALL = [];
+    let VIDEOS_ONLY = false;
 
     function render(items){{ 
       listEl.innerHTML = "";
@@ -239,22 +278,44 @@ def home():
       }});
     }}
 
-    function applyFilter(){{ 
+    function filterNow(){{ 
       const q = (qEl.value || "").trim().toLowerCase();
-      setParam("q", q);
-      if (!q) {{ render(ALL.slice()); return; }}
-      const filtered = ALL.filter(it => {{
-        const t = ((it.title||"") + " " + (it.source||"") + " " + (it.summary_text||it.summary||"")).toLowerCase();
-        return t.includes(q);
-      }});
-      render(filtered);
+      let items = ALL;
+
+      if (q) {{
+        items = items.filter(it => {{
+          const t = ((it.title||"") + " " + (it.source||"") + " " + (it.summary_text||it.summary||"")).toLowerCase();
+          return t.includes(q);
+        }});
+      }}
+
+      if (VIDEOS_ONLY) {{
+        items = items.filter(it => (it.source||"").toLowerCase().startsWith("youtube:"));
+      }}
+
+      render(items);
     }}
 
-    // Debounce input
+    // Debounce search input
     let tmr;
     qEl.addEventListener("input", () => {{
+      setParam("q", qEl.value.trim());
       clearTimeout(tmr);
-      tmr = setTimeout(applyFilter, 120);
+      tmr = setTimeout(filterNow, 120);
+    }});
+
+    // Toggle Videos only
+    function setVideosOnly(on){{ 
+      VIDEOS_ONLY = !!on;
+      vidBtn.setAttribute("aria-pressed", VIDEOS_ONLY ? "true" : "false");
+      if (VIDEOS_ONLY) setParam("videos", "1"); else setParam("videos", "");
+      filterNow();
+    }}
+    vidBtn.addEventListener("click", () => setVideosOnly(!VIDEOS_ONLY));
+    window.addEventListener("keydown", (e) => {{
+      if (e.key.toLowerCase() === "v" && !e.ctrlKey && !e.metaKey && !e.altKey) {{
+        setVideosOnly(!VIDEOS_ONLY);
+      }}
     }});
 
     async function load(){{ 
@@ -263,10 +324,9 @@ def home():
       const m = await fetch("/api/last-mod").then(x=>x.json()).catch(()=>null);
       if(m && m.modified) setLast(m.modified);
 
-      // seed from URL param
-      const seed = getParam("q");
-      if (seed) qEl.value = seed;
-      applyFilter();
+      const seedQ = getParam("q"); if (seedQ) qEl.value = seedQ;
+      const seedV = getParam("videos"); setVideosOnly(!!seedV);
+      filterNow();
     }}
 
     load();
