@@ -1,8 +1,8 @@
-# server.py — root-based app (Sites dropdown, search, Fight Song)
+# server.py — root-based app (Sites dropdown, search, Fight Song, diagnostics)
 from flask import Flask, jsonify, request, send_from_directory, abort
 import json, os, time
 
-APP_VERSION = "v17"  # bump to confirm the live build
+APP_VERSION = "v18"  # bump to confirm the live build
 
 # Static is at repo-root/static
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -358,10 +358,26 @@ def fight_song():
         return send_from_directory(sf, "fight.mp3", mimetype="audio/mpeg", conditional=True)
     abort(404)
 
-# Version probe
+# Version & diagnostics
 @app.route("/__version")
 def version():
     return APP_VERSION, 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+@app.route("/__debug")
+def debug():
+    sf = app.static_folder
+    try:
+        files = sorted(os.listdir(sf))
+    except Exception:
+        files = []
+    return jsonify({
+        "version": APP_VERSION,
+        "cwd": os.getcwd(),
+        "static_dir": os.path.abspath(sf),
+        "fight_exists": os.path.exists(os.path.join(sf, "fight.mp3")),
+        "static_files": files[:200],
+        "data_file_exists": os.path.exists(DATA_FILE),
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
