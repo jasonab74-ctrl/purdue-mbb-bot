@@ -1,168 +1,171 @@
 #!/usr/bin/env python3
-import os, json, time, datetime, hashlib
-from typing import List, Dict, Any
+"""
+Collect Purdue MBB news into items.json (and last_modified.json).
+
+- Robust YouTube parsing (Field of 68 + Sleepers Media)
+- Basketball-only focus: keeps Purdue hoops, filters football
+- Writes a flat list consumed by /api/items
+"""
+
+import json, re, time, datetime
+from pathlib import Path
 import feedparser
 
-DATA_FILE = "items.json"
-LAST_FILE = "last_modified.json"
-
-# ——————————————————————————————————————————————————
-# Sources (RSS/ATOM). YouTube feeds are valid ATOM.
-# Curated for men’s hoops; Google/Bing queries exclude “football”.
-SOURCES: List[Dict[str, str]] = [
+# ------------------ SOURCES ------------------
+SOURCES = [
     {"name": "Hammer & Rails", "url": "https://www.hammerandrails.com/rss/index.xml"},
-
-    {"name": "Google News",
-     "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22%20-football&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Google News",
-     "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20%22men%27s%20basketball%22%20-football&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Bing News",
-     "url": "https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball+-football&format=RSS"},
-
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News", "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Bing News", "url": "https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball&format=RSS"},
     {"name": "ESPN CBB", "url": "https://www.espn.com/espn/rss/ncb/news"},
-    {"name": "CBS CBB",  "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
-
-    # — YouTube channels (videos). Only episodes mentioning “Purdue” will pass the filter.
-    {"name": "YouTube: Field of 68",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
-    {"name": "YouTube: Sleepers Media",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
+    {"name": "CBS CBB", "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
+    # YouTube channels (videos)
+    {"name": "YouTube: Field of 68", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
+    {"name": "YouTube: Sleepers Media", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
 ]
-# ——————————————————————————————————————————————————
 
-# Obvious football tokens we don’t want. (lowercase)
-NEGATIVE_KEYWORDS = {
-    "football", "cfb", "gridiron", "kickoff", "touchdown",
-    "quarterback", "qb", "running back", "receiver", "tight end",
-    "defensive line", "offensive line", "secondary",
-    "walters", "ross-ade", "spring game", "nfl"
-}
+# -------------- FILTERS (keep hoops, drop FB) --------------
+GOOD = re.compile(
+    r"""
+    \b(
+        purdue|boiler(?:maker|makers)?|boilers|
+        painter|mackey|paint[-\s]?crew|
+        edey|zach\s*edey|lance\s*jones|fletcher\s*loyer|braden\s*smith|
+        big\s*ten\s*titles?|\bmatt\s*painter\b
+    )\b
+    """,
+    re.I | re.X,
+)
 
-# Basketball-positive hints (lowercase). If any are present, we keep the item.
-POSITIVE_HINTS = {
-    "basketball", "mbb", "ncaa", "men's college basketball", "men’s college basketball",
-    "matt painter", "mackey", "purdue hoops", "boiler hoops",
-    "zach edey", "braden smith", "fletcher loyer", "lance jones", "tre kaufman", "caleb", "swanigan"
-}
+BAD = re.compile(
+    r"\b(football|nfl|qb|quarterback|tight\s*end|running\s*back|kickoff|touchdown|spring\s*game)\b",
+    re.I,
+)
 
-def _ts(entry: Any) -> float:
-    """Extract a timestamp (epoch) from a feed entry; fall back to now."""
-    for key in ("published_parsed", "updated_parsed", "created_parsed"):
-        if getattr(entry, key, None):
+# Extra helper to relax “Purdue” requirement for **channel** videos:
+YOUTUBE_ALWAYS_VIDEO = {"YouTube: Field of 68", "YouTube: Sleepers Media"}
+
+# -------------- Helpers --------------
+def _clean(s: str) -> str:
+    if not s:
+        return ""
+    return re.sub(r"\s+", " ", str(s)).strip()
+
+def _entry_datetime(e) -> str:
+    # ISO string we can sort on later; fallbacks are fine
+    for k in ("published", "updated", "created", "issued"):
+        v = e.get(k)
+        if v:
+            return v
+    # feedparser also exposes *_parsed; we can convert to ISO if present
+    for k in ("published_parsed", "updated_parsed"):
+        t = e.get(k)
+        if t:
             try:
-                return time.mktime(getattr(entry, key))
+                return time.strftime("%Y-%m-%dT%H:%M:%S", t)
             except Exception:
                 pass
-        if isinstance(entry, dict) and key in entry and entry[key]:
-            try:
-                return time.mktime(entry[key])
-            except Exception:
-                pass
-    return time.time()
+    return ""
 
-def _hash(link: str) -> str:
-    return hashlib.sha256(link.encode("utf-8", "ignore")).hexdigest()[:16]
+def _youtube_link(e, default=None):
+    # Try standard 'link'
+    link = e.get("link")
+    if link:
+        return link
+    # Try links array
+    links = e.get("links") or []
+    for L in links:
+        if L.get("href") and (L.get("rel") in (None, "alternate")):
+            return L["href"]
+    # Build from video id if present
+    vid = (
+        e.get("yt_videoid")
+        or e.get("yt_video_id")
+        or (e.get("id", "").split(":")[-1] if "youtube" in (default or "").lower() else None)
+    )
+    if vid:
+        return f"https://www.youtube.com/watch?v={vid}"
+    return default
 
-def _standardize(entry: Any, source_name: str) -> Dict[str, Any]:
-    """Normalize a feed entry into our item shape."""
-    title = (
-        getattr(entry, "title", None)
-        or (entry.get("title") if isinstance(entry, dict) else None)
+def _summary_from_entry(e):
+    # YouTube often uses media:description
+    return _clean(
+        e.get("summary")
+        or e.get("media_description")
+        or (e.get("summary_detail") or {}).get("value")
         or ""
     )
-    link = (
-        getattr(entry, "link", None)
-        or (entry.get("link") if isinstance(entry, dict) else None)
-        or ""
-    )
-    summary = (
-        getattr(entry, "summary", None)
-        or getattr(entry, "description", None)
-        or (entry.get("summary") if isinstance(entry, dict) else None)
-        or (entry.get("description") if isinstance(entry, dict) else None)
-        or ""
-    )
 
-    # YouTube links sometimes come as watch URLs in links or via id
-    is_video = ("youtube.com" in link) or ("youtu.be" in link)
-    if not is_video:
-        # YouTube atom entries carry 'yt_videoid' or links in entry.links
-        vid = None
-        if isinstance(entry, dict):
-            vid = entry.get("yt_videoid") or entry.get("yt:videoid")
-        else:
-            vid = getattr(entry, "yt_videoid", None) or getattr(entry, "yt:videoid", None)
-        if vid:
-            link = f"https://www.youtube.com/watch?v={vid}"
-            is_video = True
-
-    ts = _ts(entry)
-    iso = datetime.datetime.utcfromtimestamp(ts).isoformat(timespec="seconds") + "Z"
-
-    return {
-        "id": _hash(link or (title + source_name + iso)),
-        "title": title.strip(),
-        "link": link.strip(),
-        "summary": summary.strip(),
-        "source": source_name,
-        "is_video": bool(is_video),
-        "ts": ts,
-        "iso": iso,
-    }
-
-def _looks_like_basketball(item: Dict[str, Any]) -> bool:
-    """Purdue men’s hoops heuristic."""
-    text = " ".join([item.get("title",""), item.get("summary",""), item.get("link","")]).lower()
-
-    # must be Purdue-related
-    if "purdue" not in text and "boilermaker" not in text:
+def _looks_like_bball(text: str, source_name: str) -> bool:
+    if BAD.search(text):
         return False
-
-    # If football words appear and we don’t see strong hoops hints, drop it.
-    if any(w in text for w in NEGATIVE_KEYWORDS) and not any(h in text for h in POSITIVE_HINTS):
-        return False
-
-    # Favor hoopsy URLs quickly
-    link = item.get("link", "").lower()
-    if ("basketball" in link) or ("college-basket" in link) or ("mens-college-basketball" in link):
+    if GOOD.search(text):
         return True
+    # If it's from our YouTube Hoops channels, allow items that mention basketball topics
+    if source_name in YOUTUBE_ALWAYS_VIDEO:
+        # Still avoid obvious FB
+        if BAD.search(text):
+            return False
+        # Let broader hoops chatter through even if "Purdue" isn’t in title
+        hoops_hint = re.search(r"\b(basketball|hoops|big\s*ten|ncaa|cbb)\b", text, re.I)
+        return bool(hoops_hint)
+    return False
 
-    # Otherwise keep if any hoop hints exist
-    return any(h in text for h in POSITIVE_HINTS) or "basketball" in text or "mbb" in text
-
-def collect_all() -> List[Dict[str, Any]]:
-    items: List[Dict[str, Any]] = []
-    seen_links = set()
-
+# -------------- Collector --------------
+def collect():
+    items = []
     for src in SOURCES:
+        name, url = src["name"], src["url"]
         try:
-            feed = feedparser.parse(src["url"])
-            for entry in getattr(feed, "entries", []) or []:
-                item = _standardize(entry, src["name"])
-                # Drop non-hoops
-                if not _looks_like_basketball(item):
-                    continue
-                # De-dupe by link (or id)
-                key = item["link"] or item["id"]
-                if key in seen_links:
-                    continue
-                seen_links.add(key)
-                items.append(item)
-        except Exception as e:
-            # Keep going on bad feeds
-            print(f"[collect] Error on {src['name']}: {e}")
+            feed = feedparser.parse(url)
+        except Exception:
+            continue
 
-    # Sort newest first, cap to ~300
-    items.sort(key=lambda x: x["ts"], reverse=True)
-    return items[:300]
+        for e in feed.entries:
+            title = _clean(e.get("title") or "")
+            summary = _summary_from_entry(e)
+            link = _clean(_youtube_link(e, default=e.get("link") or ""))
+            published = _entry_datetime(e)
 
-def save_items(items: List[Dict[str, Any]]) -> None:
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(items, f, ensure_ascii=False)
-    with open(LAST_FILE, "w", encoding="utf-8") as f:
-        json.dump({"modified": datetime.datetime.utcnow().isoformat(timespec="seconds")}, f)
+            if not title or not link:
+                continue
+
+            blob = f"{title} {summary}"
+            if not _looks_like_bball(blob, name):
+                continue
+
+            is_video = "youtube.com" in link or "youtu.be" in link or "youtube" in url.lower()
+            items.append(
+                {
+                    "source": name,
+                    "title": title,
+                    "summary": summary,
+                    "link": link,
+                    "iso": published,
+                    "is_video": bool(is_video),
+                }
+            )
+
+    # Dedupe by (title, link)
+    seen = set()
+    deduped = []
+    for it in items:
+        key = (it["title"].lower(), it["link"])
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(it)
+
+    # Sort newest first (fall back to title when iso missing)
+    def _sort_key(x):
+        return (x.get("iso") or "", x.get("title") or "")
+    deduped.sort(key=_sort_key, reverse=True)
+
+    Path("items.json").write_text(json.dumps(deduped, ensure_ascii=False), encoding="utf-8")
+    Path("last_modified.json").write_text(
+        json.dumps({"modified": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")}),
+        encoding="utf-8",
+    )
 
 if __name__ == "__main__":
-    data = collect_all()
-    save_items(data)
-    print(f"[collect] wrote {len(data)} items")
+    collect()
