@@ -1,6 +1,8 @@
-# server.py — Purdue MBB News (Sites dropdown, search; Fight Song button using /fight.mp3)
+# server.py — Purdue MBB News (Sites dropdown, search, Fight Song)
 from flask import Flask, jsonify, request, send_from_directory, abort
 import json, os, time
+
+APP_VERSION = "v15"  # bump this whenever you deploy to confirm which build is live
 
 # Explicit static mapping
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -31,7 +33,7 @@ def home():
 
     return f"""
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-version="{APP_VERSION}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -173,7 +175,7 @@ def home():
     const header = document.querySelector('.header');
     const ENTER = 40, EXIT = 10;
     let ticking = false;
-    function applyShrink(){{ 
+    function applyShrink(){{
       const y = window.scrollY || 0;
       if (y > ENTER) header.classList.add('shrink');
       else if (y < EXIT) header.classList.remove('shrink');
@@ -187,12 +189,12 @@ def home():
     // Sites dropdown
     const sitesBtn = document.getElementById('sitesBtn');
     const sitesMenu = document.getElementById('sitesMenu');
-    function closeMenu(){{ 
+    function closeMenu(){{
       sitesMenu.classList.remove('show');
       sitesBtn.setAttribute('aria-expanded','false');
       sitesMenu.setAttribute('aria-hidden','true');
     }}
-    function toggleMenu(){{ 
+    function toggleMenu(){{
       const open = !sitesMenu.classList.contains('show');
       if (open) {{
         sitesMenu.classList.add('show');
@@ -203,17 +205,15 @@ def home():
       }}
     }}
     sitesBtn.addEventListener('click', (e)=>{{ e.stopPropagation(); toggleMenu(); }});
-    document.addEventListener('click', (e)=>{{ 
-      if (!sitesMenu.contains(e.target) && e.target !== sitesBtn) closeMenu();
-    }});
+    document.addEventListener('click', (e)=>{{ if (!sitesMenu.contains(e.target) && e.target !== sitesBtn) closeMenu(); }});
     window.addEventListener('keydown', (e)=>{{ if (e.key === 'Escape') closeMenu(); }});
 
     // URL param helpers
-    function getParam(name){{ 
+    function getParam(name){{
       const u = new URL(window.location.href);
       return u.searchParams.get(name) || "";
     }}
-    function setParam(name, value){{ 
+    function setParam(name, value){{
       const u = new URL(window.location.href);
       if (value) u.searchParams.set(name, value);
       else u.searchParams.delete(name);
@@ -224,7 +224,7 @@ def home():
     function setLast(s){{ lastEl.textContent = s ? "Updated: "+s : ""; }}
 
     function decodeEntities(s){{ const el=document.createElement("textarea"); el.innerHTML=String(s||""); return el.value; }}
-    function clean(input){{ 
+    function clean(input){{
       if(!input) return "";
       let s=String(input);
       for(let i=0;i<2;i++){{ let d=decodeEntities(s); if(d===s) break; s=d; }}
@@ -238,7 +238,7 @@ def home():
     const countEl = document.getElementById("count");
     let ALL = [];
 
-    function render(items){{ 
+    function render(items){{
       listEl.innerHTML = "";
       if (!items.length) {{
         listEl.innerHTML = '<div class="empty">No results. Try another search.</div>';
@@ -284,7 +284,7 @@ def home():
       }});
     }}
 
-    function filterNow(){{ 
+    function filterNow(){{
       const q = (qEl.value || "").trim().toLowerCase();
       let items = ALL;
 
@@ -306,7 +306,7 @@ def home():
       tmr = setTimeout(filterNow, 120);
     }});
 
-    async function load(){{ 
+    async function load(){{
       const r = await fetch("/api/items"); 
       ALL = await r.json(); 
       const m = await fetch("/api/last-mod").then(x=>x.json()).catch(()=>null);
@@ -322,7 +322,7 @@ def home():
     // Fight song player
     const fightBtn = document.getElementById('fightBtn');
     const fightAudio = document.getElementById('fightAudio');
-    function syncFightBtn(){{ 
+    function syncFightBtn(){{
       const on = fightAudio && !fightAudio.paused;
       fightBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       fightBtn.textContent = on ? '⏸ Fight Song' : '🎵 Fight Song';
@@ -382,6 +382,11 @@ def fight_song():
     if os.path.exists(path):
         return send_from_directory(sf, "fight.mp3", mimetype="audio/mpeg", conditional=True)
     abort(404)
+
+# Simple version probe so you can confirm the active build
+@app.route("/__version")
+def version():
+    return APP_VERSION, 200, {"Content-Type": "text/plain; charset=utf-8"}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
