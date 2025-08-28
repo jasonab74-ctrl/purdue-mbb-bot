@@ -39,3 +39,64 @@
               <div class="item-head">
                 {% if it.link %}
                   <a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>
+                {% else %}
+                  <span class="title">{{ it.title }}</span>
+                {% endif %}
+                {% if it.source %}<span class="badge">{{ it.source }}</span>{% endif %}
+              </div>
+              <div class="meta">{% if it.date %}{{ it.date }}{% endif %}</div>
+              {% if it.description %}<p class="desc">{{ it.description }}</p>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty">No dynamic items yet. Quick links above are always available.</div>
+      {% endif %}
+    </main>
+  </div>
+
+  <audio id="fightAudio" preload="none">
+    <source src="{{ fight_song_src }}" type="audio/mpeg">
+  </audio>
+  <script>
+  (function(){
+    const sel=document.getElementById('sourceFilter');
+    const list=document.getElementById('itemsList');
+    const note=document.getElementById('countNote');
+    const search=document.getElementById('search');
+    function applyFilter(){
+      if(!list) return;
+      const srcVal = sel.value;
+      const q = (search.value||"").toLowerCase();
+      let shown=0;
+      for(const li of list.querySelectorAll('.item')){
+        const src = li.getAttribute('data-source')||'';
+        const text = li.textContent.toLowerCase();
+        const matchSrc = (srcVal==='__all__') || (src===srcVal);
+        const matchText = !q || text.includes(q);
+        const on = matchSrc && matchText;
+        li.style.display = on ? '' : 'none';
+        if(on) shown++;
+      }
+      note.textContent = `${shown} shown`;
+    }
+    sel && sel.addEventListener('change', applyFilter);
+    search && search.addEventListener('input', applyFilter);
+    applyFilter();
+
+    const btn=document.getElementById('fightBtn');
+    const audio=document.getElementById('fightAudio');
+    if(btn && audio){
+      btn.addEventListener('click', async ()=>{
+        try{
+          if(audio.paused){ await audio.play(); btn.textContent='⏸︎ Pause'; }
+          else { audio.pause(); btn.textContent='▶︎ Fight Song'; }
+        }catch(e){
+          window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank');
+        }
+      });
+    }
+  })();
+  </script>
+</body>
+</html>
