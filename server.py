@@ -1,12 +1,13 @@
 import os, json, pathlib, logging
-from flask import Flask, render_template, render_template_string, url_for
+from datetime import datetime, timezone
+from flask import Flask, render_template, render_template_string, url_for, send_file, jsonify
 from jinja2 import TemplateNotFound
 
 logging.basicConfig(level=logging.INFO)
 BASE_DIR = pathlib.Path(__file__).parent
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# ---------- Inline fallback (so you never see a blank page) ----------
+# ---------- Inline fallback (keeps site rendering even if template missing) ----------
 INLINE_INDEX_TEMPLATE = """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -25,6 +26,9 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
         <div>
           <h1>Purdue Men’s Basketball — Live Feed</h1>
           <div class="sub">({{ items|length }} dynamic items)</div>
+          <div class="stamp" id="updatedStamp" data-iso="{{ last_updated_iso or '' }}">
+            {% if last_updated_human %}Updated: {{ last_updated_human }}{% else %}Updated: never{% endif %}
+          </div>
         </div>
       </div>
       <div class="actions"><button id="fightBtn" class="btn primary">▶︎ Fight Song</button></div>
@@ -32,6 +36,10 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
         {% for q in quick_links %}<a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>{% endfor %}
       </nav>
     </header>
+
+    <div id="notice" class="notice" style="display:none">
+      New articles available. <button id="refreshBtn" class="btn">Refresh</button>
+    </div>
 
     <section class="controls">
       <input id="search" class="input" placeholder="Filter (e.g., Painter, Braden Smith)" />
@@ -103,6 +111,51 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
         }
       });
     }
+
+    // ---- Updated: show "x minutes ago" and light auto-check for new items ----
+    const stamp = document.getElementById('updatedStamp');
+    function humanize(iso){
+      if(!iso) return "never";
+      const t = new Date(iso);
+      const now = new Date();
+      const diff = Math.max(0, (now - t) / 1000);
+      const units = [
+        ["day", 86400],
+        ["hour", 3600],
+        ["minute", 60],
+        ["second", 1],
+      ];
+      for(const [name, sec] of units){
+        if(diff >= sec){
+          const n = Math.floor(diff/sec);
+          return n+" "+name+(n>1?"s":"")+" ago";
+        }
+      }
+      return "just now";
+    }
+    if(stamp){
+      const iso = stamp.getAttribute('data-iso');
+      stamp.textContent = "Updated: " + humanize(iso);
+      setInterval(()=>{ stamp.textContent = "Updated: " + humanize(iso); }, 30000);
+    }
+
+    // Poll /items.json HEAD every 5 minutes; if Last-Modified changes, show notice
+    const notice = document.getElementById('notice');
+    const refreshBtn = document.getElementById('refreshBtn');
+    let lastIso = stamp ? stamp.getAttribute('data-iso') : null;
+
+    async function checkForNew(){
+      try{
+        const r = await fetch('/items.json', { method: 'HEAD', cache: 'no-store' });
+        const lm = r.headers.get('Last-Modified');
+        const newTime = lm ? new Date(lm).toISOString() : null;
+        if(lastIso && newTime && new Date(newTime) > new Date(lastIso)){
+          notice.style.display = '';
+        }
+      }catch(_){}
+    }
+    refreshBtn && refreshBtn.addEventListener('click', ()=>location.reload());
+    setInterval(checkForNew, 5*60*1000);
   })();
   </script>
 </body></html>
@@ -133,7 +186,6 @@ def load_items():
     return out
 
 def quick_links():
-    # One source of truth: use STATIC_LINKS from feeds.py
     try:
         from feeds import STATIC_LINKS
         return [{"id": str(i), "label": x["label"], "url": x["url"]} for i, x in enumerate(STATIC_LINKS)]
@@ -141,33 +193,65 @@ def quick_links():
         return []
 
 def fight_song_src():
-    # If static/fight_song.mp3 exists it will play; otherwise button opens YouTube search
     return url_for("static", filename="fight_song.mp3")
+
+def items_last_modified_iso():
+    p = BASE_DIR / "items.json"
+    if not p.exists():
+        return None
+    ts = p.stat().st_mtime
+    return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+
+def human_last_modified():
+    iso = items_last_modified_iso()
+    if not iso:
+        return None
+    # simple human string like '2025-08-28 19:52 UTC'
+    dt = datetime.fromisoformat(iso)
+    return dt.strftime("%Y-%m-%d %H:%M UTC")
 
 # ---------- Routes ----------
 @app.get("/")
 def index():
     items = load_items()
 
-    # Sources that actually appear in items.json:
     item_sources = {it["source"] for it in items if it.get("source")}
-
-    # Also include ALL configured feed names so the dropdown lists them even if 0 items right now
     try:
         from feeds import FEEDS_META
         configured_sources = {f["name"] for f in FEEDS_META}
     except Exception:
         configured_sources = set()
-
     sources = sorted(item_sources | configured_sources)
 
     try:
-        return render_template("index.html", items=items, sources=sources,
-                               quick_links=quick_links(), fight_song_src=fight_song_src())
+        return render_template(
+            "index.html",
+            items=items,
+            sources=sources,
+            quick_links=quick_links(),
+            fight_song_src=fight_song_src(),
+            last_updated_iso=items_last_modified_iso(),
+            last_updated_human=human_last_modified()
+        )
     except TemplateNotFound:
-        return render_template_string(INLINE_INDEX_TEMPLATE, items=items, sources=sources,
-                                      quick_links=quick_links(), fight_song_src=fight_song_src())
+        return render_template_string(
+            INLINE_INDEX_TEMPLATE,
+            items=items,
+            sources=sources,
+            quick_links=quick_links(),
+            fight_song_src=fight_song_src(),
+            last_updated_iso=items_last_modified_iso(),
+            last_updated_human=human_last_modified()
+        )
 
 @app.get("/health")
 def health():
     return {"ok": True}
+
+@app.get("/items.json")
+def items_json():
+    """Serve items.json with proper Last-Modified so the page can detect new content."""
+    p = BASE_DIR / "items.json"
+    if p.exists():
+        return send_file(p, mimetype="application/json", conditional=True)
+    return jsonify({"items": []})
