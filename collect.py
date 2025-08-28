@@ -1,131 +1,135 @@
 #!/usr/bin/env python3
-import feedparser, time, json, re
-from datetime import datetime, timezone
-from pathlib import Path
+"""
+Builds items.json (and last-mod.json) at the REPO ROOT.
 
-# ----- knobs you can tune -----
-MAX_ITEMS = 120
-DATA_PATH = Path("data.json")
+- Sources include Google News, Bing News, Reddit, and YouTube search RSS
+- Filters to Purdue men's basketball (drops football)
+- De-duplicates
+- Keeps the most recent 200
+"""
 
-SOURCES = [
-    # Primary/beat sites
-    {"name": "Hammer & Rails", "url": "https://www.hammerandrails.com/rss/index.xml"},
-    {"name": "GoldandBlack",   "url": "https://www.on3.com/teams/purdue-boilermakers/feeds/all/atom/"},
-    {"name": "ESPN CBB",       "url": "https://www.espn.com/espn/rss/ncb/news"},
-    {"name": "CBS CBB",        "url": "https://www.cbssports.com/rss/headlines/college-basketball/"},
-    {"name": "Yahoo CBB",      "url": "https://sports.yahoo.com/college-basketball/rss/"},
+import datetime as dt
+import json
+import os
+import re
+from typing import Dict, List, Tuple
+import feedparser
 
-    # Aggregators (we suppress their summaries to avoid messy blobs)
-    {"name": "Google News",    "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20men%27s%20basketball&hl=en-US&gl=US&ceid=US:en"},
-    {"name": "Bing News",      "url": "https://www.bing.com/news/search?q=Purdue+Boilermakers+men%27s+basketball&format=RSS"},
+# ----------------------- Config ---------------------------------------------
 
-    # YouTube (channels + searches to catch mentions outside those channels)
-    {"name": "YouTube: Field of 68",      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC8KEey9Gk_wA_w60Y8xX3Zw"},
-    {"name": "YouTube: Sleepers Media",   "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtE2Qt3kFHW2cS7bIMD5zJQ"},
-    {"name": "YouTube: Search Purdue MBB","url": "https://www.youtube.com/feeds/videos.xml?search_query=Purdue+men%27s+basketball"},
-    {"name": "YouTube: Search Boilermakers","url": "https://www.youtube.com/feeds/videos.xml?search_query=Purdue+Boilermakers+basketball"},
-
-    # Community
-    {"name": "Reddit /r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/.rss"},
+# News search feeds (RSS)
+NEWS_FEEDS: List[Tuple[str, str]] = [
+    # Google News (exclude football)
+    ("Google News", "https://news.google.com/rss/search?q=(Purdue%20Boilermakers%20men%27s%20basketball%20OR%20Purdue%20basketball)%20-OR%20-football&hl=en-US&gl=US&ceid=US:en"),
+    # Bing News
+    ("Bing News", "https://www.bing.com/news/search?q=Purdue+Boilermakers+basketball&format=rss"),
+    # Hammer & Rails (site-wide; we filter below)
+    ("Hammer & Rails", "https://www.hammerandrails.com/rss/index.xml"),
+    # Reddit Boilermakers
+    ("Reddit r/Boilermakers", "https://www.reddit.com/r/Boilermakers/.rss"),
 ]
 
-# obvious football words/phrases to exclude
-EXCLUDE_TERMS = [
-    "football","gridiron","quarterback","qb","running back","wide receiver",
-    "tight end","offensive line","defensive line","touchdown","field goal",
-    "kickoff","punt","nfl","b1g football","college football","pigskin"
+# YouTube search RSS (works without an API key)
+YOUTUBE_SEARCH_FEEDS: List[Tuple[str, str]] = [
+    ("YouTube — Purdue Basketball", "https://www.youtube.com/feeds/videos.xml?search_query=Purdue+Basketball"),
+    ("YouTube — Boilermakers Basketball", "https://www.youtube.com/feeds/videos.xml?search_query=Boilermakers+Basketball"),
 ]
 
-# what makes a YouTube result “basketball-ish”
-YT_KEEP = [
-    "purdue","boilermaker","boilermakers","matt painter","painter","zach edey","edey",
-    "braden smith","fletcher loyer","trey kaufman","mason gillis","caleb furst","mackey",
-    "big ten","ncaa","march","sweet 16","elite eight","final four","boiler ball",
-    "men's basketball","mens basketball","basketball"
-]
+# How many items to keep
+MAX_ITEMS = 200
 
-TAG_RE = re.compile(r"<[^>]*>")
+# Output files (at repo root)
+ITEMS_PATH = os.path.join(os.getcwd(), "items.json")
+LASTMOD_PATH = os.path.join(os.getcwd(), "last-mod.json")
 
-def strip_html(s: str) -> str:
-    if not s: return ""
-    s = TAG_RE.sub("", str(s))
-    s = (s.replace("&nbsp;"," ").replace("&amp;","&")
-           .replace("&quot;", '"').replace("&#39;","'"))
-    return re.sub(r"\s+"," ", s).strip()
+# ---------------------------------------------------------------------------
 
-def best_summary(entry) -> str:
-    for k in ("summary", "description"):
-        val = getattr(entry, k, None)
-        if isinstance(val, str) and val.strip():
-            return strip_html(val)[:500]
-    if hasattr(entry, "content") and isinstance(entry.content, list) and entry.content:
-        return strip_html(entry.content[0].get("value", ""))[:500]
-    return ""
+_word = r"[A-Za-z0-9']"
+RE_PURDUE = re.compile(rf"\bpurdue\b", re.I)
+RE_BOILER = re.compile(rf"\bboilermaker{_word}*\b", re.I)
+RE_MBB = re.compile(rf"\b(basketball|hoops|mbb)\b", re.I)
+RE_FOOTBALL = re.compile(rf"\bfootball\b", re.I)
 
-def to_ts(e) -> float:
-    for k in ("published_parsed","updated_parsed","created_parsed"):
-        if getattr(e, k, None):
-            try: return time.mktime(getattr(e, k))
-            except Exception: pass
-    return time.time()
+def is_mbb_hit(title: str, summary: str) -> bool:
+    text = f"{title} {summary}".lower()
+    if RE_FOOTBALL.search(text):
+        return False
+    # Strong Purdue + basketball signal
+    if (RE_PURDUE.search(text) or RE_BOILER.search(text)) and RE_MBB.search(text):
+        return True
+    # Heuristic: titles that clearly look like Purdue hoops even if "basketball" missing
+    if RE_PURDUE.search(text) and ("painter" in text or "boilermakers" in text):
+        return True
+    return False
 
-def is_football(text: str) -> bool:
-    t = text.lower()
-    return any(x in t for x in EXCLUDE_TERMS)
+def pull_feed(name: str, url: str) -> List[Dict]:
+    d = feedparser.parse(url)
+    out: List[Dict] = []
+    for e in d.entries:
+        title = (getattr(e, "title", "") or "").strip()
+        link = (getattr(e, "link", "") or "").strip()
+        summary = (getattr(e, "summary", "") or getattr(e, "description", "") or "").strip()
+        published = (getattr(e, "published", "") or getattr(e, "updated", "") or getattr(e, "pubDate", "") or "").strip()
 
-def youtube_ok(title: str, summary: str) -> bool:
-    t = f"{title} {summary}".lower()
-    return any(x in t for x in YT_KEEP)
+        # YouTube: sometimes nicer to construct the canonical watch URL
+        if "youtube.com" in url or "feeds/videos.xml" in url:
+            vid = getattr(e, "yt_videoid", None) or getattr(e, "videoid", None)
+            if vid and ("watch?v=" not in (link or "")):
+                link = f"https://www.youtube.com/watch?v={vid}"
 
-def collect():
-    items, seen = [], set()
+        if not title or not link:
+            continue
+        if not is_mbb_hit(title, summary):
+            continue
 
-    for src in SOURCES:
-        feed = feedparser.parse(src["url"])
-        for e in getattr(feed, "entries", []):
-            title = strip_html(getattr(e, "title", ""))[:240]
-            link  = getattr(e, "link", "").strip()
-            if not title or not link:
-                continue
+        out.append({
+            "title": title,
+            "link": link,
+            "summary": summary,
+            "source": name,
+            "published": published,
+        })
+    return out
 
-            # keep aggregator titles clean; hide their noisy summaries
-            if src["name"] in ("Google News","Bing News"):
-                summary = ""
-            else:
-                summary = best_summary(e)
+def dedupe(items: List[Dict]) -> List[Dict]:
+    seen_links = set()
+    seen_titles = set()
+    out: List[Dict] = []
+    for it in items:
+        lk = it["link"].strip().lower()
+        tk = it["title"].strip().lower()
+        if lk in seen_links or tk in seen_titles:
+            continue
+        seen_links.add(lk)
+        seen_titles.add(tk)
+        out.append(it)
+    return out
 
-            # football filter
-            if is_football(f"{src['name']} {title} {summary}"):
-                continue
+def sort_items(items: List[Dict]) -> List[Dict]:
+    def key(it):
+        return it.get("published", "")
+    return sorted(items, key=key, reverse=True)
 
-            # YouTube gating
-            if src["name"].lower().startswith("youtube"):
-                if not youtube_ok(title, summary):
-                    continue
+def main():
+    items: List[Dict] = []
+    # News
+    for name, url in NEWS_FEEDS:
+        items.extend(pull_feed(name, url))
+    # YouTube
+    for name, url in YOUTUBE_SEARCH_FEEDS:
+        items.extend(pull_feed(name, url))
 
-            ts = to_ts(e)
-            key = (title.lower(), link.lower())
-            if key in seen:
-                continue
-            seen.add(key)
+    items = dedupe(items)
+    items = sort_items(items)[:MAX_ITEMS]
 
-            items.append({
-                "source": src["name"],
-                "title": title,
-                "link":  link,
-                "summary": summary,
-                "ts": ts
-            })
+    # Write outputs
+    with open(ITEMS_PATH, "w", encoding="utf-8") as f:
+        json.dump({"items": items}, f, ensure_ascii=False)
 
-    items.sort(key=lambda x: x["ts"], reverse=True)
-    items = items[:MAX_ITEMS]
+    with open(LASTMOD_PATH, "w", encoding="utf-8") as f:
+        json.dump({"modified": dt.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")}, f)
 
-    payload = {
-        "modified": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
-        "count": len(items),
-        "items": items
-    }
-    DATA_PATH.write_text(json.dumps(payload, ensure_ascii=False))
+    print(f"Wrote {len(items)} items to {ITEMS_PATH}")
 
 if __name__ == "__main__":
-    collect()
+    main()
