@@ -108,6 +108,7 @@ html,body{
   gap:10px;
   align-items:center
 }
+
 /* ===== Mobile polish (safe, non-breaking) ===== */
 @media (max-width: 640px) {
   .container{ padding:0 14px; }
@@ -124,10 +125,10 @@ html,body{
   .input,
   .select{
     width:100%;
-    min-width:0;    /* override desktop min width */
+    min-width:0;
   }
 
-  /* Tighten quick links a bit so they wrap better */
+  /* Tighten quick links a bit */
   .quick{ gap:6px; }
   .pill{ padding:7px 10px; }
 
