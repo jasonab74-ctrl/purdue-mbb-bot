@@ -1,5 +1,5 @@
 import os, json, pathlib, logging
-from flask import Flask, render_template, render_template_string
+from flask import Flask, render_template, render_template_string, url_for
 from jinja2 import TemplateNotFound
 
 logging.basicConfig(level=logging.INFO)
@@ -7,7 +7,7 @@ BASE_DIR = pathlib.Path(__file__).parent
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# Inline fallback so you never see a blank page if templates/ is off
+# Inline fallback so you'll never get a blank page if templates/ is off
 INLINE_INDEX_TEMPLATE = """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -89,12 +89,11 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
     const audio = document.getElementById('fightAudio');
     if(btn && audio){
       btn.addEventListener('click', async () => {
-        try {
-          if (audio.paused) { await audio.play(); btn.textContent='⏸︎ Pause'; }
+        try{
+          if(audio.paused){ await audio.play(); btn.textContent='⏸︎ Pause'; }
           else { audio.pause(); btn.textContent='▶︎ Fight Song'; }
-        } catch(e) {
-          // if the local mp3 is missing or blocked, open YouTube fallback
-          window.open('https://www.youtube.com/results?search_query=purdue+fight+song', '_blank');
+        }catch(e){
+          window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank');
         }
       });
     }
@@ -127,23 +126,11 @@ def load_items():
     return out
 
 def quick_links():
-    return [
-        {"id":"hammerandrails","label":"Hammer & Rails","url":"https://www.hammerandrails.com/purdue-basketball"},
-        {"id":"goldandblack","label":"GoldandBlack","url":"https://purdue.rivals.com/"},
-        {"id":"espn","label":"ESPN — Purdue MBB","url":"https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
-        {"id":"cbs","label":"CBS — Purdue MBB","url":"https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/"},
-        {"id":"barstool","label":"Barstool — Purdue Tag","url":"https://www.barstoolsports.com/tag/purdue"},
-        {"id":"fieldof68","label":"YouTube — Field of 68","url":"https://www.youtube.com/c/RobDausterFieldOf68"},
-        {"id":"sleepers","label":"YouTube — Sleepers Media","url":"https://www.youtube.com/@SleepersMedia"},
-        {"id":"reddit","label":"Reddit — r/Boilermakers","url":"https://www.reddit.com/r/Boilermakers/"},
-        {"id":"schedule","label":"Purdue — Schedule","url":"https://purduesports.com/sports/mens-basketball/schedule"},
-        {"id":"roster","label":"Purdue — Roster","url":"https://purduesports.com/sports/mens-basketball/roster"},
-    ]
+    from feeds import STATIC_LINKS  # one source of truth
+    return [{"id": str(i), "label": x["label"], "url": x["url"]} for i, x in enumerate(STATIC_LINKS)]
 
 def fight_song_src():
-    # If you add /static/fight_song.mp3 it will play locally; otherwise it still works via YouTube fallback in JS.
-    local = app.static_url_path + "/fight_song.mp3"
-    return local
+    return url_for("static", filename="fight_song.mp3")  # if missing, button falls back to YouTube
 
 @app.get("/")
 def index():
