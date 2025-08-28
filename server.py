@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 BASE_DIR = pathlib.Path(__file__).parent
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# ---------- Inline fallback (keeps site rendering even if template missing) ----------
+# ---------- Inline fallback (so site never goes blank) ----------
 INLINE_INDEX_TEMPLATE = """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -16,7 +16,7 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
 <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
 <meta name="theme-color" content="#0a0a0a">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
 </head>
 <body>
   <div class="container">
@@ -119,12 +119,7 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
       const t = new Date(iso);
       const now = new Date();
       const diff = Math.max(0, (now - t) / 1000);
-      const units = [
-        ["day", 86400],
-        ["hour", 3600],
-        ["minute", 60],
-        ["second", 1],
-      ];
+      const units = [["day", 86400],["hour", 3600],["minute", 60],["second", 1]];
       for(const [name, sec] of units){
         if(diff >= sec){
           const n = Math.floor(diff/sec);
@@ -143,7 +138,6 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
     const notice = document.getElementById('notice');
     const refreshBtn = document.getElementById('refreshBtn');
     let lastIso = stamp ? stamp.getAttribute('data-iso') : null;
-
     async function checkForNew(){
       try{
         const r = await fetch('/items.json', { method: 'HEAD', cache: 'no-store' });
@@ -206,15 +200,21 @@ def human_last_modified():
     iso = items_last_modified_iso()
     if not iso:
         return None
-    # simple human string like '2025-08-28 19:52 UTC'
     dt = datetime.fromisoformat(iso)
     return dt.strftime("%Y-%m-%d %H:%M UTC")
+
+def static_version():
+    """Return version string from style.css mtime (cache-busting)."""
+    p = BASE_DIR / "static" / "style.css"
+    try:
+        return str(int(p.stat().st_mtime))
+    except Exception:
+        return "1"
 
 # ---------- Routes ----------
 @app.get("/")
 def index():
     items = load_items()
-
     item_sources = {it["source"] for it in items if it.get("source")}
     try:
         from feeds import FEEDS_META
@@ -231,7 +231,8 @@ def index():
             quick_links=quick_links(),
             fight_song_src=fight_song_src(),
             last_updated_iso=items_last_modified_iso(),
-            last_updated_human=human_last_modified()
+            last_updated_human=human_last_modified(),
+            static_v=static_version(),
         )
     except TemplateNotFound:
         return render_template_string(
@@ -241,7 +242,8 @@ def index():
             quick_links=quick_links(),
             fight_song_src=fight_song_src(),
             last_updated_iso=items_last_modified_iso(),
-            last_updated_human=human_last_modified()
+            last_updated_human=human_last_modified(),
+            static_v=static_version(),
         )
 
 @app.get("/health")
@@ -250,7 +252,6 @@ def health():
 
 @app.get("/items.json")
 def items_json():
-    """Serve items.json with proper Last-Modified so the page can detect new content."""
     p = BASE_DIR / "items.json"
     if p.exists():
         return send_file(p, mimetype="application/json", conditional=True)
