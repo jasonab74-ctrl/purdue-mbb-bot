@@ -4,13 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Purdue Men’s Basketball — Live Feed</title>
-
-  <!-- Icons / Shortcuts -->
   <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="any">
-  <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
   <meta name="theme-color" content="#0a0a0a">
-
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -21,18 +18,24 @@
         <div>
           <h1>Purdue Men’s Basketball — Live Feed</h1>
           <div class="sub">({{ items|length }} dynamic items)</div>
+          <div class="stamp" id="updatedStamp" data-iso="{{ last_updated_iso or '' }}">
+            {% if last_updated_human %}Updated: {{ last_updated_human }}{% else %}Updated: never{% endif %}
+          </div>
         </div>
       </div>
       <div class="actions">
         <button id="fightBtn" class="btn primary">▶︎ Fight Song</button>
       </div>
-
       <nav class="quick" aria-label="Quick links">
         {% for q in quick_links %}
           <a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>
         {% endfor %}
       </nav>
     </header>
+
+    <div id="notice" class="notice" style="display:none">
+      New articles available. <button id="refreshBtn" class="btn">Refresh</button>
+    </div>
 
     <section class="controls">
       <input id="search" class="input" placeholder="Filter (e.g., Painter, Braden Smith)" />
@@ -76,7 +79,6 @@
     const list=document.getElementById('itemsList');
     const note=document.getElementById('countNote');
     const search=document.getElementById('search');
-
     function applyFilter(){
       if(!list)return;
       const srcVal=sel.value, q=(search.value||"").toLowerCase();
@@ -105,6 +107,36 @@
         }
       });
     }
+
+    // Humanize updated stamp and check for new items
+    const stamp = document.getElementById('updatedStamp');
+    function humanize(iso){
+      if(!iso) return "never";
+      const t = new Date(iso), now = new Date();
+      const diff = Math.max(0, (now - t)/1000);
+      const units=[["day",86400],["hour",3600],["minute",60],["second",1]];
+      for(const [n,s] of units){ if(diff>=s){ const v=Math.floor(diff/s); return v+" "+n+(v>1?"s":"")+" ago"; } }
+      return "just now";
+    }
+    if(stamp){
+      const iso = stamp.getAttribute('data-iso');
+      stamp.textContent = "Updated: " + humanize(iso);
+      setInterval(()=>{ stamp.textContent = "Updated: " + humanize(iso); }, 30000);
+    }
+
+    const notice = document.getElementById('notice');
+    const refreshBtn = document.getElementById('refreshBtn');
+    let lastIso = stamp ? stamp.getAttribute('data-iso') : null;
+    async function checkForNew(){
+      try{
+        const r = await fetch('/items.json', { method:'HEAD', cache:'no-store' });
+        const lm = r.headers.get('Last-Modified');
+        const newIso = lm ? new Date(lm).toISOString() : null;
+        if(lastIso && newIso && new Date(newIso) > new Date(lastIso)){ notice.style.display=''; }
+      }catch(_){}
+    }
+    refreshBtn && refreshBtn.addEventListener('click', ()=>location.reload());
+    setInterval(checkForNew, 5*60*1000);
   })();
   </script>
 </body>
