@@ -108,3 +108,30 @@ html,body{
   gap:10px;
   align-items:center
 }
+/* ===== Mobile polish (safe, non-breaking) ===== */
+@media (max-width: 640px) {
+  .container{ padding:0 14px; }
+
+  .brand{ align-items:flex-start; }
+  .logo{ max-height:44px; }
+
+  /* Stack the search + source dropdown full-width */
+  .controls{
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+  }
+  .input,
+  .select{
+    width:100%;
+    min-width:0;    /* override desktop min width */
+  }
+
+  /* Tighten quick links a bit so they wrap better */
+  .quick{ gap:6px; }
+  .pill{ padding:7px 10px; }
+
+  /* Slightly denser item cards on mobile */
+  .item{ padding:12px; border-radius:12px; }
+  .badge{ font-size:.7rem; padding:3px 8px; }
+}
