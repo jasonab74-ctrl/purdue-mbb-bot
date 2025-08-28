@@ -17,7 +17,7 @@ try:
 except Exception:
     FEEDS = []
 
-OUT_FILE = Path("items.out.json")  # change to Path("items.json") if desired
+OUT_FILE = Path("items.json")  # change to Path("items.json") if desired
 MAX_PER_FEED = 10
 
 
