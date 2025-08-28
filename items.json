@@ -1,33 +1,33 @@
 {
   "items": [
     {
-      "title": "Hammer & Rails – Purdue Men’s Basketball Home",
-      "link": "https://www.hammerandrails.com/",
+      "title": "Hammer & Rails — Purdue Basketball Coverage",
+      "link": "https://www.hammerandrails.com/purdue-basketball",
       "source": "Hammer & Rails",
       "date": "2025-08-28"
     },
     {
-      "title": "The Feed – Hammer & Rails Community Stream",
-      "link": "https://www.hammerandrails.com/the-feed",
-      "source": "Hammer & Rails",
-      "date": "2025-08-28"
-    },
-    {
-      "title": "Field of 68 — After Dark Podcast (YouTube)",
+      "title": "Field of 68 — Purdue Basketball Content",
       "link": "https://www.youtube.com/c/RobDausterFieldOf68",
-      "source": "Field of 68 After Dark",
+      "source": "Field of 68",
       "date": "2025-08-28"
     },
     {
-      "title": "The Old Gold Show – Purdue Basketball Podcast (Field of 68)",
-      "link": "https://podcasts.apple.com/us/podcast/the-old-gold-show-a-purdue-basketball-podcast/id1580525701",
-      "source": "The Old Gold Show",
+      "title": "Sleepers Media — Purdue Basketball Talk",
+      "link": "https://www.youtube.com/@SleepersMedia",
+      "source": "Sleepers Media",
       "date": "2025-08-28"
     },
     {
-      "title": "BoilerBall Podcast — Official Purdue Basketball Podcast",
-      "link": "https://purduesports.com/the-boilerball-podcast",
-      "source": "BoilerBall Podcast",
+      "title": "Yahoo Sports — Purdue Boilermakers Men’s Basketball",
+      "link": "https://sports.yahoo.com/ncaab/teams/purdue/",
+      "source": "Yahoo Sports",
+      "date": "2025-08-28"
+    },
+    {
+      "title": "Official Purdue Basketball News",
+      "link": "https://purduesports.com/sports/mens-basketball",
+      "source": "Purdue Athletics",
       "date": "2025-08-28"
     }
   ]
