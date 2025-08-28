@@ -1,4 +1,4 @@
-import os, json, pathlib, logging
+import os, sys, json, pathlib, logging, threading, time, subprocess
 from datetime import datetime, timezone
 from flask import Flask, render_template, render_template_string, url_for, send_file, jsonify
 from jinja2 import TemplateNotFound
@@ -7,7 +7,50 @@ logging.basicConfig(level=logging.INFO)
 BASE_DIR = pathlib.Path(__file__).parent
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# ---------- Inline fallback (so site never goes blank) ----------
+# ===== Background refresher =====
+REFRESH_MIN = int(os.getenv("FEED_REFRESH_MIN", "30"))  # change via env if you want
+_started_refresher = False
+
+def _run_collector_once():
+    """Run collect.py safely and log output without blocking the web server."""
+    try:
+        logging.info("[refresher] starting collector")
+        proc = subprocess.run(
+            [sys.executable, str(BASE_DIR / "collect.py")],
+            capture_output=True,
+            text=True,
+            timeout=300  # hard cap to avoid hanging forever
+        )
+        if proc.stdout:
+            logging.info(proc.stdout.strip())
+        if proc.stderr:
+            logging.warning(proc.stderr.strip())
+        logging.info("[refresher] collector finished with code %s", proc.returncode)
+    except Exception as e:
+        logging.exception("[refresher] collector error: %s", e)
+
+def _refresher_loop():
+    # initial delay so boot is instant (Start Command already runs one collect in bg)
+    time.sleep(10)
+    while True:
+        try:
+            _run_collector_once()
+        except Exception:
+            # already logged in _run_collector_once
+            pass
+        # sleep between runs
+        for _ in range(REFRESH_MIN * 60):
+            time.sleep(1)
+
+def _ensure_refresher():
+    global _started_refresher
+    if not _started_refresher:
+        t = threading.Thread(target=_refresher_loop, daemon=True)
+        t.start()
+        _started_refresher = True
+        app.logger.info("[refresher] background refresher started (every %d min)", REFRESH_MIN)
+
+# ---------- Inline fallback (keeps site rendering even if template missing) ----------
 INLINE_INDEX_TEMPLATE = """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -112,20 +155,14 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
       });
     }
 
-    // ---- Updated: show "x minutes ago" and light auto-check for new items ----
+    // Humanized "Updated" and lightweight check for new items
     const stamp = document.getElementById('updatedStamp');
     function humanize(iso){
       if(!iso) return "never";
-      const t = new Date(iso);
-      const now = new Date();
-      const diff = Math.max(0, (now - t) / 1000);
-      const units = [["day", 86400],["hour", 3600],["minute", 60],["second", 1]];
-      for(const [name, sec] of units){
-        if(diff >= sec){
-          const n = Math.floor(diff/sec);
-          return n+" "+name+(n>1?"s":"")+" ago";
-        }
-      }
+      const t = new Date(iso), now = new Date();
+      const diff = Math.max(0, (now - t)/1000);
+      const units=[["day",86400],["hour",3600],["minute",60],["second",1]];
+      for(const [n,s] of units){ if(diff>=s){ const v=Math.floor(diff/s); return v+" "+n+(v>1?"s":"")+" ago"; } }
       return "just now";
     }
     if(stamp){
@@ -134,18 +171,15 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
       setInterval(()=>{ stamp.textContent = "Updated: " + humanize(iso); }, 30000);
     }
 
-    // Poll /items.json HEAD every 5 minutes; if Last-Modified changes, show notice
     const notice = document.getElementById('notice');
     const refreshBtn = document.getElementById('refreshBtn');
     let lastIso = stamp ? stamp.getAttribute('data-iso') : null;
     async function checkForNew(){
       try{
-        const r = await fetch('/items.json', { method: 'HEAD', cache: 'no-store' });
+        const r = await fetch('/items.json', { method:'HEAD', cache:'no-store' });
         const lm = r.headers.get('Last-Modified');
-        const newTime = lm ? new Date(lm).toISOString() : null;
-        if(lastIso && newTime && new Date(newTime) > new Date(lastIso)){
-          notice.style.display = '';
-        }
+        const newIso = lm ? new Date(lm).toISOString() : null;
+        if(lastIso && newIso && new Date(newIso) > new Date(lastIso)){ notice.style.display=''; }
       }catch(_){}
     }
     refreshBtn && refreshBtn.addEventListener('click', ()=>location.reload());
@@ -212,6 +246,11 @@ def static_version():
         return "1"
 
 # ---------- Routes ----------
+@app.before_request
+def _kick_refresher():
+    # Start the background refresher on first real request
+    _ensure_refresher()
+
 @app.get("/")
 def index():
     items = load_items()
