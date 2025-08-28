@@ -1,43 +1,14 @@
-:root{
-  --bg:#faf9f7;
-  --card:#ffffff;
-  --text:#1f2937;
-  --muted:#6b7280;
-  --accent:#d4af37; /* Purdue-ish gold */
-  --shadow:0 6px 24px rgba(0,0,0,.06);
-  --radius:16px;
-}
-
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-img{display:block}
-
-.header{display:flex;gap:14px;align-items:center;padding:18px 16px 8px;max-width:920px;margin:0 auto}
-.logo{width:42px;height:42px;object-fit:contain}
-.title h1{margin:0;font-size:22px}
-.meta{color:var(--muted);font-size:12px;margin-top:2px}
-
-.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:8px 16px 16px;max-width:920px;margin:0 auto}
-.input,.select,.button{height:40px;border-radius:999px;border:1px solid #e5e7eb;padding:0 14px;background:#fff}
-.input{flex:1;min-width:220px}
-.select{min-width:180px}
-.button{cursor:pointer}
-.button.secondary{border-color:var(--accent)}
-
-.count{margin-left:auto;color:var(--muted);font-size:12px}
-
-.list{display:flex;flex-direction:column;gap:12px;max-width:920px;margin:0 auto 36px;padding:0 16px}
-.card{background:var(--card);box-shadow:var(--shadow);border-radius:var(--radius);padding:12px 14px}
-.card-source{font-size:12px;color:var(--muted);margin-bottom:4px}
-.card-title{font-size:16px;text-decoration:none;color:#0b57d0;font-weight:600}
-.card-title:hover{text-decoration:underline}
-
-.empty{color:var(--muted);text-align:center;padding:42px 0}
-
-@media (max-width:540px){
-  .title h1{font-size:18px}
-  .controls{gap:8px}
-  .input{min-width:0;width:100%}
-  .select{flex:1}
-  .count{order:3;width:100%;text-align:right;padding-right:6px}
-}
+:root { --card:#e5e7eb; --pad:14px; --radius:12px; }
+* { box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+header { margin-bottom: 16px; }
+.row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.quick { display:flex; gap:8px; flex-wrap:wrap; margin: 12px 0 18px; }
+.quick a { border:1px solid var(--card); border-radius: var(--radius); padding: 8px 12px; text-decoration:none; }
+.controls { display:flex; gap:12px; align-items:center; margin-bottom: 12px; }
+.items { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
+.item { border:1px solid var(--card); border-radius: var(--radius); padding: var(--pad); }
+.item h3 { margin: 0 0 4px 0; font-size: 1.05rem; }
+.muted { color:#6b7280; font-size: .9rem; }
+.empty { padding: 12px; border:1px dashed var(--card); border-radius: var(--radius); }
+select { padding:6px 8px; }
