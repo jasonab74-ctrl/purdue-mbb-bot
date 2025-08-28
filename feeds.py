@@ -33,9 +33,11 @@ KEYWORDS_EXCLUDE = [
     "ncaa volleyball", "ncaa baseball", "softball", "soccer", "wrestling",
 ]
 
-# 📰 Dynamic feeds (RSS/Atom) — BoilerBall remains removed
+# 📰 Dynamic feeds (RSS/Atom).
+# Note: YouTube is channel RSS for Field of 68 and Sleepers Media only; our collector keeps
+# only items that mention Purdue via KEYWORDS_INCLUDE.
 FEEDS_META = [
-    # --- News aggregators (already scoped to Purdue by query) ---
+    # --- News aggregators ---
     {"name": "Google News – Purdue Basketball",
      "url": "https://news.google.com/rss/search?q=Purdue+Basketball&hl=en-US&gl=US&ceid=US:en",
      "category": "news"},
@@ -43,16 +45,24 @@ FEEDS_META = [
      "url": "https://www.bing.com/news/search?q=Purdue+Basketball&format=RSS",
      "category": "news"},
 
+    # ✅ Yahoo Sports via Bing site filter (not a button; source shows as Yahoo in items)
+    {"name": "Yahoo Sports (via Bing) – Purdue",
+     "url": "https://www.bing.com/news/search?q=site:sports.yahoo.com+Purdue+Basketball&format=RSS",
+     "category": "news"},
+
     # --- Reddit ---
     {"name": "Reddit – r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/.rss", "category": "reddit"},
     {"name": "Reddit – r/CollegeBasketball (Purdue search)",
-     "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue&restrict_sr=on&sort=new", "category": "reddit"},
+     "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue&restrict_sr=on&sort=new",
+     "category": "reddit"},
 
     # --- YouTube channels (RSS by channel_id) ---
     {"name": "YouTube – Field of 68",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCs7L0m8JMXwPP0zJX9v3ePQ", "category": "youtube"},
+     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCs7L0m8JMXwPP0zJX9v3ePQ",
+     "category": "youtube"},
     {"name": "YouTube – Sleepers Media",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCUsGjUPB5GQU9H8H1zZX95g", "category": "youtube"},
+     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCUsGjUPB5GQU9H8H1zZX95g",
+     "category": "youtube"},
 
     # --- Official / Team ---
     {"name": "Purdue Athletics – Men’s Basketball",
@@ -66,7 +76,7 @@ FEEDS_META = [
 # Simple list for older collectors (name, url)
 FEEDS = [(f["name"], f["url"]) for f in FEEDS_META]
 
-# 🔗 Static quick links used by the UI — BoilerBall removed previously
+# 🔗 Static quick links used by the UI — ✅ BoilerBall removed (no button)
 STATIC_LINKS = [
     {"label": "ESPN – Purdue MBB", "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
     {"label": "CBS – Purdue MBB", "url": "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"},
