@@ -1,1 +1,16 @@
-{"items":[]}
+{
+  "items": [
+    {
+      "title": "Hammer & Rails",
+      "link": "https://www.hammerandrails.com/purdue-basketball",
+      "source": "Hammer & Rails",
+      "date": "2025-08-28"
+    },
+    {
+      "title": "Field of 68 Podcast",
+      "link": "https://www.youtube.com/c/Fieldof68",
+      "source": "YouTube",
+      "date": "2025-08-27"
+    }
+  ]
+}
