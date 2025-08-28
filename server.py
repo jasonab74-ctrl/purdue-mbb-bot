@@ -6,18 +6,27 @@ logging.basicConfig(level=logging.INFO)
 BASE_DIR = pathlib.Path(__file__).parent
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# Inline fallback so you never get a blank page
+# ---------- Inline fallback (so you never see a blank page) ----------
 INLINE_INDEX_TEMPLATE = """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Purdue Men’s Basketball — Live Feed</title>
+<link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="any">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+<meta name="theme-color" content="#0a0a0a">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <div class="container">
     <header class="header">
-      <h1>Purdue Men’s Basketball — Live Feed</h1>
-      <div class="sub">({{ items|length }} dynamic items)</div>
+      <div class="brand">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Purdue MBB" class="logo" />
+        <div>
+          <h1>Purdue Men’s Basketball — Live Feed</h1>
+          <div class="sub">({{ items|length }} dynamic items)</div>
+        </div>
+      </div>
       <div class="actions"><button id="fightBtn" class="btn primary">▶︎ Fight Song</button></div>
       <nav class="quick" aria-label="Quick links">
         {% for q in quick_links %}<a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>{% endfor %}
@@ -39,7 +48,11 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
           {% for it in items %}
             <li class="item" data-source="{{ it.source|e }}">
               <div class="item-head">
-                {% if it.link %}<a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>{% else %}<span class="title">{{ it.title }}</span>{% endif %}
+                {% if it.link %}
+                  <a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>
+                {% else %}
+                  <span class="title">{{ it.title }}</span>
+                {% endif %}
                 {% if it.source %}<span class="badge">{{ it.source }}</span>{% endif %}
               </div>
               <div class="meta">{% if it.date %}{{ it.date }}{% endif %}</div>
@@ -53,7 +66,9 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
     </main>
   </div>
 
-  <audio id="fightAudio" preload="none"><source src="{{ fight_song_src }}" type="audio/mpeg"></audio>
+  <audio id="fightAudio" preload="none">
+    <source src="{{ fight_song_src }}" type="audio/mpeg">
+  </audio>
   <script>
   (function(){
     const sel=document.getElementById('sourceFilter');
@@ -75,13 +90,25 @@ INLINE_INDEX_TEMPLATE = """<!doctype html>
     sel&&sel.addEventListener('change',applyFilter);
     search&&search.addEventListener('input',applyFilter);
     applyFilter();
-    const btn=document.getElementById('fightBtn'); const audio=document.getElementById('fightAudio');
-    if(btn&&audio){ btn.addEventListener('click', async()=>{ try{ if(audio.paused){await audio.play();btn.textContent='⏸︎ Pause';} else{audio.pause();btn.textContent='▶︎ Fight Song';} }catch(e){ window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank'); } }); }
+
+    const btn=document.getElementById('fightBtn');
+    const audio=document.getElementById('fightAudio');
+    if(btn&&audio){
+      btn.addEventListener('click', async ()=>{
+        try{
+          if(audio.paused){ await audio.play(); btn.textContent='⏸︎ Pause'; }
+          else { audio.pause(); btn.textContent='▶︎ Fight Song'; }
+        }catch(e){
+          window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank');
+        }
+      });
+    }
   })();
   </script>
 </body></html>
 """
 
+# ---------- Helpers ----------
 def load_items():
     p = BASE_DIR / "items.json"
     if not p.exists():
@@ -106,16 +133,34 @@ def load_items():
     return out
 
 def quick_links():
-    from feeds import STATIC_LINKS
-    return [{"id": str(i), "label": x["label"], "url": x["url"]} for i, x in enumerate(STATIC_LINKS)]
+    # One source of truth: use STATIC_LINKS from feeds.py
+    try:
+        from feeds import STATIC_LINKS
+        return [{"id": str(i), "label": x["label"], "url": x["url"]} for i, x in enumerate(STATIC_LINKS)]
+    except Exception:
+        return []
 
 def fight_song_src():
-    return url_for("static", filename="fight_song.mp3")  # if missing, JS opens YouTube
+    # If static/fight_song.mp3 exists it will play; otherwise button opens YouTube search
+    return url_for("static", filename="fight_song.mp3")
 
+# ---------- Routes ----------
 @app.get("/")
 def index():
     items = load_items()
-    sources = sorted({it["source"] for it in items if it.get("source")})
+
+    # Sources that actually appear in items.json:
+    item_sources = {it["source"] for it in items if it.get("source")}
+
+    # Also include ALL configured feed names so the dropdown lists them even if 0 items right now
+    try:
+        from feeds import FEEDS_META
+        configured_sources = {f["name"] for f in FEEDS_META}
+    except Exception:
+        configured_sources = set()
+
+    sources = sorted(item_sources | configured_sources)
+
     try:
         return render_template("index.html", items=items, sources=sources,
                                quick_links=quick_links(), fight_song_src=fight_song_src())
