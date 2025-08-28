@@ -4,14 +4,29 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Purdue Men’s Basketball — Live Feed</title>
+
+  <!-- Icons / Shortcuts -->
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="any">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <meta name="theme-color" content="#0a0a0a">
+
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <div class="container">
     <header class="header">
-      <h1>Purdue Men’s Basketball — Live Feed</h1>
-      <div class="sub">({{ items|length }} dynamic items)</div>
-      <div class="actions"><button id="fightBtn" class="btn primary">▶︎ Fight Song</button></div>
+      <div class="brand">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Purdue MBB" class="logo" />
+        <div>
+          <h1>Purdue Men’s Basketball — Live Feed</h1>
+          <div class="sub">({{ items|length }} dynamic items)</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="fightBtn" class="btn primary">▶︎ Fight Song</button>
+      </div>
+
       <nav class="quick" aria-label="Quick links">
         {% for q in quick_links %}
           <a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>
@@ -52,13 +67,16 @@
     </main>
   </div>
 
-  <audio id="fightAudio" preload="none"><source src="{{ fight_song_src }}" type="audio/mpeg"></audio>
+  <audio id="fightAudio" preload="none">
+    <source src="{{ fight_song_src }}" type="audio/mpeg">
+  </audio>
   <script>
   (function(){
     const sel=document.getElementById('sourceFilter');
     const list=document.getElementById('itemsList');
     const note=document.getElementById('countNote');
     const search=document.getElementById('search');
+
     function applyFilter(){
       if(!list)return;
       const srcVal=sel.value, q=(search.value||"").toLowerCase();
@@ -74,8 +92,19 @@
     sel&&sel.addEventListener('change',applyFilter);
     search&&search.addEventListener('input',applyFilter);
     applyFilter();
-    const btn=document.getElementById('fightBtn'); const audio=document.getElementById('fightAudio');
-    if(btn&&audio){ btn.addEventListener('click', async()=>{ try{ if(audio.paused){await audio.play();btn.textContent='⏸︎ Pause';} else {audio.pause();btn.textContent='▶︎ Fight Song';} }catch(e){ window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank'); } }); }
+
+    const btn=document.getElementById('fightBtn');
+    const audio=document.getElementById('fightAudio');
+    if(btn&&audio){
+      btn.addEventListener('click', async ()=>{
+        try{
+          if(audio.paused){ await audio.play(); btn.textContent='⏸︎ Pause'; }
+          else { audio.pause(); btn.textContent='▶︎ Fight Song'; }
+        }catch(e){
+          window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank');
+        }
+      });
+    }
   })();
   </script>
 </body>
