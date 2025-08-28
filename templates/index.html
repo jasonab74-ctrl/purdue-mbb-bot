@@ -2,108 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Purdue Men’s Basketball — Live Feed</title>
-  <link rel="icon" href="/static/logo.png" />
-  <link rel="stylesheet" href="/static/style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Purdue Men's Basketball — Live Feed</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header class="header">
-    <img class="logo" src="/static/logo.png" alt="Purdue logo" />
-    <div class="title">
-      <h1>Purdue Men’s Basketball — Live Feed</h1>
-      <div class="meta">Updated: <span id="modified">{{ modified }}</span></div>
-    </div>
+  <header>
+    <h1>Purdue Men’s Basketball — Live Feed</h1>
+    <small>Updated: {{ items|length }} sources</small>
   </header>
 
-  <section class="controls">
-    <input id="q" class="input" type="search" placeholder="Filter (e.g., Painter, Braden Smith)" />
-    <select id="source" class="select"></select>
-    <button id="fight" class="button secondary" type="button">▶︎ Fight Song</button>
-    <div id="count" class="count"></div>
-  </section>
+  <main>
+    <!-- Filter -->
+    <label for="source">Filter by source:</label>
+    <select id="source">
+      <!-- Static "always-present" sources -->
+      <option value="all">All sources</option>
+      <option value="espn">ESPN</option>
+      <option value="yahoo">Yahoo Sports</option>
+      <option value="reddit">Reddit</option>
+      <option value="roster">Official Roster</option>
+      <option value="schedule">Official Schedule</option>
+      <!-- Dynamic sources from JSON -->
+      {% for it in items %}
+        {% if it.source %}
+          <option value="{{ it.source }}">{{ it.source }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
 
-  <main id="list" class="list">
-    <div class="empty">Loading…</div>
+    <!-- List -->
+    {% if items and items|length %}
+      <ul class="items">
+        {% for it in items %}
+          <li class="item">
+            <h3>{{ it.title }}</h3>
+            {% if it.date %}<small>{{ it.date }}</small>{% endif %}
+            {% if it.link %}
+              <p><a href="{{ it.link }}" target="_blank" rel="noopener">Open</a></p>
+            {% endif %}
+            {% if it.description %}<p>{{ it.description }}</p>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No results. Try a different filter.</p>
+    {% endif %}
   </main>
-
-  <audio id="anthem" preload="none" src="/static/fight.mp3"></audio>
-
-  <script>
-    const listEl = document.getElementById("list");
-    const qEl = document.getElementById("q");
-    const srcEl = document.getElementById("source");
-    const countEl = document.getElementById("count");
-    const btn = document.getElementById("fight");
-    const anthem = document.getElementById("anthem");
-
-    let playing = false;
-    btn.addEventListener("click", async () => {
-      try {
-        if (!playing) { await anthem.play(); btn.textContent = "⏸︎ Pause"; }
-        else { anthem.pause(); btn.textContent = "▶︎ Fight Song"; }
-        playing = !playing;
-      } catch {}
-    });
-
-    let ITEMS = [];
-    function escapeHtml(s){
-      return (s || "").toString()
-        .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-    }
-
-    function buildSources(items){
-      const set = new Set(items.map(i => i.source || "News"));
-      srcEl.innerHTML = `<option value="__ALL__">All sources</option>` +
-        [...set].sort().map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
-    }
-
-    function render(){
-      const q = (qEl.value || "").toLowerCase();
-      const want = srcEl.value;
-      const filtered = ITEMS.filter(it => {
-        const hay = (it.title + " " + (it.source||"")).toLowerCase();
-        const qok = !q || hay.includes(q);
-        const sok = (want === "__ALL__") || ((it.source||"") === want);
-        return qok && sok;
-      });
-      countEl.textContent = filtered.length ? `${filtered.length} results` : "No results";
-
-      listEl.innerHTML = "";
-      for (const it of filtered){
-        const a = document.createElement("article");
-        a.className = "card";
-        a.innerHTML = `
-          <div class="card-source">${escapeHtml(it.source || "")} ${it.published ? "• " + escapeHtml(it.published) : ""}</div>
-          <a class="card-title" href="${it.link}" target="_blank" rel="noopener">${escapeHtml(it.title || "(untitled)")}</a>
-        `;
-        listEl.appendChild(a);
-      }
-      if (!filtered.length) listEl.innerHTML = `<div class="empty">No results. Try a different filter.</div>`;
-    }
-
-    async function boot(){
-      try{
-        const r = await fetch("/api/items", {cache:"no-store"});
-        const data = await r.json();
-        ITEMS = Array.isArray(data) ? data : [];
-        buildSources(ITEMS);
-        render();
-        try {
-          const r2 = await fetch("/api/last-mod", {cache:"no-store"});
-          const d2 = await r2.json();
-          document.getElementById("modified").textContent = typeof d2 === "string" ? d2 : (d2.modified || "{{ modified }}");
-        } catch {}
-      } catch {
-        listEl.innerHTML = `<div class="empty">Could not load items.</div>`;
-      }
-    }
-
-    qEl.addEventListener("input", render);
-    srcEl.addEventListener("change", render);
-    boot();
-  </script>
 </body>
 </html>
