@@ -4,30 +4,80 @@
       "title": "Hammer & Rails — Purdue Basketball Coverage",
       "link": "https://www.hammerandrails.com/purdue-basketball",
       "source": "Hammer & Rails",
-      "date": "2025-08-28"
+      "date": "2025-08-28",
+      "description": "Latest posts and analysis focused on Purdue hoops."
     },
     {
-      "title": "Field of 68 — Purdue Basketball Content",
+      "title": "GoldandBlack — Purdue Men’s Basketball",
+      "link": "https://purdue.rivals.com/",
+      "source": "GoldandBlack",
+      "date": "2025-08-28",
+      "description": "Rivals network coverage of Purdue athletics."
+    },
+    {
+      "title": "Field of 68 — Purdue Content (YouTube)",
       "link": "https://www.youtube.com/c/RobDausterFieldOf68",
       "source": "Field of 68",
-      "date": "2025-08-28"
+      "date": "2025-08-28",
+      "description": "Videos and pods featuring Purdue segments."
     },
     {
-      "title": "Sleepers Media — Purdue Basketball Talk",
+      "title": "Sleepers Media — Purdue Talk (YouTube)",
       "link": "https://www.youtube.com/@SleepersMedia",
       "source": "Sleepers Media",
-      "date": "2025-08-28"
+      "date": "2025-08-28",
+      "description": "B1G hoops talk with frequent Purdue coverage."
     },
     {
-      "title": "Yahoo Sports — Purdue Boilermakers Men’s Basketball",
+      "title": "Yahoo Sports — Purdue Boilermakers MBB",
       "link": "https://sports.yahoo.com/ncaab/teams/purdue/",
       "source": "Yahoo Sports",
+      "date": "2025-08-28",
+      "description": "Team page and news aggregation."
+    },
+    {
+      "title": "CBS Sports — Purdue Team Page",
+      "link": "https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/",
+      "source": "CBS Sports",
+      "date": "2025-08-28",
+      "description": "Roster, schedule, and news."
+    },
+    {
+      "title": "ESPN — Purdue Boilermakers MBB",
+      "link": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers",
+      "source": "ESPN",
       "date": "2025-08-28"
     },
     {
-      "title": "Official Purdue Basketball News",
+      "title": "Reddit — r/Boilermakers",
+      "link": "https://www.reddit.com/r/Boilermakers/",
+      "source": "Reddit",
+      "date": "2025-08-28",
+      "description": "Fan posts and discussion."
+    },
+    {
+      "title": "Purdue Athletics — MBB News",
       "link": "https://purduesports.com/sports/mens-basketball",
       "source": "Purdue Athletics",
+      "date": "2025-08-28"
+    },
+    {
+      "title": "Purdue Athletics — Schedule",
+      "link": "https://purduesports.com/sports/mens-basketball/schedule",
+      "source": "Purdue Athletics",
+      "date": "2025-08-28",
+      "description": "Official schedule page."
+    },
+    {
+      "title": "Big Ten Network — Purdue MBB",
+      "link": "https://btn.com/schools/purdue/",
+      "source": "BTN",
+      "date": "2025-08-28"
+    },
+    {
+      "title": "BoilerUpload (Rivals) — MBB",
+      "link": "https://purdue.rivals.com/",
+      "source": "BoilerUpload",
       "date": "2025-08-28"
     }
   ]
