@@ -3,84 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Purdue Men’s Basketball — Feed</title>
+  <title>Purdue Men’s Basketball — Live Feed</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header>
-    <div class="row">
-      <h1 style="margin:0">Purdue Men’s Basketball — Live Feed</h1>
-      <span class="muted">({{ items|length }} dynamic items)</span>
-    </div>
+  <div class="container">
+    <header class="header">
+      <h1>Purdue Men’s Basketball — Live Feed</h1>
+      <div class="sub">({{ items|length }} dynamic items)</div>
+      <div class="actions">
+        <button id="fightBtn" class="btn primary">▶︎ Fight Song</button>
+      </div>
 
-    <!-- Always-present static sources -->
-    <nav class="quick" aria-label="Quick links">
-      {% for q in quick_links %}
-        <a href="{{ q.url }}" target="_blank" rel="noopener" data-static="{{ q.id }}">{{ q.label }}</a>
-      {% endfor %}
-    </nav>
-  </header>
-
-  <section class="controls">
-    <label for="sourceFilter">Filter by source:</label>
-    <select id="sourceFilter">
-      <option value="__all__">All dynamic sources</option>
-      {% for s in sources %}
-        <option value="{{ s }}">{{ s }}</option>
-      {% endfor %}
-    </select>
-    <span class="muted" id="countNote"></span>
-  </section>
-
-  <main>
-    {% if items and items|length %}
-      <ul class="items" id="itemsList">
-        {% for it in items %}
-          <li class="item" data-source="{{ it.source|e }}">
-            <h3>
-              {% if it.link %}
-                <a href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a>
-              {% else %}
-                {{ it.title }}
-              {% endif %}
-            </h3>
-            <div class="muted">
-              {% if it.source %}<strong>{{ it.source }}</strong>{% endif %}
-              {% if it.date %} · {{ it.date }}{% endif %}
-            </div>
-            {% if it.description %}<p>{{ it.description }}</p>{% endif %}
-          </li>
+      <nav class="quick" aria-label="Quick links">
+        {% for q in quick_links %}
+          <a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>
         {% endfor %}
-      </ul>
-    {% else %}
-      <div class="empty">No dynamic items yet. Quick links above are always available.</div>
-    {% endif %}
-  </main>
+      </nav>
+    </header>
 
-  <script>
-    (function () {
-      const sel = document.getElementById('sourceFilter');
-      const list = document.getElementById('itemsList');
-      const note = document.getElementById('countNote');
+    <section class="controls">
+      <input id="search" class="input" placeholder="Filter (e.g., Painter, Braden Smith)" />
+      <select id="sourceFilter" class="select">
+        <option value="__all__">All sources</option>
+        {% for s in sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      </select>
+      <span class="muted" id="countNote"></span>
+    </section>
 
-      function applyFilter() {
-        if (!list) return;
-        const val = sel.value;
-        let shown = 0;
-        for (const li of list.querySelectorAll('.item')) {
-          const src = li.getAttribute('data-source') || '';
-          const match = (val === '__all__') || (src === val);
-          li.style.display = match ? '' : 'none';
-          if (match) shown++;
-        }
-        note.textContent = list ? `${shown} shown` : '';
-      }
-
-      if (sel) {
-        sel.addEventListener('change', applyFilter);
-        applyFilter();
-      }
-    })();
-  </script>
-</body>
-</html>
+    <main>
+      {% if items and items|length %}
+        <ul class="items" id="itemsList">
+          {% for it in items %}
+            <li class="item" data-source="{{ it.source|e }}">
+              <div class="item-head">
+                {% if it.link %}
+                  <a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>
