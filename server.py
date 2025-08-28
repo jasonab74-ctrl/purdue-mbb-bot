@@ -1,94 +1,117 @@
 import os, json, pathlib, logging
-from flask import Flask, render_template_string, jsonify
+from flask import Flask, render_template, render_template_string
+from jinja2 import TemplateNotFound
 
 logging.basicConfig(level=logging.INFO)
 BASE_DIR = pathlib.Path(__file__).parent
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
+# Inline fallback so you never see a blank page if templates/ is off
 INLINE_INDEX_TEMPLATE = """<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Purdue Men’s Basketball — Feed</title>
-<style>
-:root{--card:#e5e7eb;--pad:14px;--radius:12px}*{box-sizing:border-box}
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px}
-header{margin-bottom:16px}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.quick{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
-.quick a{border:1px solid var(--card);border-radius:var(--radius);padding:8px 12px;text-decoration:none}
-.controls{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-.items{list-style:none;padding:0;margin:0;display:grid;gap:12px}
-.item{border:1px solid var(--card);border-radius:var(--radius);padding:var(--pad)}
-.item h3{margin:0 0 4px 0;font-size:1.05rem}.muted{color:#6b7280;font-size:.9rem}
-.empty{padding:12px;border:1px dashed var(--card);border-radius:var(--radius)}select{padding:6px 8px}
-</style>
-</head><body>
-<header>
-  <div class="row">
-    <h1 style="margin:0">Purdue Men’s Basketball — Live Feed</h1>
-    <span class="muted">({{ items|length }} dynamic items)</span>
+<title>Purdue Men’s Basketball — Live Feed</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Purdue Men’s Basketball — Live Feed</h1>
+      <div class="sub">({{ items|length }} dynamic items)</div>
+      <div class="actions">
+        <button id="fightBtn" class="btn primary">▶︎ Fight Song</button>
+      </div>
+      <nav class="quick" aria-label="Quick links">
+        {% for q in quick_links %}<a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>{% endfor %}
+      </nav>
+    </header>
+
+    <section class="controls">
+      <input id="search" class="input" placeholder="Filter (e.g., Painter, Braden Smith)" />
+      <select id="sourceFilter" class="select">
+        <option value="__all__">All sources</option>
+        {% for s in sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      </select>
+      <span class="muted" id="countNote"></span>
+    </section>
+
+    <main>
+      {% if items and items|length %}
+        <ul class="items" id="itemsList">
+          {% for it in items %}
+            <li class="item" data-source="{{ it.source|e }}">
+              <div class="item-head">
+                {% if it.link %}<a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>{% else %}<span class="title">{{ it.title }}</span>{% endif %}
+                {% if it.source %}<span class="badge">{{ it.source }}</span>{% endif %}
+              </div>
+              <div class="meta">{% if it.date %}{{ it.date }}{% endif %}</div>
+              {% if it.description %}<p class="desc">{{ it.description }}</p>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty">No dynamic items yet. Quick links above are always available.</div>
+      {% endif %}
+    </main>
   </div>
-  <nav class="quick" aria-label="Quick links">
-    {% for q in quick_links %}
-      <a href="{{ q.url }}" target="_blank" rel="noopener" data-static="{{ q.id }}">{{ q.label }}</a>
-    {% endfor %}
-  </nav>
-</header>
 
-<section class="controls">
-  <label for="sourceFilter">Filter by source:</label>
-  <select id="sourceFilter">
-    <option value="__all__">All dynamic sources</option>
-    {% for s in sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
-  </select>
-  <span class="muted" id="countNote"></span>
-</section>
-
-<main>
-  {% if items and items|length %}
-    <ul class="items" id="itemsList">
-      {% for it in items %}
-        <li class="item" data-source="{{ it.source|e }}">
-          <h3>{% if it.link %}<a href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a>{% else %}{{ it.title }}{% endif %}</h3>
-          <div class="muted">{% if it.source %}<strong>{{ it.source }}</strong>{% endif %}{% if it.date %} · {{ it.date }}{% endif %}</div>
-          {% if it.description %}<p>{{ it.description }}</p>{% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <div class="empty">No dynamic items yet. Quick links above are always available.</div>
-  {% endif %}
-</main>
-
-<script>
-(function(){
-  const sel=document.getElementById('sourceFilter');
-  const list=document.getElementById('itemsList');
-  const note=document.getElementById('countNote');
-  function applyFilter(){
-    if(!list)return; const val=sel.value; let shown=0;
-    for(const li of list.querySelectorAll('.item')){
-      const src=li.getAttribute('data-source')||'';
-      const match=(val==='__all__')||(src===val);
-      li.style.display=match?'':'none'; if(match) shown++;
+  <audio id="fightAudio" preload="none">
+    <source src="{{ fight_song_src }}" type="audio/mpeg">
+  </audio>
+  <script>
+  (function(){
+    const sel=document.getElementById('sourceFilter');
+    const list=document.getElementById('itemsList');
+    const note=document.getElementById('countNote');
+    const search=document.getElementById('search');
+    function applyFilter(){
+      if(!list) return;
+      const srcVal = sel.value;
+      const q = (search.value||"").toLowerCase();
+      let shown=0;
+      for(const li of list.querySelectorAll('.item')){
+        const src = li.getAttribute('data-source')||'';
+        const text = li.textContent.toLowerCase();
+        const matchSrc = (srcVal==='__all__') || (src===srcVal);
+        const matchText = !q || text.includes(q);
+        const on = matchSrc && matchText;
+        li.style.display = on ? '' : 'none';
+        if(on) shown++;
+      }
+      note.textContent = `${shown} shown`;
     }
-    note.textContent=list?`${shown} shown`:'';
-  }
-  if(sel){ sel.addEventListener('change',applyFilter); applyFilter(); }
-})();
-</script>
+    sel && sel.addEventListener('change', applyFilter);
+    search && search.addEventListener('input', applyFilter);
+    applyFilter();
+
+    const btn = document.getElementById('fightBtn');
+    const audio = document.getElementById('fightAudio');
+    if(btn && audio){
+      btn.addEventListener('click', async () => {
+        try {
+          if (audio.paused) { await audio.play(); btn.textContent='⏸︎ Pause'; }
+          else { audio.pause(); btn.textContent='▶︎ Fight Song'; }
+        } catch(e) {
+          // if the local mp3 is missing or blocked, open YouTube fallback
+          window.open('https://www.youtube.com/results?search_query=purdue+fight+song', '_blank');
+        }
+      });
+    }
+  })();
+  </script>
 </body></html>
 """
 
 def load_items():
     p = BASE_DIR / "items.json"
     if not p.exists():
-        app.logger.warning("items.json not found; using empty list")
+        app.logger.info("items.json not found — using empty list")
         return []
     try:
         raw = json.loads(p.read_text(encoding="utf-8"))
-    except Exception as e:
-        app.logger.exception("items.json parse error; using empty list")
+    except Exception:
+        app.logger.exception("Failed to parse items.json — using empty list")
         return []
     raw_items = raw.get("items", raw) if isinstance(raw, (dict, list)) else []
     out=[]
@@ -117,34 +140,6 @@ def quick_links():
         {"id":"roster","label":"Purdue — Roster","url":"https://purduesports.com/sports/mens-basketball/roster"},
     ]
 
-@app.route("/")
-def home():
-    items = load_items()
-    sources = sorted({it["source"] for it in items if it.get("source")})
-    # ALWAYS render inline (bullet-proof). We can switch back to file templates later.
-    return render_template_string(INLINE_INDEX_TEMPLATE,
-                                  items=items, sources=sources, quick_links=quick_links())
-
-@app.get("/health")
-def health():
-    return {"ok": True}
-
-@app.get("/debug")
-def debug():
-    # helps confirm what Railway actually deployed
-    tree = []
-    for path in [BASE_DIR, BASE_DIR/"templates", BASE_DIR/"static"]:
-        try:
-            entries = sorted([f.name for f in path.iterdir()])
-        except FileNotFoundError:
-            entries = []
-        tree.append({"path": str(path), "entries": entries})
-    return jsonify({
-        "cwd": str(BASE_DIR),
-        "tree": tree,
-        "has_items_json": (BASE_DIR / "items.json").exists(),
-    })
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "8080"))
-    app.run(host="0.0.0.0", port=port)
+def fight_song_src():
+    # If you add /static/fight_song.mp3 it will play locally; otherwise it still works via YouTube fallback in JS.
+    local = app.static_url_path + "/f
