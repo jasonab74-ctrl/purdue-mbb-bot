@@ -3,7 +3,7 @@
 # 🔎 Include/Exclude helpers for the collector
 KEYWORDS_INCLUDE = [
     # Program & staff
-    "purdue", "boilermakers", "purdue basketball", "boilerball",
+    "purdue", "boilermaker", "boilermakers", "purdue basketball", "boilerball",
     "matt painter", "mackey arena", "west lafayette", "big ten",
 
     # 2025–26 roster (names & common variants)
@@ -33,9 +33,9 @@ KEYWORDS_EXCLUDE = [
     "ncaa volleyball", "ncaa baseball", "softball", "soccer", "wrestling",
 ]
 
-# 📰 Dynamic feeds (RSS/Atom)
+# 📰 Dynamic feeds (RSS/Atom) — BoilerBall remains removed
 FEEDS_META = [
-    # --- News aggregators ---
+    # --- News aggregators (already scoped to Purdue by query) ---
     {"name": "Google News – Purdue Basketball",
      "url": "https://news.google.com/rss/search?q=Purdue+Basketball&hl=en-US&gl=US&ceid=US:en",
      "category": "news"},
@@ -53,8 +53,6 @@ FEEDS_META = [
      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCs7L0m8JMXwPP0zJX9v3ePQ", "category": "youtube"},
     {"name": "YouTube – Sleepers Media",
      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCUsGjUPB5GQU9H8H1zZX95g", "category": "youtube"},
-    {"name": "YouTube – BoilerBall (Purdue MBB)",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCQzI9QfpbJ9y4CQfA3z0H_g", "category": "youtube"},
 
     # --- Official / Team ---
     {"name": "Purdue Athletics – Men’s Basketball",
@@ -68,7 +66,7 @@ FEEDS_META = [
 # Simple list for older collectors (name, url)
 FEEDS = [(f["name"], f["url"]) for f in FEEDS_META]
 
-# 🔗 Static quick links used by the UI
+# 🔗 Static quick links used by the UI — BoilerBall removed previously
 STATIC_LINKS = [
     {"label": "ESPN – Purdue MBB", "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
     {"label": "CBS – Purdue MBB", "url": "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"},
@@ -79,6 +77,5 @@ STATIC_LINKS = [
     {"label": "Purdue – Roster", "url": "https://purduesports.com/sports/mens-basketball/roster"},
     {"label": "Reddit – r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/"},
     {"label": "YouTube – Field of 68", "url": "https://www.youtube.com/@TheFieldOf68"},
-    {"label": "YouTube – Sleepers Media", "url": "https://www.youtube.com/@SleepersMedia"},
-    {"label": "YouTube – BoilerBall", "url": "https://www.youtube.com/@BoilerBall"},
+    {"label": "YouTube – Sleepers Media", "url": "https://www.youtube.com/@SleepersMedia"}
 ]
