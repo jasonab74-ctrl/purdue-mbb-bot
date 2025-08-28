@@ -1,11 +1,4 @@
-# feeds.py
-# Comprehensive, Purdue MBB–focused sources
-# ------------------------------------------------------------
-# Exposes:
-#   FEEDS           -> list[(name, url)]
-#   FEEDS_META      -> list[dict]
-#   STATIC_LINKS    -> list[dict]
-#   KEYWORDS_INCLUDE / KEYWORDS_EXCLUDE
+# feeds.py — Purdue MBB focused sources & helpers
 
 # 🔎 Include/Exclude helpers for the collector
 KEYWORDS_INCLUDE = [
@@ -13,7 +6,7 @@ KEYWORDS_INCLUDE = [
     "purdue", "boilermakers", "purdue basketball", "boilerball",
     "matt painter", "mackey arena", "west lafayette", "big ten",
 
-    # 2025–26 roster (official site)
+    # 2025–26 roster (names & common variants)
     "c.j. cox", "cj cox",
     "antione west jr", "antione west",
     "fletcher loyer",
@@ -51,22 +44,17 @@ FEEDS_META = [
      "category": "news"},
 
     # --- Reddit ---
-    {"name": "Reddit – r/Boilermakers",
-     "url": "https://www.reddit.com/r/Boilermakers/.rss", "category": "reddit"},
+    {"name": "Reddit – r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/.rss", "category": "reddit"},
     {"name": "Reddit – r/CollegeBasketball (Purdue search)",
-     "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue&restrict_sr=on&sort=new",
-     "category": "reddit"},
+     "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue&restrict_sr=on&sort=new", "category": "reddit"},
 
     # --- YouTube channels (RSS by channel_id) ---
     {"name": "YouTube – Field of 68",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCs7L0m8JMXwPP0zJX9v3ePQ",
-     "category": "youtube"},
+     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCs7L0m8JMXwPP0zJX9v3ePQ", "category": "youtube"},
     {"name": "YouTube – Sleepers Media",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCUsGjUPB5GQU9H8H1zZX95g",
-     "category": "youtube"},
+     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCUsGjUPB5GQU9H8H1zZX95g", "category": "youtube"},
     {"name": "YouTube – BoilerBall (Purdue MBB)",
-      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCQzI9QfpbJ9y4CQfA3z0H_g",
-      "category": "youtube"},
+     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCQzI9QfpbJ9y4CQfA3z0H_g", "category": "youtube"},
 
     # --- Official / Team ---
     {"name": "Purdue Athletics – Men’s Basketball",
@@ -77,10 +65,10 @@ FEEDS_META = [
      "url": "https://www.barstoolsports.com/feed/tag/purdue", "category": "media"},
 ]
 
-# Backward-compatible simple list for existing collectors:
+# Simple list for older collectors (name, url)
 FEEDS = [(f["name"], f["url"]) for f in FEEDS_META]
 
-# 🔗 Static quick links (non-RSS; used by the UI)
+# 🔗 Static quick links used by the UI
 STATIC_LINKS = [
     {"label": "ESPN – Purdue MBB", "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
     {"label": "CBS – Purdue MBB", "url": "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"},
