@@ -1,21 +1,19 @@
-# Use official Python image
+# Use lightweight Python image
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y build-essential
+RUN apt-get update && apt-get install -y build-essential \
+ && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app code
 COPY . .
 
-# Expose the port Railway (or Render) assigns
-EXPOSE 10000
+# Default so local runs work; Railway will override PORT
+ENV PORT=8080
+EXPOSE 8080
 
-# Run with Gunicorn, binding to the platform's $PORT
-CMD ["sh", "-c", "gunicorn server:app --workers=2 --threads=4 --timeout=120 --bind 0.0.0.0:$PORT"]
+# Use shell form so $PORT is expanded
+CMD /bin/sh -c "gunicorn server:app --workers=2 --threads=4 --timeout=120 --bind 0.0.0.0:${PORT}"
