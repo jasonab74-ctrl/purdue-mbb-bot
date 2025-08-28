@@ -1,5 +1,5 @@
-# app.py — minimal, definitive check of the running service
-import os, json, pathlib
+# app.py — minimal validator
+import os, pathlib
 from flask import Flask, jsonify
 
 BASE = pathlib.Path(__file__).parent
@@ -15,18 +15,17 @@ def health():
 
 @app.get("/debug")
 def debug():
-    # tells us what files the container actually sees
     tree = {}
     for p in [BASE, BASE/"templates", BASE/"static"]:
         try:
-            tree[str(p)] = sorted([f.name for f in p.iterdir()])
+            tree[str(p)] = sorted(x.name for x in p.iterdir())
         except FileNotFoundError:
             tree[str(p)] = []
     return jsonify({
         "cwd": str(BASE),
         "tree": tree,
-        "has_items_json": (BASE / "items.json").exists(),
-        "env_PORT": os.environ.get("PORT")
+        "has_items_json": (BASE/"items.json").exists(),
+        "env_PORT": os.environ.get("PORT"),
     })
 
 if __name__ == "__main__":
