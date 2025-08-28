@@ -142,4 +142,20 @@ def quick_links():
 
 def fight_song_src():
     # If you add /static/fight_song.mp3 it will play locally; otherwise it still works via YouTube fallback in JS.
-    local = app.static_url_path + "/f
+    local = app.static_url_path + "/fight_song.mp3"
+    return local
+
+@app.get("/")
+def index():
+    items = load_items()
+    sources = sorted({it["source"] for it in items if it.get("source")})
+    try:
+        return render_template("index.html", items=items, sources=sources,
+                               quick_links=quick_links(), fight_song_src=fight_song_src())
+    except TemplateNotFound:
+        return render_template_string(INLINE_INDEX_TEMPLATE, items=items, sources=sources,
+                                      quick_links=quick_links(), fight_song_src=fight_song_src())
+
+@app.get("/health")
+def health():
+    return {"ok": True}
