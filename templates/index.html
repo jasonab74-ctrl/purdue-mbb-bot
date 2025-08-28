@@ -11,9 +11,7 @@
     <header class="header">
       <h1>Purdue Men’s Basketball — Live Feed</h1>
       <div class="sub">({{ items|length }} dynamic items)</div>
-      <div class="actions">
-        <button id="fightBtn" class="btn primary">▶︎ Fight Song</button>
-      </div>
+      <div class="actions"><button id="fightBtn" class="btn primary">▶︎ Fight Song</button></div>
       <nav class="quick" aria-label="Quick links">
         {% for q in quick_links %}
           <a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>
@@ -54,9 +52,7 @@
     </main>
   </div>
 
-  <audio id="fightAudio" preload="none">
-    <source src="{{ fight_song_src }}" type="audio/mpeg">
-  </audio>
+  <audio id="fightAudio" preload="none"><source src="{{ fight_song_src }}" type="audio/mpeg"></audio>
   <script>
   (function(){
     const sel=document.getElementById('sourceFilter');
@@ -64,37 +60,22 @@
     const note=document.getElementById('countNote');
     const search=document.getElementById('search');
     function applyFilter(){
-      if(!list) return;
-      const srcVal = sel.value;
-      const q = (search.value||"").toLowerCase();
+      if(!list)return;
+      const srcVal=sel.value, q=(search.value||"").toLowerCase();
       let shown=0;
       for(const li of list.querySelectorAll('.item')){
-        const src = li.getAttribute('data-source')||'';
-        const text = li.textContent.toLowerCase();
-        const matchSrc = (srcVal==='__all__') || (src===srcVal);
-        const matchText = !q || text.includes(q);
-        const on = matchSrc && matchText;
-        li.style.display = on ? '' : 'none';
-        if(on) shown++;
+        const src=li.getAttribute('data-source')||'';
+        const text=li.textContent.toLowerCase();
+        const on=((srcVal==='__all__')||(src===srcVal)) && (!q || text.includes(q));
+        li.style.display=on?'':'none'; if(on) shown++;
       }
-      note.textContent = `${shown} shown`;
+      note.textContent=`${shown} shown`;
     }
-    sel && sel.addEventListener('change', applyFilter);
-    search && search.addEventListener('input', applyFilter);
+    sel&&sel.addEventListener('change',applyFilter);
+    search&&search.addEventListener('input',applyFilter);
     applyFilter();
-
-    const btn=document.getElementById('fightBtn');
-    const audio=document.getElementById('fightAudio');
-    if(btn && audio){
-      btn.addEventListener('click', async ()=>{
-        try{
-          if(audio.paused){ await audio.play(); btn.textContent='⏸︎ Pause'; }
-          else { audio.pause(); btn.textContent='▶︎ Fight Song'; }
-        }catch(e){
-          window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank');
-        }
-      });
-    }
+    const btn=document.getElementById('fightBtn'); const audio=document.getElementById('fightAudio');
+    if(btn&&audio){ btn.addEventListener('click', async()=>{ try{ if(audio.paused){await audio.play();btn.textContent='⏸︎ Pause';} else {audio.pause();btn.textContent='▶︎ Fight Song';} }catch(e){ window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank'); } }); }
   })();
   </script>
 </body>
