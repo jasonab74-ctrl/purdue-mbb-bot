@@ -1,76 +1,66 @@
-import os, json, datetime, requests, feedparser
-from feeds import FEEDS
+"""
+Collects items from FEEDS and writes a normalized items.json.
+- Safe to run locally or in a job; server.py does NOT import this.
+- Requires: feedparser, requests (see requirements.txt).
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (mbb-news-collector)"}
+By default, writes to items.out.json to avoid overwriting your curated items.json.
+Change OUT_FILE if you want it to write directly to 'items.json'.
+"""
 
-# Filter out obvious non-MBB topics
-EXCLUDE_WORDS = {
-    "football","nfl","volleyball","baseball","softball","wrestling","soccer",
-    "golf","tennis","track","swim","hockey","lacrosse"
-}
+import json
+import time
+from pathlib import Path
+import feedparser
 
-# Positive signals to keep relevant MBB items
-INCLUDE_HINTS = {
-    "basketball","mbb","matt painter","painter","mackey","edey","zach edey",
-    "braden","braden smith","fletcher","loyer","gillis","lance jones",
-    "boilerball","boiler ball","ncaa","big ten","purdue"
-}
+try:
+    from feeds import FEEDS
+except Exception:
+    FEEDS = []
 
-def _norm(*parts):
-    return " ".join(p for p in parts if p).lower()
+OUT_FILE = Path("items.out.json")  # change to Path("items.json") if desired
+MAX_PER_FEED = 10
 
-def _is_basketball(title, summary):
-    t = _norm(title, summary)
-    if not any(w in t for w in ("purdue","boilermaker","boilermakers")):
-        return False
-    if any(w in t for w in EXCLUDE_WORDS):
-        return False
-    return any(w in t for w in INCLUDE_HINTS)
 
-def _fetch(url):
-    r = requests.get(url, headers=HEADERS, timeout=20)
-    r.raise_for_status()
-    return feedparser.parse(r.content)
+def entry_date(e):
+    # Return YYYY-MM-DD string if available
+    if hasattr(e, "published_parsed") and e.published_parsed:
+        tm = e.published_parsed
+        return f"{tm.tm_year:04d}-{tm.tm_mon:02d}-{tm.tm_mday:02d}"
+    if getattr(e, "updated", ""):
+        return e.updated.split("T")[0][:10]
+    return ""
 
-def collect_all():
-    items, seen = [], set()
-    for feed in FEEDS:
-        try:
-            parsed = _fetch(feed["url"])
-        except Exception:
+
+def collect():
+    items = []
+    for f in FEEDS:
+        src = f.get("source", "").strip() or "Unknown"
+        url = f.get("url", "").strip()
+        if not url:
             continue
-        for e in parsed.entries:
-            title = getattr(e, "title", "").strip()
-            link = getattr(e, "link", "").strip()
-            summary = getattr(e, "summary", "")
-            published = getattr(e, "published", "") or getattr(e, "updated", "")
-            if not title or not link:
-                continue
-            key = (title, link)
-            if key in seen:
-                continue
-            if not _is_basketball(title, summary):
-                continue
+        parsed = feedparser.parse(url)
+        for e in parsed.entries[:MAX_PER_FEED]:
+            title = getattr(e, "title", "Untitled")
+            link = getattr(e, "link", "")
+            date = entry_date(e)
             items.append({
                 "title": title,
                 "link": link,
-                "source": feed["name"],
-                "published": published
+                "source": src,
+                "date": date
             })
-            seen.add(key)
+        # polite pause
+        time.sleep(0.2)
 
-    # Sort newest-ish first (best effort; RSS dates vary)
-    items.sort(key=lambda x: x.get("published", ""), reverse=True)
+    # sort by date desc where possible; undated at bottom
+    def sort_key(it):
+        return it.get("date") or "0000-00-00"
 
-    data = {
-        "modified": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        "items": items
-    }
-    out = os.path.join(os.path.dirname(__file__), "items.json")
-    with open(out, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False)
-    return len(items)
+    items.sort(key=sort_key, reverse=True)
+    payload = {"items": items}
+    OUT_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    print(f"Wrote {len(items)} items to {OUT_FILE}")
+
 
 if __name__ == "__main__":
-    n = collect_all()
-    print(f"Wrote {n} items")
+    collect()
