@@ -1,138 +1,16 @@
-/* Purdue-inspired palette */
-:root{
-  --gold:#cfb87c; --gold-weak:#e7d8a8;
-  --black:#0a0a0a; --bg:#f6f7f9; --card:#ffffff;
-  --muted:#6b7280; --border:#e6e6e6; --shadow:0 10px 30px rgba(0,0,0,.06);
-  --radius:16px; --pad:16px;
-}
-
-*{box-sizing:border-box}
-html,body{
-  margin:0;padding:0;
-  background:var(--bg);color:var(--black);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif
-}
-.container{max-width:1040px;margin:28px auto;padding:0 18px}
-
-.header{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
-.brand{display:flex;gap:14px;align-items:center}
-
-/* ✅ Logo fix: not cut off, keep aspect ratio */
-.logo{
-  max-height:56px;
-  width:auto;
-  object-fit:contain;
-  object-position:center;
-  background:transparent;
-  border:none;
-  padding:0;
-  display:block;
-}
-
-.header h1{margin:0;font-size:1.7rem;line-height:1.2}
-.sub{color:var(--muted)}
-.actions{margin-top:2px}
-.btn{
-  border:1px solid var(--black);
-  background:var(--black);
-  color:#fff;
-  border-radius:999px;
-  padding:9px 14px;
-  cursor:pointer
-}
-.btn:hover{filter:brightness(1.06)}
-
-.quick{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
-.pill{
-  background:var(--gold-weak);
-  color:#3b3b3b;
-  padding:8px 12px;
-  border-radius:999px;
-  text-decoration:none;
-  border:1px solid var(--gold)
-}
-.pill:hover{filter:brightness(1.02)}
-
-.controls{display:flex;gap:10px;align-items:center;margin:8px 0 18px}
-.input,.select{
-  padding:10px 12px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:#fff
-}
-.input{min-width:320px}
-.muted{color:var(--muted)}
-
-.items{display:grid;gap:12px;list-style:none;padding:0;margin:0}
-.item{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:var(--pad);
-  box-shadow:var(--shadow)
-}
-.item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.title{font-weight:700;text-decoration:none;color:var(--black)}
-.title:hover{text-decoration:underline}
-.badge{
-  background:#f3f4f6;
-  border:1px solid var(--border);
-  color:#111827;
-  border-radius:999px;
-  padding:4px 10px;
-  font-size:.75rem
-}
-.meta{color:var(--muted);font-size:.87rem;margin-top:6px}
-.desc{margin:.55rem 0 0}
-.empty{
-  padding:18px;
-  border:1px dashed var(--border);
-  border-radius:var(--radius);
-  background:#fff
-}
-
-/* New additions */
-.stamp{
-  color:var(--muted);
-  font-size:.85rem;
-  margin-top:4px
-}
-.notice{
-  background:#fff7ed;
-  border:1px solid #fcd34d;
-  color:#7c2d12;
-  padding:10px 12px;
-  border-radius:12px;
-  margin:8px 0 12px;
-  display:flex;
-  gap:10px;
-  align-items:center
-}
-
-/* ===== Mobile polish (safe, non-breaking) ===== */
-@media (max-width: 640px) {
-  .container{ padding:0 14px; }
-
-  .brand{ align-items:flex-start; }
-  .logo{ max-height:44px; }
-
-  /* Stack the search + source dropdown full-width */
-  .controls{
-    flex-direction:column;
-    align-items:stretch;
-    gap:8px;
-  }
-  .input,
-  .select{
-    width:100%;
-    min-width:0;
-  }
-
-  /* Tighten quick links a bit */
-  .quick{ gap:6px; }
-  .pill{ padding:7px 10px; }
-
-  /* Slightly denser item cards on mobile */
-  .item{ padding:12px; border-radius:12px; }
-  .badge{ font-size:.7rem; padding:3px 8px; }
-}
+:root { --fg:#111; --bg:#fff; --muted:#666; --accent:#1a73e8; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--fg); background: var(--bg); font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.container { max-width: 860px; margin: 0 auto; padding: 16px; }
+header { display: flex; align-items: baseline; gap: 20px; border-bottom: 1px solid #eee; }
+header h1 { margin: 0; font-size: 28px; }
+nav a { margin-right: 14px; text-decoration: none; color: var(--accent); }
+nav a:hover { text-decoration: underline; }
+h2 { margin-top: 0; }
+.feed { list-style: none; padding: 0; margin: 0; }
+.feed-item { padding: 12px 0; border-bottom: 1px solid #eee; }
+.feed-title { font-weight: 600; }
+.feed-meta { color: var(--muted); font-size: 13px; margin: 4px 0 8px; }
+.feed-summary { color: #222; }
+.muted { color: var(--muted); }
+code { background: #f6f8fa; padding: 2px 6px; border-radius: 6px; }
