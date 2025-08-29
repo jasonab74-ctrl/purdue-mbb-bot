@@ -1,148 +1,195 @@
-import json
-import time
+#!/usr/bin/env python3
+import os, json, time, hashlib, tempfile, logging
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import List, Dict, Any
-import re
+from urllib.parse import urlparse
 
-import feedparser
 import requests
+import feedparser
 
-# ---- Read config from feeds.py but don't require optional names -------------
+# --- import topic config ----
+# Only the FEEDS_META list is truly required. Everything else is optional.
+from feeds import FEEDS_META  # list of {name, url, category}
+# Optional configs with safe fallbacks:
 try:
-    import feeds as _cfg  # type: ignore
-except Exception as e:
-    raise SystemExit(f"feeds.py is required next to collect.py: {e}")
+    from feeds import KEYWORDS_EXCLUDE
+except Exception:
+    KEYWORDS_EXCLUDE = []
+try:
+    from feeds import SPORT_TOKENS
+except Exception:
+    SPORT_TOKENS = []
+try:
+    from feeds import TOTAL_CAP
+except Exception:
+    TOTAL_CAP = 200
+try:
+    from feeds import PER_FEED_CAP
+except Exception:
+    PER_FEED_CAP = 60
 
-FEEDS_META = getattr(_cfg, "FEEDS_META", [])
-STATIC_LINKS = getattr(_cfg, "STATIC_LINKS", [])
+# -------- logging ----------
+logging.basicConfig(
+    level=logging.INFO,
+    format="[collector] %(asctime)s %(levelname)s: %(message)s",
+)
+log = logging.getLogger("collector")
 
-# Optional filters – all safe defaults
-KEYWORDS_POSITIVE: List[str] = [t.lower() for t in getattr(_cfg, "KEYWORDS_POSITIVE", [])]
-SPORT_TOKENS: List[str] = [t.lower() for t in getattr(_cfg, "SPORT_TOKENS", [])]
-KEYWORDS_EXCLUDE: List[str] = [t.lower() for t in getattr(_cfg, "KEYWORDS_EXCLUDE", [])]
+OUTFILE = os.environ.get("ITEMS_PATH", "items.json")
+REFRESH_MIN = int(os.environ.get("FEED_REFRESH_MIN", "30"))
 
-TOTAL_CAP: int = int(getattr(_cfg, "TOTAL_CAP", 200))
-PER_FEED_CAP: int = int(getattr(_cfg, "PER_FEED_CAP", 60))
+UA = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+)
+HTTP_TIMEOUT = (10, 15)  # (connect, read) seconds
 
-ITEMS_PATH = Path("items.json")
-
-
-def http_get(url: str) -> bytes:
-    """Simple GET with a short timeout."""
-    r = requests.get(url, timeout=12, headers={"User-Agent": "feed-collector/1.0"})
-    r.raise_for_status()
-    return r.content
+session = requests.Session()
+session.headers.update({"User-Agent": UA, "Accept": "application/rss+xml,application/xml;q=0.9,*/*;q=0.8"})
 
 
-def parse_date_struct(struct_time) -> datetime:
+def _now_iso():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def fetch_feed(url: str):
+    """Fetch raw XML with requests (for UA/timeout control) then parse via feedparser."""
     try:
-        return datetime.fromtimestamp(time.mktime(struct_time), tz=timezone.utc)
-    except Exception:
-        return datetime.now(tz=timezone.utc)
+        resp = session.get(url, timeout=HTTP_TIMEOUT)
+        resp.raise_for_status()
+        parsed = feedparser.parse(resp.content)
+        if parsed.bozo and getattr(parsed, "bozo_exception", None):
+            log.warning("feed bozo=%s url=%s err=%s", parsed.bozo, url, parsed.bozo_exception)
+        return parsed
+    except Exception as e:
+        log.error("fetch failed url=%s err=%s", url, e)
+        return None
 
 
-def normalize_text(*parts: str) -> str:
-    t = " ".join([p or "" for p in parts])
-    return re.sub(r"\s+", " ", t).strip()
+def norm_date(entry):
+    # Try several date fields; fall back to now.
+    for key in ("published_parsed", "updated_parsed"):
+        val = entry.get(key)
+        if val:
+            try:
+                return datetime(*val[:6], tzinfo=timezone.utc).timestamp()
+            except Exception:
+                pass
+    # RFC 822 string fields
+    for key in ("published", "updated"):
+        val = entry.get(key)
+        if val:
+            try:
+                ts = feedparser._parse_date(val)
+                if ts:
+                    return datetime(*ts[:6], tzinfo=timezone.utc).timestamp()
+            except Exception:
+                pass
+    return time.time()
 
 
-def on_topic(title: str, summary: str, tags: List[str]) -> bool:
-    t = normalize_text(title, summary, " ".join(tags)).lower()
+def hash_key(s: str) -> str:
+    return hashlib.sha1(s.encode("utf-8", "ignore")).hexdigest()[:16]
 
-    # Hard excludes first
-    if KEYWORDS_EXCLUDE:
-        for bad in KEYWORDS_EXCLUDE:
-            if bad and bad in t:
-                return False
 
-    # If SPORT_TOKENS defined, require at least one
-    if SPORT_TOKENS:
-        if not any(tok in t for tok in SPORT_TOKENS if tok):
+def text_in(s: str, tokens):
+    s = (s or "").lower()
+    return any(t.lower() in s for t in tokens)
+
+
+def keep_entry(entry, hard_excludes, require_tokens):
+    title = entry.get("title", "") or ""
+    summary = entry.get("summary", "") or ""
+    # Drop if any hard-negative appears in title/body
+    if text_in(title, hard_excludes) or text_in(summary, hard_excludes):
+        return False
+    # If we were given positive tokens, require at least one to appear in title or summary
+    if require_tokens:
+        if not (text_in(title, require_tokens) or text_in(summary, require_tokens)):
             return False
-
-    # If positives defined, require at least one to appear
-    if KEYWORDS_POSITIVE:
-        if not any(p in t for p in KEYWORDS_POSITIVE if p):
-            return False
-
     return True
 
 
-def collect() -> Dict[str, Any]:
-    items: List[Dict[str, Any]] = []
+def collect_once():
+    items = []
+    total_seen = 0
+    total_kept = 0
 
-    for src in FEEDS_META:
-        url = src.get("url")
-        name = src.get("name") or src.get("source") or "Source"
+    for f in FEEDS_META:
+        name = f.get("name") or urlparse(f.get("url", "")).netloc
+        url = f.get("url")
+        category = f.get("category", "")
+
         if not url:
+            log.warning("skip feed with no url: %s", f)
             continue
 
-        try:
-            raw = http_get(url)
-            feed = feedparser.parse(raw)
-        except Exception:
+        parsed = fetch_feed(url)
+        if not parsed or not parsed.entries:
+            log.warning("no entries for %s", url)
             continue
 
-        count = 0
-        for e in feed.entries:
-            title = getattr(e, "title", "").strip()
-            link = getattr(e, "link", "").strip()
-            if not title or not link:
+        kept = 0
+        for e in parsed.entries:
+            total_seen += 1
+
+            link = e.get("link") or ""
+            title = e.get("title") or "(no title)"
+            summary = e.get("summary", "")
+
+            if not keep_entry(e, KEYWORDS_EXCLUDE, SPORT_TOKENS):
                 continue
 
-            # summary/description/body text
-            summary = getattr(e, "summary", "") or getattr(e, "description", "")
-            tags = [getattr(t, "term", "") for t in getattr(e, "tags", []) or []]
-
-            if not on_topic(title, summary, tags):
-                continue
-
-            # pick best date available
-            dt = None
-            for key in ("published_parsed", "updated_parsed", "created_parsed"):
-                if getattr(e, key, None):
-                    dt = parse_date_struct(getattr(e, key))
-                    break
-            if not dt:
-                dt = datetime.now(tz=timezone.utc)
-
-            items.append({
-                "title": title,
+            ts = norm_date(e)
+            item = {
+                "id": hash_key(link or title),
+                "title": title.strip(),
                 "link": link,
                 "source": name,
-                "date": dt.isoformat(),
-                "description": summary.strip()[:400],
-            })
-
-            count += 1
-            if count >= PER_FEED_CAP:
+                "category": category,
+                "date": datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(),
+                "summary": summary,
+            }
+            items.append(item)
+            kept += 1
+            total_kept += 1
+            if kept >= PER_FEED_CAP:
                 break
 
-    # Deduplicate by link or title (case-insensitive)
+        log.info("feed kept=%d seen=%d name=%s", kept, len(parsed.entries), name)
+
+    # Dedupe by id (or link), newest first
     seen = set()
-    deduped: List[Dict[str, Any]] = []
-    for it in items:
-        key = (it["link"].lower(), it["title"].lower())
+    deduped = []
+    for it in sorted(items, key=lambda x: x["date"], reverse=True):
+        key = it["id"]
         if key in seen:
             continue
         seen.add(key)
         deduped.append(it)
+        if len(deduped) >= TOTAL_CAP:
+            break
 
-    # Sort newest first
-    deduped.sort(key=lambda x: x.get("date", ""), reverse=True)
+    # Write atomically
+    payload = {"generated_at": _now_iso(), "items": deduped}
+    tmp_fd, tmp_path = tempfile.mkstemp(prefix="items.", suffix=".json")
+    with os.fdopen(tmp_fd, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, ensure_ascii=False)
+    os.replace(tmp_path, OUTFILE)
 
-    # Cap total
-    deduped = deduped[:TOTAL_CAP]
-
-    return {"items": deduped}
+    log.info("wrote %d/%d items to %s", len(deduped), total_kept, OUTFILE)
 
 
-def main():
-    data = collect()
-    ITEMS_PATH.write_text(json.dumps(data, ensure_ascii=False))
-    print(f"[collector] wrote {len(data['items'])} items to {ITEMS_PATH}")
+def main_loop():
+    while True:
+        try:
+            collect_once()
+        except Exception as e:
+            log.exception("unhandled error: %s", e)
+        # Sleep between runs
+        sleep_s = max(60, REFRESH_MIN * 60)
+        log.info("sleeping %ss", sleep_s)
+        time.sleep(sleep_s)
 
 
 if __name__ == "__main__":
-    main()
+    main_loop()
