@@ -3,25 +3,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{% block title %}Purdue Basketball{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>Purdue Basketball</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body>
+<body style="--bg-url: url('{{ bg_image_url }}');">
+  <div class="bg"></div>
   <header class="site-header">
     <div class="container">
-      <h1>Purdue Basketball</h1>
-      <nav>
-        <a href="{{ url_for('index') }}">Home</a>
-        <a href="{{ url_for('news') }}">News</a>
-        <a href="{{ url_for('healthz') }}">Health</a>
+      <h1 class="brand">Purdue Basketball</h1>
+      <nav class="nav">
+        {% for label, href in nav %}
+          <a class="nav-link{% if request.path == href %} active{% endif %}" href="{{ href }}">{{ label }}</a>
+        {% endfor %}
       </nav>
     </div>
   </header>
+
   <main class="container">
     {% block content %}{% endblock %}
   </main>
-  <footer class="container footer">
-    <small>Healthcheck at <code>/healthz</code>.</small>
+
+  <footer class="footer">
+    <div class="container">
+      <small>© {{ year }} • Unofficial fan site • Healthcheck at <code>/healthz</code>.</small>
+    </div>
   </footer>
 </body>
 </html>
