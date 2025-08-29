@@ -1,143 +1,79 @@
+<!-- templates/index.html -->
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Purdue Men’s Basketball — Live Feed</title>
-  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="any">
-  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
-  <meta name="theme-color" content="#0a0a0a">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Purdue MBB — All Sources</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='thumbs.css') }}">
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <div class="brand">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Purdue MBB" class="logo" />
-        <div>
-          <h1>Purdue Men’s Basketball — Live Feed</h1>
-          <div class="sub">({{ items|length }} dynamic items)</div>
-          <div class="stamp" id="updatedStamp" data-iso="{{ last_updated_iso or '' }}">
-            {% if last_updated_human %}Updated: {{ last_updated_human }}{% else %}Updated: never{% endif %}
-          </div>
-        </div>
-      </div>
-      <div class="actions">
-        <button id="fightBtn" class="btn primary">▶︎ Fight Song</button>
-      </div>
-      <nav class="quick" aria-label="Quick links">
-        {% for q in quick_links %}
-          <a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>
-        {% endfor %}
-      </nav>
-    </header>
-
-    <div id="notice" class="notice" style="display:none">
-      New articles available. <button id="refreshBtn" class="btn">Refresh</button>
+  <header class="header">
+    <div class="brand">
+      <span class="brand-mark">⬢</span>
+      <h1>Purdue Men’s Basketball Hub</h1>
     </div>
+    <audio controls class="fight-song" preload="none">
+      <source src="{{ url_for('static', filename='fight_song.mp3') }}" type="audio/mpeg">
+    </audio>
+  </header>
 
-    <section class="controls">
-      <input id="search" class="input" placeholder="Filter (e.g., Painter, Braden Smith)" />
-      <select id="sourceFilter" class="select">
-        <option value="__all__">All sources</option>
-        {% for s in sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
-      </select>
-      <span class="muted" id="countNote"></span>
+  <main class="container">
+    <!-- Your quick links chips (unchanged) -->
+    <section class="chips">
+      <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN – Purdue MBB</a>
+      <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS – Purdue MBB</a>
+      <a class="chip" href="https://www.hammerandrails.com/" target="_blank" rel="noopener">Hammer & Rails</a>
+      <a class="chip" href="https://goldandblack.com/" target="_blank" rel="noopener">GoldandBlack</a>
+      <a class="chip" href="https://www.barstoolsports.com/tag/purdue" target="_blank" rel="noopener">Barstool – Purdue</a>
+      <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Purdue – Schedule</a>
+      <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Purdue – Roster</a>
+      <a class="chip" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit – r/Boilermakers</a>
+      <a class="chip" href="https://www.youtube.com/@TheFieldOf68" target="_blank" rel="noopener">YouTube – Field of 68</a>
+      <a class="chip" href="https://www.youtube.com/@SleepersMedia" target="_blank" rel="noopener">YouTube – Sleepers Media</a>
     </section>
 
-    <main>
-      {% if items and items|length %}
-        <ul class="items" id="itemsList">
-          {% for it in items %}
-            <li class="item" data-source="{{ it.source|e }}">
-              <div class="item-head">
-                {% if it.link %}
-                  <a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>
-                {% else %}
-                  <span class="title">{{ it.title }}</span>
+    <!-- Feed -->
+    <section class="feed">
+      {% if items and items|length > 0 %}
+        {% for item in items %}
+          {% set thumb = (item.get('image') or item.get('image_url') or item.get('media_image') or item.get('thumbnail') or (item.get('link')|yt_thumb)) %}
+          <article class="card card--article">
+            {% if thumb %}
+              <img class="card-thumb" src="{{ thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+            {% else %}
+              <img class="card-thumb" src="{{ url_for('static', filename='ball.svg') }}" alt="" loading="lazy">
+            {% endif %}
+
+            <div class="card-body">
+              <div class="card-meta">
+                {% if item.get('source') %}
+                  <span class="badge">{{ item['source'] }}</span>
                 {% endif %}
-                {% if it.source %}<span class="badge">{{ it.source }}</span>{% endif %}
+                {% if item.get('_published_human') %}
+                  <time class="date">{{ item['_published_human'] }}</time>
+                {% endif %}
               </div>
-              <div class="meta">{% if it.date %}{{ it.date }}{% endif %}</div>
-              {% if it.description %}<p class="desc">{{ it.description }}</p>{% endif %}
-            </li>
-          {% endfor %}
-        </ul>
+
+              <a class="card-title" href="{{ item['link'] }}" target="_blank" rel="noopener">
+                {{ item['title'] }}
+              </a>
+
+              {% if item.get('summary') %}
+                <p class="card-snippet">{{ item['summary'] }}</p>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
       {% else %}
-        <div class="empty">No dynamic items yet. Quick links above are always available.</div>
+        <p class="empty">No items yet. Check back soon.</p>
       {% endif %}
-    </main>
-  </div>
+    </section>
+  </main>
 
-  <audio id="fightAudio" preload="none">
-    <source src="{{ fight_song_src }}" type="audio/mpeg">
-  </audio>
-  <script>
-  (function(){
-    const sel=document.getElementById('sourceFilter');
-    const list=document.getElementById('itemsList');
-    const note=document.getElementById('countNote');
-    const search=document.getElementById('search');
-    function applyFilter(){
-      if(!list)return;
-      const srcVal=sel.value, q=(search.value||"").toLowerCase();
-      let shown=0;
-      for(const li of list.querySelectorAll('.item')){
-        const src=li.getAttribute('data-source')||'';
-        const text=li.textContent.toLowerCase();
-        const on=((srcVal==='__all__')||(src===srcVal)) && (!q || text.includes(q));
-        li.style.display=on?'':'none'; if(on) shown++;
-      }
-      note.textContent=`${shown} shown`;
-    }
-    sel&&sel.addEventListener('change',applyFilter);
-    search&&search.addEventListener('input',applyFilter);
-    applyFilter();
-
-    const btn=document.getElementById('fightBtn');
-    const audio=document.getElementById('fightAudio');
-    if(btn&&audio){
-      btn.addEventListener('click', async ()=>{
-        try{
-          if(audio.paused){ await audio.play(); btn.textContent='⏸︎ Pause'; }
-          else { audio.pause(); btn.textContent='▶︎ Fight Song'; }
-        }catch(e){
-          window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank');
-        }
-      });
-    }
-
-    // Humanize updated stamp and check for new items
-    const stamp = document.getElementById('updatedStamp');
-    function humanize(iso){
-      if(!iso) return "never";
-      const t = new Date(iso), now = new Date();
-      const diff = Math.max(0, (now - t)/1000);
-      const units=[["day",86400],["hour",3600],["minute",60],["second",1]];
-      for(const [n,s] of units){ if(diff>=s){ const v=Math.floor(diff/s); return v+" "+n+(v>1?"s":"")+" ago"; } }
-      return "just now";
-    }
-    if(stamp){
-      const iso = stamp.getAttribute('data-iso');
-      stamp.textContent = "Updated: " + humanize(iso);
-      setInterval(()=>{ stamp.textContent = "Updated: " + humanize(iso); }, 30000);
-    }
-
-    const notice = document.getElementById('notice');
-    const refreshBtn = document.getElementById('refreshBtn');
-    let lastIso = stamp ? stamp.getAttribute('data-iso') : null;
-    async function checkForNew(){
-      try{
-        const r = await fetch('/items.json', { method:'HEAD', cache:'no-store' });
-        const lm = r.headers.get('Last-Modified');
-        const newIso = lm ? new Date(lm).toISOString() : null;
-        if(lastIso && newIso && new Date(newIso) > new Date(lastIso)){ notice.style.display=''; }
-      }catch(_){}
-    }
-    refreshBtn && refreshBtn.addEventListener('click', ()=>location.reload());
-    setInterval(checkForNew, 5*60*1000);
-  })();
-  </script>
+  <footer class="footer">
+    <small>Unofficial fan aggregation. Purdue © their owners.</small>
+  </footer>
 </body>
 </html>
