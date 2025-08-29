@@ -1,80 +1,93 @@
 # server.py
-# Flask app for the Purdue MBB site with a safe YouTube thumbnail filter added.
-# Drop-in: this keeps your existing render of index.html and data shape.
 import os
 import json
-import urllib.parse as _up
-from datetime import datetime
-from flask import Flask, render_template, send_from_directory, abort
+from typing import List, Dict, Any
+
+from flask import Flask, render_template, send_from_directory, abort, make_response
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(APP_ROOT, "data", "combined.json")
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+# Create app
+app = Flask(
+    __name__,
+    static_folder="static",
+    template_folder="templates",
+)
 
-
-# ---- YouTube thumbnail helper (safe, additive) ----
-def _yt_thumb(url: str):
-    if not url:
-        return None
-    try:
-        u = _up.urlparse(url)
-        host = (u.netloc or "").lower()
-        vid = None
-        if "youtube.com" in host:
-            qs = _up.parse_qs(u.query)
-            vid = qs.get("v", [None])[0]
-        elif "youtu.be" in host:
-            vid = u.path.lstrip("/")
-        if vid:
-            return f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
-    except Exception:
-        pass
-    return None
-
-app.jinja_env.filters["yt_thumb"] = _yt_thumb
-# ---------------------------------------------------
+# Candidate locations for the aggregated feed JSON
+ITEMS_CANDIDATES = [
+    os.path.join(APP_ROOT, "items.json"),
+    os.path.join(APP_ROOT, "data", "items.json"),
+    os.path.join(APP_ROOT, "static", "items.json"),
+]
 
 
-def _load_items():
-    """Load your already-built merged feed results.
-    Expected shape per item (keep whatever you already output):
-      {
-        "title": "...",
-        "link": "https://...",
-        "source": "Google News – Purdue Basketball",
-        "published": "2025-08-29T08:00:00Z"  # or similar
-        # Optional existing fields this update will use if present:
-        # "image", "image_url", "media_image", "thumbnail"
-      }
+def _read_items() -> List[Dict[str, Any]]:
     """
-    if not os.path.exists(DATA_PATH):
-        return []
-    try:
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            items = data if isinstance(data, list) else data.get("items", [])
-            # Defensive: normalize a few fields that templates expect
-            for it in items:
-                if "published" in it and isinstance(it["published"], str):
-                    it["_published_human"] = it["published"][:10]
-            return items
-    except Exception:
-        return []
+    Read aggregated items from whichever path exists.
+    Accepts either:
+      - a list of items, or
+      - an object with 'items' (list) inside.
+    Returns [] if nothing loads.
+    """
+    for fp in ITEMS_CANDIDATES:
+        try:
+            if os.path.exists(fp):
+                with open(fp, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+                if isinstance(raw, list):
+                    return raw
+                if isinstance(raw, dict):
+                    if isinstance(raw.get("items"), list):
+                        return raw["items"]
+                    # Some collectors may use 'results'
+                    if isinstance(raw.get("results"), list):
+                        return raw["results"]
+        except Exception:
+            # If a file is corrupt, try the next candidate
+            continue
+    return []
 
 
 @app.route("/")
 def index():
-    items = _load_items()
+    """
+    Server-side render: pass whatever we can load into the template as `items`.
+    Your template may also have a client-side fallback that fetches /items.json.
+    """
+    items = _read_items()
+    # Do not mutate or enforce a shape—your template logic decides what to show.
     return render_template("index.html", items=items)
 
 
-# Serve the fight song audio or other static assets if you keep them in /static
+@app.route("/items.json")
+def items_json():
+    """
+    Serve items.json from whichever path exists so the client can fetch it.
+    This avoids hard-coding where the collector writes it.
+    """
+    for fp in ITEMS_CANDIDATES:
+        if os.path.exists(fp):
+            directory = os.path.dirname(fp) if os.path.dirname(fp) else APP_ROOT
+            filename = os.path.basename(fp)
+            # Use send_from_directory to preserve correct content-type & caching
+            return send_from_directory(directory, filename, max_age=0)
+    abort(404)
+
+
+@app.route("/healthz")
+def healthz():
+    # Simple health endpoint for Railway
+    return make_response("ok", 200)
+
+
+# Optional: keep a static passthrough (Flask already serves from static_folder)
 @app.route("/static/<path:filename>")
 def static_files(filename):
-    return send_from_directory(os.path.join(APP_ROOT, "static"), filename)
+    return send_from_directory(os.path.join(APP_ROOT, "static"), filename, max_age=0)
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "8000"))
+    # Local run: respects $PORT if set; defaults to 8080 to match Railway logs
+    port = int(os.environ.get("PORT", "8080"))
     app.run(host="0.0.0.0", port=port, debug=False)
