@@ -20,6 +20,9 @@ ITEMS_CANDIDATES = [
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
+@app.get("/healthz")
+def healthz():
+    return "ok", 200
 
 def _first_existing(path_list) -> str | None:
     for p in path_list:
