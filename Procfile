@@ -1,1 +1,1 @@
-web: gunicorn server:app --threads 4 --timeout 120 --bind 0.0.0.0:$PORT
+web: gunicorn -w 2 -k gthread -b 0.0.0.0:$PORT 'server:create_app()'
