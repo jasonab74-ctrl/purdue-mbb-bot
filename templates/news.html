@@ -1,44 +1,26 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Purdue Basketball — News</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:860px;margin:40px auto;padding:0 16px;line-height:1.6}
-    header a{color:#0b63f6;text-decoration:none;margin-right:12px}
-    header a:hover{text-decoration:underline}
-    .muted{color:#666}
-    .item{margin:14px 0}
-    .item h3{margin:0 0 4px;font-size:18px}
-    .item p{margin:0}
-  </style>
-</head>
-<body>
-  <header>
-    <a href="/">← Home</a>
-  </header>
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <h2 class="section-title">Latest News</h2>
 
-  <h1>{{ source }}</h1>
-
-  {% if error %}
-    <p class="muted">Feed error: {{ error }}</p>
-  {% endif %}
-
-  {% if items and items|length %}
-    <div>
+  {% if items and items|length > 0 %}
+    <ul class="news-list">
       {% for it in items %}
-        <div class="item">
-          <h3><a href="{{ it.url }}" target="_blank" rel="noopener">{{ it.title }}</a></h3>
-          {% if it.published %}<p class="muted">{{ it.published }}</p>{% endif %}
-          {% if it.summary %}<p class="muted">{{ it.summary|safe }}</p>{% endif %}
-        </div>
+        <li class="news-item">
+          <a class="news-link" href="{{ it.link }}" target="_blank" rel="noopener">
+            <span class="news-title">{{ it.title }}</span>
+          </a>
+          {% if it.published %}
+            <span class="news-meta"> · {{ it.published }}</span>
+          {% endif %}
+          {% if it.source %}
+            <span class="news-meta"> · {{ it.source }}</span>
+          {% endif %}
+        </li>
       {% endfor %}
-    </div>
+    </ul>
   {% else %}
-    <p>No news items found.</p>
+    <p class="muted">No items right now. Try again soon.</p>
   {% endif %}
-
-  <p class="muted" style="margin-top:28px">Healthcheck at <code>/healthz</code>.</p>
-</body>
-</html>
+</section>
+{% endblock %}
