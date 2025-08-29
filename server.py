@@ -1,3 +1,5 @@
+import flask_before_first_compat  # <- keep this FIRST
+from flask import Flask
 # server.py
 import os
 import json
