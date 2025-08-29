@@ -1,53 +1,217 @@
-<!-- templates/index.html -->
-{% set title = title or "Penn State Football Feed" %}
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>{{ title }}</title>
-  <link rel="manifest" href="/static/manifest.webmanifest">
-  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-  <link rel="icon" href="/static/logo.png">
-  <link rel="stylesheet" href="/static/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Purdue Men’s Basketball — Live Feed</title>
+  <link rel="manifest" href="/static/manifest.webmanifest" />
+  <link rel="icon" href="/static/logo.png" />
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" />
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
+  <!-- Notice bar: appears when newer items.json is detected -->
+  <div id="notice" class="notice hidden">
+    <span>New items available.</span>
+    <button id="notice-refresh" class="btn small">Refresh</button>
+  </div>
+
+  <!-- Header -->
   <header class="site-header">
-    <img src="/static/logo.png" class="logo" alt="logo">
-    <h1>{{ title }}</h1>
-    <nav class="links">
-      <details>
-        <summary>Sites ▾</summary>
-        <ul>
-          {% for l in static_links %}
-          <li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.name }}</a></li>
-          {% endfor %}
-        </ul>
-      </details>
-      <button id="fightBtn" class="btn">Fight Song</button>
-    </nav>
+    <div class="brand">
+      <img src="/static/logo.png" alt="Purdue logo" class="logo" />
+      <div class="titles">
+        <h1>Purdue Men’s Basketball — Live Feed</h1>
+        <div class="sub">
+          <span id="count">0 items</span>
+          <span class="dot">•</span>
+          <span id="updated">Updated: —</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="fight" class="btn">▶︎ Fight Song</button>
+      <audio id="audio" preload="none" src="/fight_song.mp3"></audio>
+    </div>
   </header>
 
-  <div id="notice" class="notice" hidden>New items available. <button id="reloadBtn">Refresh</button></div>
+  <!-- Quick links -->
+  <nav id="quick" class="quick-links"></nav>
 
-  <main id="list" class="list"></main>
+  <!-- Controls -->
+  <section class="controls">
+    <div class="control">
+      <label for="source">Sources</label>
+      <select id="source">
+        <option value="__all__">All sources</option>
+      </select>
+    </div>
+    <div class="control grow">
+      <label for="q">Search</label>
+      <input id="q" type="search" placeholder="Filter by keyword (e.g., Painter, Zach Edey)" />
+    </div>
+    <div id="shown" class="shown">0 shown</div>
+  </section>
+
+  <!-- Main list -->
+  <main id="list" class="items"></main>
+
+  <template id="item-tpl">
+    <article class="item">
+      <div class="meta-line">
+        <span class="badge source"></span>
+        <span class="date"></span>
+      </div>
+      <a class="title" target="_blank" rel="noopener"></a>
+      <div class="summary"></div>
+    </article>
+  </template>
 
   <script>
-    // same script as inline template — keep in one place
-    {{ ("
-      const LIST=document.getElementById('list');const NOTICE=document.getElementById('notice');const RELOAD=document.getElementById('reloadBtn');let lastGen=0;let audio;
-      function fmt(ts){const d=new Date(ts*1000);return d.toLocaleString();}
-      async function load(refresh=false){const res=await fetch('/items.json'+(refresh?('?t='+Date.now()):''));const data=await res.json();
-        if(data.generated_at&&data.generated_at>lastGen&&lastGen!==0&&!refresh){NOTICE.hidden=false;}
-        if(refresh||lastGen===0){lastGen=data.generated_at||0;NOTICE.hidden=true;LIST.innerHTML='';
-          (data.items||[]).forEach(it=>{const div=document.createElement('article');div.className='card';
-            div.innerHTML=`<div class="meta"><span class='src'>${it.source||''}</span><span class='date'>${fmt(it.date_ts||0)}</span></div><a class='title' href='${it.link}' target='_blank' rel='noopener'>${it.title}</a>${it.summary?`<p class='sum'>${it.summary}</p>`:''}`;
-            LIST.appendChild(div);});}}
-      load(true);
-      setInterval(async()=>{const res=await fetch('/items.json',{method:'HEAD'});const lm=res.headers.get('Last-Modified');if(lm){const t=Date.parse(lm)/1000;if(t>lastGen){NOTICE.hidden=false;}}},300000);
-      document.getElementById('reloadBtn').onclick=()=>load(true);
-      document.getElementById('fightBtn').onclick=async()=>{try{if(!audio){audio=new Audio('/fight_song.mp3');}await audio.play();}catch(e){alert('Could not play. Make sure fight_song.mp3 exists.');}};
-    ").strip() | safe }}
+    // ----- Data made available by Flask (defensive defaults) -----
+    window.STATIC_LINKS = {{ (static_links or []) | tojson | safe if static_links is defined else '[]' }};
+    window.FEEDS_META   = {{ (feeds_meta or [])   | tojson | safe if feeds_meta   is defined else '[]' }};
+
+    // ----- Elements -----
+    const listEl   = document.getElementById('list');
+    const tpl      = document.getElementById('item-tpl');
+    const countEl  = document.getElementById('count');
+    const updatedEl= document.getElementById('updated');
+    const qEl      = document.getElementById('q');
+    const srcEl    = document.getElementById('source');
+    const shownEl  = document.getElementById('shown');
+    const quickEl  = document.getElementById('quick');
+    const noticeEl = document.getElementById('notice');
+    const noticeBtn= document.getElementById('notice-refresh');
+    const audio    = document.getElementById('audio');
+    const fightBtn = document.getElementById('fight');
+
+    // ----- Fight song -----
+    fightBtn.addEventListener('click', async () => {
+      try {
+        if (audio.paused) {
+          await audio.play();
+          fightBtn.textContent = '⏸︎ Pause';
+        } else {
+          audio.pause();
+          fightBtn.textContent = '▶︎ Fight Song';
+        }
+      } catch (e) {
+        alert('Could not play fight song.');
+      }
+    });
+
+    // ----- Quick links (pills) -----
+    function renderQuickLinks() {
+      if (!Array.isArray(window.STATIC_LINKS) || window.STATIC_LINKS.length === 0) return;
+      quickEl.innerHTML = '';
+      for (const link of window.STATIC_LINKS) {
+        const a = document.createElement('a');
+        a.className = 'pill';
+        a.href = link.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = link.name;
+        quickEl.appendChild(a);
+      }
+    }
+
+    // ----- Source dropdown -----
+    function buildSourceDropdown(items) {
+      const sources = new Set(items.map(i => i.source).filter(Boolean));
+      // also include names from FEEDS_META if present
+      for (const f of (window.FEEDS_META || [])) sources.add(f.name);
+      const existing = new Set(Array.from(srcEl.options).map(o => o.value));
+      for (const s of Array.from(sources).sort()) {
+        if (!existing.has(s)) {
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s;
+          srcEl.appendChild(opt);
+        }
+      }
+    }
+
+    // ----- Rendering -----
+    let ALL = [];
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleString(); } catch { return iso; }
+    }
+    function render(items) {
+      listEl.innerHTML = '';
+      const q = qEl.value.trim().toLowerCase();
+      const chosen = srcEl.value;
+
+      const filtered = items.filter(it => {
+        const sOk = (chosen === '__all__' || it.source === chosen);
+        if (!sOk) return false;
+        if (!q) return true;
+        const hay = [it.title, it.summary, it.source].join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+
+      for (const it of filtered) {
+        const node = tpl.content.cloneNode(true);
+        const src = node.querySelector('.source');
+        const date = node.querySelector('.date');
+        const a = node.querySelector('.title');
+        const sum = node.querySelector('.summary');
+
+        src.textContent = it.source || '';
+        date.textContent = fmtDate(it.date || '');
+        a.href = it.link;
+        a.textContent = it.title || '(untitled)';
+        sum.textContent = (it.summary || '').replace(/<[^>]+>/g,'').slice(0, 240);
+
+        listEl.appendChild(node);
+      }
+
+      shownEl.textContent = `${filtered.length} shown`;
+      countEl.textContent = `${items.length} items`;
+    }
+
+    // ----- Fetch + live check -----
+    let lastStamp = null; // from items.json.generated_at
+    async function load() {
+      const res = await fetch('/items.json', { cache: 'no-store' });
+      const data = await res.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+      items.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+      ALL = items;
+      renderQuickLinks();
+      buildSourceDropdown(items);
+      render(items);
+
+      lastStamp = data.generated_at || null;
+      updatedEl.textContent = lastStamp ? `Updated: ${fmtDate(lastStamp)}` : 'Updated: just now';
+    }
+
+    async function checkForNew() {
+      try {
+        const res = await fetch('/items.json', { cache: 'no-store' });
+        const data = await res.json();
+        const stamp = data.generated_at || null;
+        if (stamp && lastStamp && stamp !== lastStamp) {
+          noticeEl.classList.remove('hidden');
+        }
+      } catch {}
+    }
+
+    noticeBtn.addEventListener('click', async () => {
+      noticeEl.classList.add('hidden');
+      await load();
+    });
+
+    // Events
+    qEl.addEventListener('input', () => render(ALL));
+    srcEl.addEventListener('change', () => render(ALL));
+
+    // Boot
+    load();
+    // client check every 5 minutes
+    setInterval(checkForNew, 5 * 60 * 1000);
   </script>
 </body>
 </html>
