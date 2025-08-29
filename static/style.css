@@ -1,23 +1,85 @@
-:root { --fg:#0f172a; --muted:#64748b; --bg:#f8fafc; --card:#ffffff; --accent:#1e3a8a; }
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg)}
-.site-header{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff;position:sticky;top:0;border-bottom:1px solid #e5e7eb}
-.logo{height:36px;width:36px;object-fit:contain;border-radius:8px}
-.links{display:flex;gap:8px;align-items:center}
-.links details{cursor:pointer}
-.links summary{list-style:none}
-.links summary::-webkit-details-marker{display:none}
-.links ul{margin:8px 0 0;padding:8px 12px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
-.btn{padding:8px 12px;border-radius:10px;border:1px solid #e5e7eb;background:var(--card);cursor:pointer}
-.notice{margin:8px auto;max-width:980px;background:#fff3c4;border:1px solid #fde68a;padding:10px 12px;border-radius:10px}
-.list{max-width:980px;margin:12px auto;padding:0 12px 24px}
-.card{background:var(--card);border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;margin:12px 0;box-shadow:0 8px 24px rgba(0,0,0,.04)}
-.card .meta{display:flex;gap:10px;font-size:12px;color:var(--muted);margin-bottom:6px}
-.card .title{color:var(--accent);font-weight:700;text-decoration:none}
-.card .title:hover{text-decoration:underline}
-.card .sum{margin:8px 0 0;color:#334155}
+:root{
+  --bg:#f7f9fb;
+  --text:#0f172a;
+  --muted:#475569;
+  --pill:#1d4ed8;
+  --pillText:#fff;
+  --accent:#cfb991; /* Purdue gold-ish */
+  --border:#e2e8f0;
+}
 
-@media (max-width:640px){
-  .site-header{flex-wrap:wrap;gap:8px}
-  .links{width:100%;justify-content:space-between}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+
+/* Notice bar */
+.notice{
+  display:flex;align-items:center;gap:.75rem;
+  background:#0ea5e9;color:#00131a;padding:.6rem .9rem;
+  position:sticky;top:0;z-index:50
+}
+.notice.hidden{display:none}
+
+/* Header */
+.site-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-bottom:1px solid var(--border);background:#fff
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{
+  height:56px; width:auto; /* <-- fixed reasonable size */
+  object-fit:contain; flex:0 0 auto
+}
+.titles h1{
+  margin:0;font-size:1.25rem;font-weight:800;letter-spacing:.2px
+}
+.titles .sub{margin-top:2px;font-size:.85rem;color:var(--muted)}
+.titles .sub .dot{margin:0 .4rem;color:#cbd5e1}
+
+.actions{display:flex;align-items:center;gap:.5rem}
+
+/* Buttons / pills */
+.btn{
+  border:1px solid #0f172a20;background:#0f172a;color:#fff;
+  padding:.5rem .75rem;border-radius:.75rem;cursor:pointer
+}
+.btn.small{padding:.35rem .6rem;font-size:.85rem}
+.btn:active{transform:translateY(1px)}
+
+.quick-links{
+  display:flex;flex-wrap:wrap;gap:.5rem;padding:10px 16px;border-bottom:1px solid var(--border);background:#fff
+}
+.pill{
+  display:inline-block;text-decoration:none;
+  background:var(--pill); color:var(--pillText);
+  padding:.4rem .65rem;border-radius:999px;font-size:.9rem;white-space:nowrap
+}
+
+/* Controls */
+.controls{
+  display:flex;align-items:flex-end;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:#fff
+}
+.control{display:flex;flex-direction:column;gap:6px}
+.control label{font-size:.8rem;color:var(--muted)}
+.control input, .control select{
+  padding:.55rem .6rem;border:1px solid var(--border);border-radius:.6rem;background:#fff
+}
+.control.grow{flex:1}
+.shown{margin-left:auto;color:var(--muted);font-size:.9rem}
+
+/* Items list */
+.items{padding:12px 16px;display:grid;gap:12px}
+.item{
+  background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px 14px
+}
+.meta-line{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:.85rem;margin-bottom:4px}
+.badge.source{background:#111827;color:#fff;border-radius:999px;padding:.15rem .5rem;font-size:.75rem}
+.item .title{display:inline-block;font-weight:700;font-size:1.02rem;text-decoration:none;color:#0f172a}
+.item .title:hover{text-decoration:underline}
+.item .summary{margin-top:4px;color:#334155;font-size:.95rem}
+
+@media (max-width: 640px){
+  .logo{height:44px}
+  .titles h1{font-size:1.05rem}
+  .controls{flex-direction:column;align-items:stretch}
+  .shown{margin-left:0}
 }
