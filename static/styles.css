@@ -2,10 +2,15 @@
   --text:#0c0c0d;
   --muted:#5b5b61;
   --link:#2457ff;
-  --card-bg: rgba(255,255,255,0.82);
+  --card-bg: rgba(255,255,255,0.9);
   --blur: 8px;
+
+  /* Purdue palette */
+  --purdue-gold:#CFB991;
+  --purdue-black:#000000;
 }
 
+/* Base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -15,14 +20,20 @@ body{
   line-height:1.5;
 }
 
-/* Background image with subtle glass effect */
+/* Background
+   1) Purdue black→gold gradient base
+   2) Optional image from --bg-url if provided
+   3) Soft white wash for readability
+*/
 .bg{
-  position:fixed; inset:0;
-  background-image: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), var(--bg-url);
-  background-size:cover;
-  background-position:center;
-  filter: none;
-  z-index:-1;
+  position:fixed; inset:0; z-index:-1;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.78)),
+    var(--bg-url),
+    radial-gradient(1200px 800px at 50% 0%, var(--purdue-gold) 0%, #e9dec9 40%, #f7f4ee 60%, #ffffff 80%),
+    linear-gradient(180deg, #ffffff 0%, #f7f4ee 40%, #e9dec9 70%, var(--purdue-black) 140%);
+  background-size: cover, cover, 100% 100%, 100% 100%;
+  background-position: center, center, center, center;
 }
 
 .container{
@@ -31,29 +42,13 @@ body{
   padding:24px;
 }
 
-.site-header{
-  backdrop-filter: blur(var(--blur));
-}
+.site-header{ backdrop-filter: blur(var(--blur)); }
+.brand{ margin:0; font-size:32px; font-weight:800; }
 
-.brand{
-  margin:0;
-  font-size:32px;
-  font-weight:800;
-}
-
-.nav{
-  display:flex;
-  gap:16px;
-  margin-top:8px;
-}
-
-.nav-link{
-  text-decoration:none;
-  color:var(--muted);
-  font-weight:600;
-}
-.nav-link:hover{color:var(--link)}
-.nav-link.active{color:var(--link)}
+.nav{ display:flex; gap:16px; margin-top:8px; }
+.nav-link{ text-decoration:none; color:var(--muted); font-weight:600; }
+.nav-link:hover{ color:var(--link); }
+.nav-link.active{ color:var(--link); }
 
 .hero{
   margin-top:32px;
@@ -63,50 +58,24 @@ body{
   box-shadow:0 8px 30px rgba(0,0,0,0.08);
 }
 
-.tag{
-  margin:0 0 6px 0;
-  color:var(--muted);
-  font-weight:600;
-  letter-spacing:.02em;
-  text-transform:uppercase;
-  font-size:12px;
-}
+.tag{ margin:0 0 6px 0; color:var(--muted); font-weight:600; letter-spacing:.02em; text-transform:uppercase; font-size:12px; }
+.headline{ margin:6px 0 8px 0; font-size:28px; font-weight:800; }
+.lead{ margin:0; font-size:16px }
+.link{ color:var(--link); font-weight:600 }
 
-.headline{
-  margin:6px 0 8px 0;
-  font-size:28px;
-  font-weight:800;
-}
+.section{ margin-top:24px }
+.section-title{ margin:0 0 12px 0; font-size:22px; font-weight:800 }
 
-.lead{margin:0; font-size:16px}
-.link{color:var(--link); font-weight:600}
-
-.section{margin-top:24px}
-.section-title{margin:0 0 12px 0; font-size:22px; font-weight:800}
-
-.news-list{
-  list-style:none; padding:0; margin:0;
-  display:grid; gap:10px;
-}
-
+.news-list{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
 .news-item{
   background:var(--card-bg);
   border-radius:12px;
   padding:14px 16px;
   box-shadow:0 6px 16px rgba(0,0,0,0.06);
 }
+.news-link{ color:var(--text); text-decoration:none; font-weight:700; }
+.news-link:hover{ color:var(--link) }
+.news-meta{ color:var(--muted); font-size:13px }
 
-.news-link{
-  color:var(--text);
-  text-decoration:none;
-  font-weight:700;
-}
-.news-link:hover{color:var(--link)}
-.news-title{vertical-align:middle}
-.news-meta{color:var(--muted); font-size:13px}
-
-.footer{
-  margin-top:32px;
-  color:var(--muted);
-}
-code{background:#f3f3f5; padding:2px 6px; border-radius:6px}
+.footer{ margin-top:32px; color:var(--muted); }
+code{ background:#f3f3f5; padding:2px 6px; border-radius:6px }
