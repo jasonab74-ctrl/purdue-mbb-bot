@@ -1,101 +1,148 @@
-# collect.py
-import json, time, hashlib, re, os
+import json
+import time
 from datetime import datetime, timezone
-import requests, feedparser
+from pathlib import Path
+from typing import List, Dict, Any
+import re
 
-from feeds import FEEDS_META, KEYWORDS_POSITIVE, SPORT_TOKENS, KEYWORDS_EXCLUDE, TOTAL_CAP
+import feedparser
+import requests
 
-OUTFILE = "items.json"
-TIMEOUT = (10, 15)  # (connect, read)
+# ---- Read config from feeds.py but don't require optional names -------------
+try:
+    import feeds as _cfg  # type: ignore
+except Exception as e:
+    raise SystemExit(f"feeds.py is required next to collect.py: {e}")
 
-def _norm(s: str) -> str:
-    return re.sub(r"\s+", " ", (s or "")).strip()
+FEEDS_META = getattr(_cfg, "FEEDS_META", [])
+STATIC_LINKS = getattr(_cfg, "STATIC_LINKS", [])
 
-def _ts(dt_struct, fallback=None) -> float:
-    try:
-        return datetime(*dt_struct[:6], tzinfo=timezone.utc).timestamp()
-    except Exception:
-        return fallback or time.time()
+# Optional filters – all safe defaults
+KEYWORDS_POSITIVE: List[str] = [t.lower() for t in getattr(_cfg, "KEYWORDS_POSITIVE", [])]
+SPORT_TOKENS: List[str] = [t.lower() for t in getattr(_cfg, "SPORT_TOKENS", [])]
+KEYWORDS_EXCLUDE: List[str] = [t.lower() for t in getattr(_cfg, "KEYWORDS_EXCLUDE", [])]
 
-def _ok(item_text: str) -> bool:
-    txt = item_text.lower()
-    if any(bad in txt for bad in KEYWORDS_EXCLUDE):
-        return False
-    # Require at least one positive AND one sport token somewhere in title/body
-    pos = any(tok in txt for tok in KEYWORDS_POSITIVE)
-    sporty = any(tok in txt for tok in SPORT_TOKENS)
-    return pos and sporty
+TOTAL_CAP: int = int(getattr(_cfg, "TOTAL_CAP", 200))
+PER_FEED_CAP: int = int(getattr(_cfg, "PER_FEED_CAP", 60))
 
-def _hash(link: str, title: str) -> str:
-    return hashlib.sha1((link or "").encode() + (title or "").encode()).hexdigest()[:12]
+ITEMS_PATH = Path("items.json")
 
-def _coerce_date(entry):
-    ts = None
-    for key in ("published_parsed", "updated_parsed", "created_parsed"):
-        val = getattr(entry, key, None)
-        if val:
-            ts = _ts(val)
-            break
-    return ts or time.time()
 
-def fetch_feed(url: str):
-    r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent":"Mozilla/5.0 (news-collector)"})
+def http_get(url: str) -> bytes:
+    """Simple GET with a short timeout."""
+    r = requests.get(url, timeout=12, headers={"User-Agent": "feed-collector/1.0"})
     r.raise_for_status()
-    return feedparser.parse(r.content)
+    return r.content
 
-def main():
-    seen = set()
-    items = []
 
-    for meta in FEEDS_META:
-        try:
-            parsed = fetch_feed(meta["url"])
-        except Exception as e:
-            print(f"[collect] ERROR {meta['name']}: {e}")
+def parse_date_struct(struct_time) -> datetime:
+    try:
+        return datetime.fromtimestamp(time.mktime(struct_time), tz=timezone.utc)
+    except Exception:
+        return datetime.now(tz=timezone.utc)
+
+
+def normalize_text(*parts: str) -> str:
+    t = " ".join([p or "" for p in parts])
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def on_topic(title: str, summary: str, tags: List[str]) -> bool:
+    t = normalize_text(title, summary, " ".join(tags)).lower()
+
+    # Hard excludes first
+    if KEYWORDS_EXCLUDE:
+        for bad in KEYWORDS_EXCLUDE:
+            if bad and bad in t:
+                return False
+
+    # If SPORT_TOKENS defined, require at least one
+    if SPORT_TOKENS:
+        if not any(tok in t for tok in SPORT_TOKENS if tok):
+            return False
+
+    # If positives defined, require at least one to appear
+    if KEYWORDS_POSITIVE:
+        if not any(p in t for p in KEYWORDS_POSITIVE if p):
+            return False
+
+    return True
+
+
+def collect() -> Dict[str, Any]:
+    items: List[Dict[str, Any]] = []
+
+    for src in FEEDS_META:
+        url = src.get("url")
+        name = src.get("name") or src.get("source") or "Source"
+        if not url:
             continue
 
-        cap = int(meta.get("cap", 40))
+        try:
+            raw = http_get(url)
+            feed = feedparser.parse(raw)
+        except Exception:
+            continue
+
         count = 0
-        for e in parsed.entries:
-            title = _norm(getattr(e, "title", ""))
-            link = _norm(getattr(e, "link", ""))
-            summary = _norm(getattr(e, "summary", "")) or _norm(getattr(e, "description", ""))
-            body = f"{title} {summary}"
+        for e in feed.entries:
+            title = getattr(e, "title", "").strip()
+            link = getattr(e, "link", "").strip()
             if not title or not link:
                 continue
-            if not _ok(body):
+
+            # summary/description/body text
+            summary = getattr(e, "summary", "") or getattr(e, "description", "")
+            tags = [getattr(t, "term", "") for t in getattr(e, "tags", []) or []]
+
+            if not on_topic(title, summary, tags):
                 continue
-            uid = _hash(link, title)
-            if uid in seen:
-                continue
-            seen.add(uid)
-            count += 1
+
+            # pick best date available
+            dt = None
+            for key in ("published_parsed", "updated_parsed", "created_parsed"):
+                if getattr(e, key, None):
+                    dt = parse_date_struct(getattr(e, key))
+                    break
+            if not dt:
+                dt = datetime.now(tz=timezone.utc)
+
             items.append({
-                "id": uid,
                 "title": title,
-                "source": meta["name"],
                 "link": link,
-                "summary": summary[:400],
-                "date_ts": _coerce_date(e),
+                "source": name,
+                "date": dt.isoformat(),
+                "description": summary.strip()[:400],
             })
-            if count >= cap:
+
+            count += 1
+            if count >= PER_FEED_CAP:
                 break
 
-    # Newest first
-    items.sort(key=lambda x: x["date_ts"], reverse=True)
-    if len(items) > TOTAL_CAP:
-        items = items[:TOTAL_CAP]
+    # Deduplicate by link or title (case-insensitive)
+    seen = set()
+    deduped: List[Dict[str, Any]] = []
+    for it in items:
+        key = (it["link"].lower(), it["title"].lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(it)
 
-    payload = {
-        "topic": "Purdue Men's Basketball",
-        "generated_at": int(time.time()),
-        "items": items
-    }
-    tmp = OUTFILE + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False)
-    os.replace(tmp, OUTFILE)
-    print(f"[collect] wrote {len(items)} items to {OUTFILE}")
+    # Sort newest first
+    deduped.sort(key=lambda x: x.get("date", ""), reverse=True)
+
+    # Cap total
+    deduped = deduped[:TOTAL_CAP]
+
+    return {"items": deduped}
+
+
+def main():
+    data = collect()
+    ITEMS_PATH.write_text(json.dumps(data, ensure_ascii=False))
+    print(f"[collector] wrote {len(data['items'])} items to {ITEMS_PATH}")
+
 
 if __name__ == "__main__":
     main()
