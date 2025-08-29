@@ -1,72 +1,91 @@
 import os
 import time
-from flask import Flask, render_template, redirect, url_for
-import feedparser
+import datetime as dt
+from typing import List, Dict
 
-DEFAULT_FEED_URL = os.getenv(
+import feedparser
+from flask import Flask, render_template, jsonify
+
+
+DEFAULT_FEED_URL = os.environ.get(
     "FEED_URL",
-    "https://news.google.com/rss/search?q=Purdue%20Basketball&hl=en-US&gl=US&ceid=US:en",
+    # ESPN Purdue Men's Basketball RSS
+    "https://www.espn.com/espn/rss/ncb/team?teamId=2509",
 )
 
-# No default photo to avoid wrong imagery. Set BG_IMAGE_URL in Railway if desired.
-DEFAULT_BG_IMAGE = os.getenv("BG_IMAGE_URL", "")
 
-CACHE_SECONDS = int(os.getenv("FEED_CACHE_SECONDS", "900"))
+def create_app() -> Flask:
+    app = Flask(__name__, static_folder="static", template_folder="templates")
 
-def create_app():
-    app = Flask(__name__)
+    # ---- Config (env-overridable) -----------------------------------------
+    app.config["FEED_URL"] = os.environ.get("FEED_URL", DEFAULT_FEED_URL)
+    app.config["FEED_CACHE_SECONDS"] = int(os.environ.get("FEED_CACHE_SECONDS", "900"))
+    app.config["SITE_NAME"] = os.environ.get("SITE_NAME", "Purdue Basketball")
+    app.config["BG_IMAGE_URL"] = os.environ.get("BG_IMAGE_URL", "").strip()
+    # -----------------------------------------------------------------------
 
-    @app.context_processor
-    def inject_globals():
-        return {
-            "nav": [
-                ("Home", url_for("home")),
-                ("News", url_for("news")),
-                ("Health", url_for("healthz")),
-            ],
-            "year": time.gmtime().tm_year,
-            "bg_image_url": DEFAULT_BG_IMAGE,
-        }
+    _feed_cache: Dict[str, object] = {"items": [], "ts": 0.0}
+
+    def _fetch_feed() -> List[Dict[str, str]]:
+        """Fetch and cache RSS items."""
+        now = time.time()
+        if _feed_cache["items"] and (now - float(_feed_cache["ts"]) < app.config["FEED_CACHE_SECONDS"]):
+            return _feed_cache["items"]  # type: ignore[return-value]
+
+        items: List[Dict[str, str]] = []
+        try:
+            parsed = feedparser.parse(
+                app.config["FEED_URL"],
+                request_headers={"User-Agent": "railway-purdue-hoops/1.0 (+https://railway.app)"},
+            )
+            for e in parsed.entries[:25]:
+                items.append(
+                    {
+                        "title": getattr(e, "title", "(untitled)"),
+                        "link": getattr(e, "link", "#"),
+                        "published": getattr(e, "published", getattr(e, "updated", "")),
+                    }
+                )
+        except Exception:
+            # On any fetch/parse error, keep items empty; UI will handle gracefully.
+            items = []
+
+        _feed_cache["items"] = items
+        _feed_cache["ts"] = now
+        return items
+
+    # ----------------------------- Routes ----------------------------------
 
     @app.get("/")
     def home():
-        return render_template("index.html")
+        return render_template(
+            "index.html",
+            site_name=app.config["SITE_NAME"],
+            bg_image_url=app.config["BG_IMAGE_URL"],
+            year=dt.date.today().year,
+        )
 
     @app.get("/news")
     def news():
-        items = get_news_items()
-        return render_template("news.html", items=items)
+        items = _fetch_feed()
+        return render_template(
+            "news.html",
+            site_name=app.config["SITE_NAME"],
+            items=items,
+            bg_image_url=app.config["BG_IMAGE_URL"],
+            year=dt.date.today().year,
+        )
+
+    @app.get("/api/news.json")
+    def news_json():
+        return jsonify({"items": _fetch_feed()})
 
     @app.get("/healthz")
     def healthz():
-        return "ok", 200, {"Content-Type": "text/plain; charset=utf-8"}
-
-    @app.get("/health")
-    def health_redirect():
-        return redirect(url_for("healthz"), code=302)
+        return ("ok", 200, {"Content-Type": "text/plain; charset=utf-8"})
 
     return app
 
-_last = {"ts": 0, "items": []}
 
-def get_news_items():
-    now = time.time()
-    if now - _last["ts"] < CACHE_SECONDS and _last["items"]:
-        return _last["items"]
-    try:
-        feed = feedparser.parse(DEFAULT_FEED_URL)
-        items = []
-        for e in feed.entries[:20]:
-            items.append({
-                "title": getattr(e, "title", "Untitled"),
-                "link": getattr(e, "link", "#"),
-                "published": getattr(e, "published", ""),
-                "source": getattr(getattr(e, "source", {}), "title", ""),
-            })
-        _last["ts"] = now
-        _last["items"] = items
-        return items
-    except Exception:
-        return _last["items"]
-
+# For Gunicorn: server:app
 app = create_app()
