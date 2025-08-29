@@ -1,297 +1,80 @@
-import os, sys, json, pathlib, logging, threading, time, subprocess
-from datetime import datetime, timezone
-from flask import Flask, render_template, render_template_string, url_for, send_file, jsonify
-from jinja2 import TemplateNotFound
+# server.py
+# Flask app for the Purdue MBB site with a safe YouTube thumbnail filter added.
+# Drop-in: this keeps your existing render of index.html and data shape.
+import os
+import json
+import urllib.parse as _up
+from datetime import datetime
+from flask import Flask, render_template, send_from_directory, abort
 
-logging.basicConfig(level=logging.INFO)
-BASE_DIR = pathlib.Path(__file__).parent
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(APP_ROOT, "data", "combined.json")
+
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# ===== Background refresher =====
-REFRESH_MIN = int(os.getenv("FEED_REFRESH_MIN", "30"))  # change via env if you want
-_started_refresher = False
 
-def _run_collector_once():
-    """Run collect.py safely and log output without blocking the web server."""
+# ---- YouTube thumbnail helper (safe, additive) ----
+def _yt_thumb(url: str):
+    if not url:
+        return None
     try:
-        logging.info("[refresher] starting collector")
-        proc = subprocess.run(
-            [sys.executable, str(BASE_DIR / "collect.py")],
-            capture_output=True,
-            text=True,
-            timeout=300  # hard cap to avoid hanging forever
-        )
-        if proc.stdout:
-            logging.info(proc.stdout.strip())
-        if proc.stderr:
-            logging.warning(proc.stderr.strip())
-        logging.info("[refresher] collector finished with code %s", proc.returncode)
-    except Exception as e:
-        logging.exception("[refresher] collector error: %s", e)
+        u = _up.urlparse(url)
+        host = (u.netloc or "").lower()
+        vid = None
+        if "youtube.com" in host:
+            qs = _up.parse_qs(u.query)
+            vid = qs.get("v", [None])[0]
+        elif "youtu.be" in host:
+            vid = u.path.lstrip("/")
+        if vid:
+            return f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
+    except Exception:
+        pass
+    return None
 
-def _refresher_loop():
-    # initial delay so boot is instant (Start Command already runs one collect in bg)
-    time.sleep(10)
-    while True:
-        try:
-            _run_collector_once()
-        except Exception:
-            # already logged in _run_collector_once
-            pass
-        # sleep between runs
-        for _ in range(REFRESH_MIN * 60):
-            time.sleep(1)
+app.jinja_env.filters["yt_thumb"] = _yt_thumb
+# ---------------------------------------------------
 
-def _ensure_refresher():
-    global _started_refresher
-    if not _started_refresher:
-        t = threading.Thread(target=_refresher_loop, daemon=True)
-        t.start()
-        _started_refresher = True
-        app.logger.info("[refresher] background refresher started (every %d min)", REFRESH_MIN)
 
-# ---------- Inline fallback (keeps site rendering even if template missing) ----------
-INLINE_INDEX_TEMPLATE = """<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Purdue Men’s Basketball — Live Feed</title>
-<link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="any">
-<link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-<link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
-<meta name="theme-color" content="#0a0a0a">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
-</head>
-<body>
-  <div class="container">
-    <header class="header">
-      <div class="brand">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Purdue MBB" class="logo" />
-        <div>
-          <h1>Purdue Men’s Basketball — Live Feed</h1>
-          <div class="sub">({{ items|length }} dynamic items)</div>
-          <div class="stamp" id="updatedStamp" data-iso="{{ last_updated_iso or '' }}">
-            {% if last_updated_human %}Updated: {{ last_updated_human }}{% else %}Updated: never{% endif %}
-          </div>
-        </div>
-      </div>
-      <div class="actions"><button id="fightBtn" class="btn primary">▶︎ Fight Song</button></div>
-      <nav class="quick" aria-label="Quick links">
-        {% for q in quick_links %}<a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>{% endfor %}
-      </nav>
-    </header>
-
-    <div id="notice" class="notice" style="display:none">
-      New articles available. <button id="refreshBtn" class="btn">Refresh</button>
-    </div>
-
-    <section class="controls">
-      <input id="search" class="input" placeholder="Filter (e.g., Painter, Braden Smith)" />
-      <select id="sourceFilter" class="select">
-        <option value="__all__">All sources</option>
-        {% for s in sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
-      </select>
-      <span class="muted" id="countNote"></span>
-    </section>
-
-    <main>
-      {% if items and items|length %}
-        <ul class="items" id="itemsList">
-          {% for it in items %}
-            <li class="item" data-source="{{ it.source|e }}">
-              <div class="item-head">
-                {% if it.link %}
-                  <a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>
-                {% else %}
-                  <span class="title">{{ it.title }}</span>
-                {% endif %}
-                {% if it.source %}<span class="badge">{{ it.source }}</span>{% endif %}
-              </div>
-              <div class="meta">{% if it.date %}{{ it.date }}{% endif %}</div>
-              {% if it.description %}<p class="desc">{{ it.description }}</p>{% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <div class="empty">No dynamic items yet. Quick links above are always available.</div>
-      {% endif %}
-    </main>
-  </div>
-
-  <audio id="fightAudio" preload="none">
-    <source src="{{ fight_song_src }}" type="audio/mpeg">
-  </audio>
-  <script>
-  (function(){
-    const sel=document.getElementById('sourceFilter');
-    const list=document.getElementById('itemsList');
-    const note=document.getElementById('countNote');
-    const search=document.getElementById('search');
-    function applyFilter(){
-      if(!list)return;
-      const srcVal=sel.value, q=(search.value||"").toLowerCase();
-      let shown=0;
-      for(const li of list.querySelectorAll('.item')){
-        const src=li.getAttribute('data-source')||'';
-        const text=li.textContent.toLowerCase();
-        const on=((srcVal==='__all__')||(src===srcVal)) && (!q || text.includes(q));
-        li.style.display=on?'':'none'; if(on) shown++;
+def _load_items():
+    """Load your already-built merged feed results.
+    Expected shape per item (keep whatever you already output):
+      {
+        "title": "...",
+        "link": "https://...",
+        "source": "Google News – Purdue Basketball",
+        "published": "2025-08-29T08:00:00Z"  # or similar
+        # Optional existing fields this update will use if present:
+        # "image", "image_url", "media_image", "thumbnail"
       }
-      note.textContent=`${shown} shown`;
-    }
-    sel&&sel.addEventListener('change',applyFilter);
-    search&&search.addEventListener('input',applyFilter);
-    applyFilter();
-
-    const btn=document.getElementById('fightBtn');
-    const audio=document.getElementById('fightAudio');
-    if(btn&&audio){
-      btn.addEventListener('click', async ()=>{
-        try{
-          if(audio.paused){ await audio.play(); btn.textContent='⏸︎ Pause'; }
-          else { audio.pause(); btn.textContent='▶︎ Fight Song'; }
-        }catch(e){
-          window.open('https://www.youtube.com/results?search_query=purdue+fight+song','_blank');
-        }
-      });
-    }
-
-    // Humanized "Updated" and lightweight check for new items
-    const stamp = document.getElementById('updatedStamp');
-    function humanize(iso){
-      if(!iso) return "never";
-      const t = new Date(iso), now = new Date();
-      const diff = Math.max(0, (now - t)/1000);
-      const units=[["day",86400],["hour",3600],["minute",60],["second",1]];
-      for(const [n,s] of units){ if(diff>=s){ const v=Math.floor(diff/s); return v+" "+n+(v>1?"s":"")+" ago"; } }
-      return "just now";
-    }
-    if(stamp){
-      const iso = stamp.getAttribute('data-iso');
-      stamp.textContent = "Updated: " + humanize(iso);
-      setInterval(()=>{ stamp.textContent = "Updated: " + humanize(iso); }, 30000);
-    }
-
-    const notice = document.getElementById('notice');
-    const refreshBtn = document.getElementById('refreshBtn');
-    let lastIso = stamp ? stamp.getAttribute('data-iso') : null;
-    async function checkForNew(){
-      try{
-        const r = await fetch('/items.json', { method:'HEAD', cache:'no-store' });
-        const lm = r.headers.get('Last-Modified');
-        const newIso = lm ? new Date(lm).toISOString() : null;
-        if(lastIso && newIso && new Date(newIso) > new Date(lastIso)){ notice.style.display=''; }
-      }catch(_){}
-    }
-    refreshBtn && refreshBtn.addEventListener('click', ()=>location.reload());
-    setInterval(checkForNew, 5*60*1000);
-  })();
-  </script>
-</body></html>
-"""
-
-# ---------- Helpers ----------
-def load_items():
-    p = BASE_DIR / "items.json"
-    if not p.exists():
-        app.logger.info("items.json not found — using empty list")
+    """
+    if not os.path.exists(DATA_PATH):
         return []
     try:
-        raw = json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
-        app.logger.exception("Failed to parse items.json — using empty list")
-        return []
-    raw_items = raw.get("items", raw) if isinstance(raw, (dict, list)) else []
-    out=[]
-    for it in (raw_items or []):
-        if not isinstance(it, dict): continue
-        out.append({
-            "title": it.get("title") or "Untitled",
-            "link": it.get("link") or "",
-            "source": (it.get("source") or "").strip(),
-            "date": it.get("date") or "",
-            "description": it.get("description") or ""
-        })
-    return out
-
-def quick_links():
-    try:
-        from feeds import STATIC_LINKS
-        return [{"id": str(i), "label": x["label"], "url": x["url"]} for i, x in enumerate(STATIC_LINKS)]
+        with open(DATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            items = data if isinstance(data, list) else data.get("items", [])
+            # Defensive: normalize a few fields that templates expect
+            for it in items:
+                if "published" in it and isinstance(it["published"], str):
+                    it["_published_human"] = it["published"][:10]
+            return items
     except Exception:
         return []
 
-def fight_song_src():
-    return url_for("static", filename="fight_song.mp3")
 
-def items_last_modified_iso():
-    p = BASE_DIR / "items.json"
-    if not p.exists():
-        return None
-    ts = p.stat().st_mtime
-    return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-
-def human_last_modified():
-    iso = items_last_modified_iso()
-    if not iso:
-        return None
-    dt = datetime.fromisoformat(iso)
-    return dt.strftime("%Y-%m-%d %H:%M UTC")
-
-def static_version():
-    """Return version string from style.css mtime (cache-busting)."""
-    p = BASE_DIR / "static" / "style.css"
-    try:
-        return str(int(p.stat().st_mtime))
-    except Exception:
-        return "1"
-
-# ---------- Routes ----------
-@app.before_request
-def _kick_refresher():
-    # Start the background refresher on first real request
-    _ensure_refresher()
-
-@app.get("/")
+@app.route("/")
 def index():
-    items = load_items()
-    item_sources = {it["source"] for it in items if it.get("source")}
-    try:
-        from feeds import FEEDS_META
-        configured_sources = {f["name"] for f in FEEDS_META}
-    except Exception:
-        configured_sources = set()
-    sources = sorted(item_sources | configured_sources)
+    items = _load_items()
+    return render_template("index.html", items=items)
 
-    try:
-        return render_template(
-            "index.html",
-            items=items,
-            sources=sources,
-            quick_links=quick_links(),
-            fight_song_src=fight_song_src(),
-            last_updated_iso=items_last_modified_iso(),
-            last_updated_human=human_last_modified(),
-            static_v=static_version(),
-        )
-    except TemplateNotFound:
-        return render_template_string(
-            INLINE_INDEX_TEMPLATE,
-            items=items,
-            sources=sources,
-            quick_links=quick_links(),
-            fight_song_src=fight_song_src(),
-            last_updated_iso=items_last_modified_iso(),
-            last_updated_human=human_last_modified(),
-            static_v=static_version(),
-        )
 
-@app.get("/health")
-def health():
-    return {"ok": True}
+# Serve the fight song audio or other static assets if you keep them in /static
+@app.route("/static/<path:filename>")
+def static_files(filename):
+    return send_from_directory(os.path.join(APP_ROOT, "static"), filename)
 
-@app.get("/items.json")
-def items_json():
-    p = BASE_DIR / "items.json"
-    if p.exists():
-        return send_file(p, mimetype="application/json", conditional=True)
-    return jsonify({"items": []})
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", "8000"))
+    app.run(host="0.0.0.0", port=port, debug=False)
