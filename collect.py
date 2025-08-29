@@ -1,28 +1,33 @@
 """
 collect.py — fetch feeds and write normalized items.json (newest-first).
 
-What this version adds:
-- Keep strict football/WBB/other-sport excludes and Purdue-specific *includes*.
-- YouTube: if RSS title/summary/tags don't show Purdue, do a tiny 4s HTML peek on
-  the watch page (capped) to catch Purdue mentions that are only on the page.
-- Ignore <category> tags for non-YouTube sources (Reddit/News) to avoid false positives.
+This version:
+- Keeps strict football/WBB/other-sport excludes.
+- Requires a Purdue-specific match (program/coach/roster tokens).
+- For Reddit r/CollegeBasketball, require a Purdue match specifically in the TITLE
+  (prevents generic league threads from passing).
+- For YouTube channels (Field of 68, Sleepers), include RSS tags and do a short,
+  capped HTML peek when RSS fields don't carry Purdue but the watch page does.
 """
 
 from pathlib import Path
 import time, json, re
 from html import unescape
 from typing import List, Dict, Tuple
-import requests, feedparser
+from urllib.parse import urlparse
 
-from feeds import FEEDS_META, KEYWORDS_INCLUDE, KEYWORDS_EXCLUDE
+import requests, feedparser
+from feeds import FEEDS_META, KEYWORDS_EXCLUDE
 
 OUT_FILE = Path("items.json")
-MAX_PER_FEED = 60
-TOTAL_MAX   = 500
-TIMEOUT     = 15
-UA          = "Mozilla/5.0 (X11; Linux x86_64) PurdueMBBBot/1.8 (+https://example.local)"
+MAX_PER_FEED          = 60
+TOTAL_MAX             = 500
+TIMEOUT               = 15
+UA                    = "Mozilla/5.0 (X11; Linux x86_64) PurdueMBBBot/1.9 (+https://example.local)"
+YT_PEEK_TIMEOUT       = 4     # seconds per YouTube HTML peek
+YT_PEEK_MAX_PER_FEED  = 8     # cap per channel per run
 
-# --- Purdue-specific tokens we care about (must hit at least one) ---
+# Purdue-specific tokens (must match at least one)
 PURDUE_CORE = [
     "purdue", "purdue boilermakers", "boilermaker", "boilermakers", "boilerball",
     "matt painter",
@@ -46,20 +51,20 @@ PURDUE_CORE = [
 PURDUE_CORE = [t.lower() for t in PURDUE_CORE]
 EXC = [k.lower() for k in KEYWORDS_EXCLUDE]
 
-# --- Limits for the YouTube HTML peek so we never block startup ---
-YT_PEEK_TIMEOUT = 4          # seconds per video HTML fetch
-YT_PEEK_MAX_PER_FEED = 8     # safety cap per run per YouTube channel
-
 def _contains_any(text: str, tokens) -> bool:
     t = text.lower()
     return any(tok in t for tok in tokens)
 
-def _passes_core_filter(text: str) -> bool:
+def passes_core_filter(text: str) -> bool:
     """Require a Purdue-specific token and no excluded tokens."""
     t = text.lower()
     if any(x in t for x in EXC):
         return False
     return any(x in t for x in PURDUE_CORE)
+
+def passes_core_title(title: str) -> bool:
+    """Stricter: require Purdue token in the TITLE."""
+    return passes_core_filter(title or "")
 
 def norm_date(e) -> str:
     if getattr(e, "published_parsed", None):
@@ -78,7 +83,7 @@ def parse_feed(url: str):
         r.raise_for_status()
         return feedparser.parse(r.content)
     except Exception:
-        return feedparser.parse(url)
+        return feedparser.parse(url)  # fallback
 
 def yt_watch_link(entry) -> str:
     """Prefer yt_videoid when present; fall back to entry.link."""
@@ -105,15 +110,17 @@ def harvest_text_fields(e, source_name: str) -> str:
     ]
     if isinstance(e, dict):
         for key in ("media_description", "media_title"):
-            v = e.get(key);  parts.append(v or "")
+            v = e.get(key)
+            if v: parts.append(v)
         content = e.get("content")
         if isinstance(content, list):
             for c in content:
-                parts.append((c or {}).get("value") or "")
+                val = (c or {}).get("value")
+                if val: parts.append(val)
         if "youtube" in source_name.lower():
             for tag in (e.get("tags") or []):
                 term = tag.get("term") if isinstance(tag, dict) else getattr(tag, "term", "")
-                parts.append(term or "")
+                if term: parts.append(term)
     return " ".join([clean_html(p) for p in parts if p])
 
 def score_item(title: str, desc: str, source: str) -> int:
@@ -126,13 +133,12 @@ def score_item(title: str, desc: str, source: str) -> int:
     return s
 
 def youtube_peek_has_purdue(link: str) -> bool:
-    """Last-chance check: peek the YouTube HTML quickly for Purdue tokens."""
+    """Short, capped HTML peek to catch Purdue tokens on the watch page."""
     try:
         r = requests.get(link, headers={"User-Agent": UA}, timeout=YT_PEEK_TIMEOUT)
         if r.status_code != 200:
             return False
         html = r.text.lower()
-        # Cheap checks in title/meta/body
         return any(tok in html for tok in PURDUE_CORE) and not any(x in html for x in EXC)
     except Exception:
         return False
@@ -146,6 +152,7 @@ def collect() -> List[Dict]:
         parsed = parse_feed(url)
         pulled = 0
         yt_peeks = 0
+        lower_name = name.lower()
 
         for e in parsed.entries:
             title = (getattr(e, "title", "") or "").strip()
@@ -153,7 +160,7 @@ def collect() -> List[Dict]:
                 continue
 
             link = (getattr(e, "link", "") or "").strip()
-            if "youtube" in name.lower():
+            if "youtube" in lower_name:
                 link = yt_watch_link(e) or link
             if not link:
                 continue
@@ -162,11 +169,16 @@ def collect() -> List[Dict]:
             blob = harvest_text_fields(e, name)
             fulltext = f"{title} {blob}"
 
-            passes = _passes_core_filter(fulltext)
+            # Default rule: must pass Purdue-specific filter (title/summary/content)
+            passes = passes_core_filter(fulltext)
 
-            # If it's a YouTube item and we *didn't* pass via RSS fields,
-            # try one capped HTML peek to catch Purdue mentions on the page.
-            if not passes and "youtube" in name.lower() and yt_peeks < YT_PEEK_MAX_PER_FEED:
+            # EXTRA strict for Reddit r/CollegeBasketball:
+            # require Purdue mention in the TITLE specifically
+            if "reddit – r/collegebasketball" in lower_name:
+                passes = passes_core_title(title)
+
+            # For YouTube: if not passing via RSS, try one short HTML peek
+            if not passes and "youtube" in lower_name and yt_peeks < YT_PEEK_MAX_PER_FEED:
                 yt_peeks += 1
                 if youtube_peek_has_purdue(link):
                     passes = True
