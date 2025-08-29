@@ -1,51 +1,63 @@
 import os
+import time
 from flask import Flask, render_template
+import feedparser
 
-def create_app() -> Flask:
-    app = Flask(__name__)
+FEED_URL = os.getenv(
+    "FEED_URL",
+    # Purdue MBB headlines RSS; safe default if you don't set FEED_URL
+    "https://purduesports.com/rss/headlines.aspx?path=mbball",
+)
+CACHE_TTL = int(os.getenv("CACHE_TTL", "900"))  # 15 minutes
+
+
+def create_app():
+    app = Flask(__name__, template_folder="templates", static_folder="static")
+
+    cache = {"ts": 0, "items": []}
+
+    def get_feed_items():
+        nonlocal cache
+        now = time.time()
+        if cache["items"] and (now - cache["ts"] < CACHE_TTL):
+            return cache["items"]
+
+        parsed = feedparser.parse(FEED_URL)
+        items = []
+        for e in parsed.entries[:20]:
+            items.append(
+                {
+                    "title": e.get("title", "Untitled"),
+                    "link": e.get("link") or "#",
+                    "published": e.get("published", ""),
+                    "summary": e.get("summary", ""),
+                }
+            )
+        cache = {"ts": now, "items": items}
+        return items
 
     @app.get("/")
-    def home():
+    def index():
         return render_template("index.html")
-
-    @app.get("/healthz")
-    def healthz():
-        # Plain-text healthcheck for Railway
-        return "ok", 200, {"Content-Type": "text/plain; charset=utf-8"}
 
     @app.get("/news")
     def news():
-        # Soft-dependency fetch of RSS (won't crash if feed is down)
+        error = None
+        items = []
         try:
-            import feedparser
-            FEED_URL = os.getenv(
-                "FEED_URL",
-                "https://purduesports.com/rss.aspx?path=mbball"
-            )
-            d = feedparser.parse(FEED_URL)
+            items = get_feed_items()
+            if not items:
+                error = "No items found from the feed yet."
+        except Exception as exc:
+            error = f"Error loading feed: {exc}"
+        return render_template("news.html", items=items, error=error, feed_url=FEED_URL)
 
-            items = []
-            for e in d.entries[:15]:
-                items.append(
-                    {
-                        "title": e.get("title", "(no title)"),
-                        "link": e.get("link", "#"),
-                        "published": e.get("published", ""),
-                        "summary": e.get("summary", ""),
-                    }
-                )
-        except Exception as ex:
-            # Fail-soft: render page with a friendly message
-            FEED_URL = None
-            items = []
-            print(f"[warn] RSS fetch failed: {ex}")
-
-        return render_template("news.html", items=items, feed_url=FEED_URL)
+    @app.get("/healthz")
+    def healthz():
+        return "ok", 200, {"Content-Type": "text/plain; charset=utf-8"}
 
     return app
 
-# Optional local run: `python server.py`
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", "8080"))
-    app = create_app()
-    app.run(host="0.0.0.0", port=port)
+
+# Expose a module-level WSGI app so Gunicorn can load `server:app`
+app = create_app()
