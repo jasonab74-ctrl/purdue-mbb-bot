@@ -5,22 +5,56 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Purdue MBB — All Sources</title>
+
+  <!-- your existing site styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='thumbs.css') }}">
+
+  <!-- minimal additive styles for thumbnails -->
+  <style>
+    .feed-card {
+      display: grid;
+      grid-template-columns: 128px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,.06);
+      margin: 8px 0;
+    }
+    .feed-thumb {
+      width: 128px; height: 96px; border-radius: 10px;
+      object-fit: cover; background:#f3f4f6; display:block;
+      flex-shrink: 0;
+    }
+    @media (max-width:520px){
+      .feed-card{ grid-template-columns:100px 1fr; }
+      .feed-thumb{ width:100px;height:78px; }
+    }
+    .chips{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;}
+    .chip{display:inline-block;padding:10px 16px;background:#e7d7a5;color:#1f2937;border-radius:999px;text-decoration:none;font-weight:600;box-shadow:inset 0 -1px 0 rgba(0,0,0,.05)}
+    .feed-meta{display:flex;gap:8px;align-items:center;font-size:12px;color:#6b7280}
+    .badge{background:#f1f5f9;color:#334155;border-radius:999px;padding:2px 8px;font-weight:600}
+    .date{opacity:.9}
+    .card-title{font-weight:700;line-height:1.2;text-decoration:none;color:#111827}
+    .card-title:hover{text-decoration:underline}
+    .card-snippet{margin:0;color:#374151;font-size:14px}
+    .empty{color:#6b7280;padding:24px 0;text-align:center}
+  </style>
 </head>
 <body>
-  <header class="header">
-    <div class="brand">
-      <span class="brand-mark">⬢</span>
-      <h1>Purdue Men’s Basketball Hub</h1>
+  <header class="header" style="display:flex;justify-content:space-between;align-items:center;padding:16px 16px 0 16px">
+    <div class="brand" style="display:flex;align-items:center;gap:10px">
+      <span class="brand-mark" style="font-size:20px">⬢</span>
+      <h1 style="margin:0;font-size:20px">Purdue Men’s Basketball Hub</h1>
     </div>
-    <audio controls class="fight-song" preload="none">
+    <audio controls class="fight-song" preload="none" style="width:200px;max-width:60vw">
       <source src="{{ url_for('static', filename='fight_song.mp3') }}" type="audio/mpeg">
     </audio>
   </header>
 
-  <main class="container">
-    <!-- Your quick links chips (unchanged) -->
+  <main class="container" style="padding:16px">
+    <!-- Quick links (unchanged; keep or trim as you like) -->
     <section class="chips">
       <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN – Purdue MBB</a>
       <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS – Purdue MBB</a>
@@ -34,46 +68,90 @@
       <a class="chip" href="https://www.youtube.com/@SleepersMedia" target="_blank" rel="noopener">YouTube – Sleepers Media</a>
     </section>
 
-    <!-- Feed -->
-    <section class="feed">
-      {% if items and items|length > 0 %}
-        {% for item in items %}
-          {% set thumb = (item.get('image') or item.get('image_url') or item.get('media_image') or item.get('thumbnail') or (item.get('link')|yt_thumb)) %}
-          <article class="card card--article">
-            {% if thumb %}
-              <img class="card-thumb" src="{{ thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer">
-            {% else %}
-              <img class="card-thumb" src="{{ url_for('static', filename='ball.svg') }}" alt="" loading="lazy">
-            {% endif %}
-
-            <div class="card-body">
-              <div class="card-meta">
-                {% if item.get('source') %}
-                  <span class="badge">{{ item['source'] }}</span>
-                {% endif %}
-                {% if item.get('_published_human') %}
-                  <time class="date">{{ item['_published_human'] }}</time>
+    <!-- FEED LIST RENDERING (keeps whatever your server passes) -->
+    <!-- IMPORTANT: we DO NOT change your Python. We only enhance the markup below with JS. -->
+    {% set feed_list = items or posts or entries %}
+    {% if feed_list and feed_list|length > 0 %}
+      <section id="feed">
+        {% for item in feed_list %}
+          <article class="feed-card" data-link="{{ item.get('link','') }}" data-source="{{ item.get('source','') }}" data-date="{{ item.get('published', item.get('date',''))[:10] }}">
+            <img class="feed-thumb" alt="" loading="lazy"
+                 src="{{ item.get('image') or item.get('image_url') or item.get('media_image') or item.get('thumbnail') or url_for('static', filename='ball.svg') }}">
+            <div class="card-body" style="display:grid;gap:6px">
+              <div class="feed-meta">
+                {% if item.get('source') %}<span class="badge">{{ item['source'] }}</span>{% endif %}
+                {% if item.get('published') or item.get('date') %}
+                  <time class="date">{{ (item.get('published') or item.get('date'))[:10] }}</time>
                 {% endif %}
               </div>
-
-              <a class="card-title" href="{{ item['link'] }}" target="_blank" rel="noopener">
-                {{ item['title'] }}
-              </a>
-
-              {% if item.get('summary') %}
-                <p class="card-snippet">{{ item['summary'] }}</p>
-              {% endif %}
+              <a class="card-title" href="{{ item['link'] }}" target="_blank" rel="noopener">{{ item['title'] }}</a>
+              {% if item.get('summary') %}<p class="card-snippet">{{ item['summary'] }}</p>{% endif %}
             </div>
           </article>
         {% endfor %}
-      {% else %}
-        <p class="empty">No items yet. Check back soon.</p>
-      {% endif %}
-    </section>
+      </section>
+    {% else %}
+      <p class="empty">No items yet. Check back soon.</p>
+    {% endif %}
   </main>
 
-  <footer class="footer">
+  <footer class="footer" style="padding:24px 16px;color:#6b7280;text-align:center">
     <small>Unofficial fan aggregation. Purdue © their owners.</small>
   </footer>
+
+  <!-- Client-side enhancer: add thumbnails (YouTube → hqdefault; fallback → embedded SVG) -->
+  <script>
+    // Tiny inline fallback SVG (basketball icon) as a data URL so we don't add files
+    const FALLBACK_DATA_URL =
+      'data:image/svg+xml;utf8,' +
+      encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+        <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#f8b26a"/><stop offset="1" stop-color="#f4a261"/></linearGradient></defs>
+        <circle cx="64" cy="64" r="60" fill="url(#g)"/>
+        <path d="M8 64h112M64 8v112M25 25c52 52 78 52 78 78M103 25c-52 52-78 52-78 78"
+              stroke="#1f2937" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`);
+
+    function ytThumb(url) {
+      try {
+        const u = new URL(url);
+        const host = u.hostname.toLowerCase();
+        let vid = null;
+        if (host.includes('youtube.com')) {
+          vid = new URLSearchParams(u.search).get('v');
+        } else if (host.includes('youtu.be')) {
+          vid = u.pathname.replace(/^\//,'');
+        }
+        return vid ? `https://i.ytimg.com/vi/${vid}/hqdefault.jpg` : null;
+      } catch { return null; }
+    }
+
+    function enhance() {
+      const cards = document.querySelectorAll('#feed .feed-card');
+      cards.forEach(card => {
+        const link = card.getAttribute('data-link') || '';
+        const img = card.querySelector('.feed-thumb');
+        // If server already provided an image, keep it (unless it's clearly empty)
+        const provided = img && img.getAttribute('src');
+        if (provided && !/ball\.svg$/.test(provided) && !/^data:image\/svg\+xml/.test(provided)) {
+          return; // already has a real image from the feed
+        }
+        const yt = ytThumb(link);
+        if (yt) {
+          img.src = yt;
+        } else if (!provided) {
+          img.src = FALLBACK_DATA_URL;
+        } else if (/ball\.svg$/.test(provided)) {
+          // replace static fallback with inline one so we don't rely on any asset
+          img.src = FALLBACK_DATA_URL;
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', enhance);
+    } else {
+      enhance();
+    }
+  </script>
 </body>
 </html>
