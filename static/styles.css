@@ -1,0 +1,112 @@
+:root{
+  --text:#0c0c0d;
+  --muted:#5b5b61;
+  --link:#2457ff;
+  --card-bg: rgba(255,255,255,0.82);
+  --blur: 8px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color:var(--text);
+  line-height:1.5;
+}
+
+/* Background image with subtle glass effect */
+.bg{
+  position:fixed; inset:0;
+  background-image: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), var(--bg-url);
+  background-size:cover;
+  background-position:center;
+  filter: none;
+  z-index:-1;
+}
+
+.container{
+  width:min(100%, 1000px);
+  margin-inline:auto;
+  padding:24px;
+}
+
+.site-header{
+  backdrop-filter: blur(var(--blur));
+}
+
+.brand{
+  margin:0;
+  font-size:32px;
+  font-weight:800;
+}
+
+.nav{
+  display:flex;
+  gap:16px;
+  margin-top:8px;
+}
+
+.nav-link{
+  text-decoration:none;
+  color:var(--muted);
+  font-weight:600;
+}
+.nav-link:hover{color:var(--link)}
+.nav-link.active{color:var(--link)}
+
+.hero{
+  margin-top:32px;
+  padding:24px;
+  background:var(--card-bg);
+  border-radius:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.08);
+}
+
+.tag{
+  margin:0 0 6px 0;
+  color:var(--muted);
+  font-weight:600;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  font-size:12px;
+}
+
+.headline{
+  margin:6px 0 8px 0;
+  font-size:28px;
+  font-weight:800;
+}
+
+.lead{margin:0; font-size:16px}
+.link{color:var(--link); font-weight:600}
+
+.section{margin-top:24px}
+.section-title{margin:0 0 12px 0; font-size:22px; font-weight:800}
+
+.news-list{
+  list-style:none; padding:0; margin:0;
+  display:grid; gap:10px;
+}
+
+.news-item{
+  background:var(--card-bg);
+  border-radius:12px;
+  padding:14px 16px;
+  box-shadow:0 6px 16px rgba(0,0,0,0.06);
+}
+
+.news-link{
+  color:var(--text);
+  text-decoration:none;
+  font-weight:700;
+}
+.news-link:hover{color:var(--link)}
+.news-title{vertical-align:middle}
+.news-meta{color:var(--muted); font-size:13px}
+
+.footer{
+  margin-top:32px;
+  color:var(--muted);
+}
+code{background:#f3f3f5; padding:2px 6px; border-radius:6px}
