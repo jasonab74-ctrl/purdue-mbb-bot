@@ -1,5 +1,28 @@
-{% extends "base.html" %}
-{% block title %}Purdue Basketball — Home{% endblock %}
-{% block content %}
-  <p>Site is live. Check <a href="{{ url_for('news') }}">Latest News</a> for feed items.</p>
-{% endblock %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Purdue Basketball</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:860px;margin:40px auto;padding:0 16px;line-height:1.6}
+    header{display:flex;gap:24px;align-items:baseline}
+    nav a{margin-right:12px;text-decoration:none;color:#0b63f6}
+    nav a:hover{text-decoration:underline}
+    .muted{color:#666}
+  </style>
+</head>
+<body>
+  <header>
+    <h1 style="margin:0">Purdue Basketball</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/news">News</a>
+      <a href="/healthz">Health</a>
+    </nav>
+  </header>
+
+  <p>Site is live. Check <a href="/news">Latest News</a> for feed items.</p>
+  <p class="muted">Healthcheck at <code>/healthz</code>.</p>
+</body>
+</html>
