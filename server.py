@@ -1,202 +1,228 @@
-# server.py
-import os, json, threading, time
+import os
+import json
+import threading
+import time
+import subprocess
 from datetime import datetime, timezone
-from flask import Flask, jsonify, send_from_directory, render_template, abort, Response, request
+from pathlib import Path
 
-# Uses your existing feeds.py (topic sources + links + refresh settings)
-from feeds import DEFAULT_REFRESH_MIN, STATIC_LINKS, CLIENT_CHECK_SECONDS
+from flask import Flask, send_file, send_from_directory, Response, jsonify, render_template_string
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-ITEMS_PATH = os.path.join(APP_ROOT, "items.json")
-FIGHT_SONG = os.path.join(APP_ROOT, "fight_song.mp3")
+# ---- Configuration (no hard dependency on feeds.py) -------------------------
+# Refresh cadence for the background collector
+FEED_REFRESH_MIN = int(os.getenv("FEED_REFRESH_MIN", "30"))
 
-app = Flask(__name__)
+# How often the client checks for fresher items.json
+CLIENT_CHECK_SECONDS = int(os.getenv("CLIENT_CHECK_SECONDS", "300"))  # 5 minutes
 
-def _read_items():
-    if not os.path.exists(ITEMS_PATH):
-        return {"items": [], "generated_at": 0}
-    with open(ITEMS_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+# Try to import STATIC_LINKS from feeds.py for the UI; fall back to empty
+try:
+    import feeds as _cfg  # type: ignore
+    STATIC_LINKS = getattr(_cfg, "STATIC_LINKS", [])
+    SITE_TITLE = getattr(_cfg, "SITE_TITLE", "Purdue Men’s Basketball News")
+except Exception:
+    STATIC_LINKS = []
+    SITE_TITLE = "Purdue Men’s Basketball News"
 
-@app.get("/health")
-def health():
-    ok = os.path.exists(ITEMS_PATH)
-    return jsonify({"ok": True, "has_items": ok})
+ITEMS_PATH = Path("items.json")
+FIGHT_SONG_PATH = Path("fight_song.mp3")
 
-@app.get("/items.json")
-def items_json():
-    payload = _read_items()
-    resp = jsonify(payload)
-    lm_ts = payload.get("generated_at", int(time.time()))
-    lm = datetime.fromtimestamp(lm_ts, tz=timezone.utc)
-    resp.headers["Last-Modified"] = lm.strftime("%a, %d %b %Y %H:%M:%S GMT")
-    return resp
-
-def _partial_send_mp3(path):
-    # Robust Range support so iOS can stream/seek
-    if not os.path.exists(path):
-        abort(404)
-    file_size = os.path.getsize(path)
-    range_header = request.headers.get("Range")
-
-    if not range_header:
-        rv = send_from_directory(APP_ROOT, os.path.basename(path),
-                                 mimetype="audio/mpeg", conditional=True)
-        rv.headers["Accept-Ranges"] = "bytes"
-        return rv
-
-    try:
-        _, rng = range_header.split("=")
-        start_s, end_s = (rng.split("-") + [""])[:2]
-        start = int(start_s) if start_s else 0
-        end = int(end_s) if end_s else file_size - 1
-        start = max(0, start)
-        end = min(end, file_size - 1)
-        if start > end:
-            raise ValueError
-    except Exception:
-        return Response(status=416)
-
-    length = end - start + 1
-    with open(path, "rb") as f:
-        f.seek(start)
-        data = f.read(length)
-
-    resp = Response(data, 206, mimetype="audio/mpeg", direct_passthrough=True)
-    resp.headers["Content-Range"] = f"bytes {start}-{end}/{file_size}"
-    resp.headers["Accept-Ranges"] = "bytes"
-    resp.headers["Content-Length"] = str(length)
-    return resp
-
-@app.get("/fight_song.mp3")
-def fight_song():
-    return _partial_send_mp3(FIGHT_SONG)
-
-# ----------- UI -----------
-INLINE_TEMPLATE = """
-<!doctype html>
+# Minimal inline template (used unless you add /templates/index.html)
+INDEX_TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<link rel="manifest" href="/static/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-<link rel="icon" href="/static/logo.png">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ title }}</title>
-<link rel="stylesheet" href="/static/style.css">
+  <meta charset="utf-8">
+  <title>{{ site_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="icon" href="/static/logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<header class="site-header">
-  <img src="/static/logo.png" alt="logo" class="logo">
-  <h1>{{ title }}</h1>
-  <div class="links">
-    <details>
-      <summary>Sites ▾</summary>
-      <ul>
-        {% for l in static_links %}
-        <li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.name }}</a></li>
-        {% endfor %}
-      </ul>
-    </details>
-    <button id="fightBtn" class="btn">Fight Song</button>
-  </div>
-</header>
+  <header class="container">
+    <div class="brand">
+      <img src="/static/logo.png" alt="logo" />
+      <h1>{{ site_title }}</h1>
+    </div>
+    {% if static_links %}
+    <nav class="sites">
+      <details>
+        <summary>Sites ▾</summary>
+        <ul>
+          {% for link in static_links %}
+            <li><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </details>
+    </nav>
+    {% endif %}
+    {% if fight_song %}
+      <button id="fightBtn">Fight Song</button>
+    {% endif %}
+  </header>
 
-<div id="notice" class="notice" hidden>New items available. <button id="reloadBtn">Refresh</button></div>
+  <main class="container">
+    <div id="notice" class="notice" hidden>New items available — <button id="reloadBtn">Refresh</button></div>
+    <ul id="feed" class="items"></ul>
+  </main>
 
-<main id="list" class="list"></main>
+  <script>
+    const LIST = document.getElementById('feed');
+    const NOTICE = document.getElementById('notice');
+    const RELOAD = document.getElementById('reloadBtn');
+    let lastSeen = 0;
 
-<script>
-const LIST = document.getElementById('list');
-const NOTICE = document.getElementById('notice');
-const RELOAD = document.getElementById('reloadBtn');
-let lastGen = 0;
-let audio;
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+    }
 
-function fmt(ts){
-  const d = new Date(ts*1000);
-  return d.toLocaleString();
-}
+    async function load(initial=false) {
+      const res = await fetch('/items.json', { cache: 'no-cache' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.items) return;
 
-async function load(refresh=false){
-  const res = await fetch('/items.json' + (refresh ? ('?t=' + Date.now()) : ''));
-  const data = await res.json();
-  if (data.generated_at && data.generated_at > lastGen && lastGen !== 0 && !refresh) {
-    NOTICE.hidden = false;
-  }
-  if (refresh || lastGen === 0){
-    lastGen = data.generated_at || 0;
-    NOTICE.hidden = true;
-    LIST.innerHTML = '';
-    (data.items || []).forEach(it => {
-      const div = document.createElement('article');
-      div.className = 'card';
-      div.innerHTML = `
-        <div class="meta">
-          <span class="src">${it.source || ''}</span>
-          <span class="date">${fmt(it.date_ts || 0)}</span>
-        </div>
-        <a class="title" href="${it.link}" target="_blank" rel="noopener">${it.title}</a>
-        ${it.summary ? `<p class="sum">${it.summary}</p>` : ''}
-      `;
-      LIST.appendChild(div);
-    });
-  }
-}
-load(true);
+      // Track "freshness" using mtime header if provided
+      const lm = res.headers.get('Last-Modified');
+      const ts = lm ? Date.parse(lm) : Date.now();
+      if (initial) { lastSeen = ts; }
 
-// poll every 5 minutes
-setInterval(async () => {
-  const res = await fetch('/items.json', {method:'HEAD'});
-  const lm = res.headers.get('Last-Modified');
-  if (lm){
-    const t = Date.parse(lm)/1000;
-    if (t > lastGen){ NOTICE.hidden = false; }
-  }
-}, 300000);
+      LIST.innerHTML = '';
+      for (const it of data.items) {
+        const li = document.createElement('li');
+        li.className = 'item';
+        li.innerHTML = `
+          <div class="meta">
+            <span class="source">${it.source || ''}</span>
+            <time>${fmtDate(it.date || '')}</time>
+          </div>
+          <a class="title" href="${it.link}" target="_blank" rel="noopener">${it.title}</a>
+          ${it.description ? `<p class="desc">${it.description}</p>` : ''}
+        `;
+        LIST.appendChild(li);
+      }
+    }
 
-RELOAD.onclick = () => load(true);
+    async function check() {
+      try {
+        const res = await fetch('/items.json', { method:'HEAD', cache:'no-cache' });
+        if (!res.ok) return;
+        const lm = res.headers.get('Last-Modified');
+        const ts = lm ? Date.parse(lm) : 0;
+        if (ts > lastSeen) {
+          NOTICE.hidden = false;
+        }
+      } catch(e) {}
+    }
 
-document.getElementById('fightBtn').onclick = async () => {
-  try{
-    if (!audio){ audio = new Audio('/fight_song.mp3'); }
-    await audio.play();
-  }catch(e){ alert('Could not play. Make sure fight_song.mp3 exists at repo root.'); }
-};
-</script>
+    load(true);
+    setInterval(check, {{ client_check_seconds|int }} * 1000);
+    if (RELOAD) RELOAD.onclick = () => location.reload();
+
+    {% if fight_song %}
+    const audio = new Audio('/fight_song.mp3');
+    document.getElementById('fightBtn').onclick = () => {
+      audio.play().catch(()=>alert('Could not play audio on this device.'));
+    };
+    {% endif %}
+  </script>
 </body>
 </html>
 """
 
-@app.get("/")
-def home():
-    # Default title for this deployment (can override with SITE_TITLE env var)
-    title = os.environ.get("SITE_TITLE", "Purdue Men's Basketball Feed")
-    tmpl_path = os.path.join(APP_ROOT, "templates", "index.html")
-    if os.path.exists(tmpl_path):
-        return render_template("index.html", title=title, static_links=STATIC_LINKS)
-    from jinja2 import Template
-    return Template(INLINE_TEMPLATE).render(title=title, static_links=STATIC_LINKS)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# ----------- Background refresher -----------
-def run_collector_every(interval_min: int):
-    # One immediate run at boot for quick first load
-    os.system("python collect.py")
-    while True:
-        time.sleep(interval_min * 60)
-        os.system("python collect.py")
 
-def _start_bg():
-    if os.environ.get("DISABLE_COLLECTOR_THREAD") == "1":
-        return
+# ------------------------ Helpers -------------------------------------------
+def ensure_items_file():
+    """Guarantee items.json exists so the app never 404s on first boot."""
+    if not ITEMS_PATH.exists():
+        ITEMS_PATH.write_text(json.dumps({"items": []}, ensure_ascii=False))
+
+
+def run_collector_once():
+    """Run the feed collector; never raise to the server."""
     try:
-        interval = int(os.environ.get("FEED_REFRESH_MIN", str(DEFAULT_REFRESH_MIN)))
+        subprocess.run(["python", "collect.py"], check=False)
     except Exception:
-        interval = DEFAULT_REFRESH_MIN
-    th = threading.Thread(target=run_collector_every, args=(interval,), daemon=True)
-    th.start()
+        # swallow errors; the next tick will try again
+        pass
 
-_start_bg()
+
+def collector_loop():
+    """Background loop to refresh items on an interval."""
+    # Run once on boot so the page has data
+    run_collector_once()
+    while True:
+        time.sleep(FEED_REFRESH_MIN * 60)
+        run_collector_once()
+
+
+# ------------------------ Routes --------------------------------------------
+@app.route("/")
+def index():
+    ensure_items_file()
+    # If a real template exists, use it; otherwise fall back to inline
+    try:
+        return render_template_string(
+            INDEX_TEMPLATE,
+            static_links=STATIC_LINKS,
+            fight_song=FIGHT_SONG_PATH.exists(),
+            client_check_seconds=CLIENT_CHECK_SECONDS,
+            site_title=SITE_TITLE,
+        )
+    except Exception:
+        # Extremely defensive: still render something
+        return "<h1>OK</h1>", 200
+
+
+@app.route("/health")
+def health():
+    return jsonify(ok=True)
+
+
+@app.route("/items.json", methods=["GET", "HEAD"])
+def items():
+    ensure_items_file()
+    # Serve with Last-Modified for client freshness checks
+    mtime = datetime.fromtimestamp(ITEMS_PATH.stat().st_mtime, tz=timezone.utc)
+    headers = {"Last-Modified": mtime.strftime("%a, %d %b %Y %H:%M:%S GMT")}
+    if os.getenv("RAILWAY_ENVIRONMENT"):
+        headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    if flask_request_method_head():
+        return Response(status=200, headers=headers, mimetype="application/json")
+    return send_file(ITEMS_PATH, mimetype="application/json", conditional=True, etag=True, last_modified=mtime)
+
+
+def flask_request_method_head():
+    # small helper to avoid importing request at module import time
+    from flask import request  # local import to keep namespace thin
+    return request.method == "HEAD"
+
+
+@app.route("/fight_song.mp3")
+def fight_song():
+    if not FIGHT_SONG_PATH.exists():
+        return ("Not Found", 404)
+    resp = send_file(FIGHT_SONG_PATH, mimetype="audio/mpeg", conditional=True)
+    resp.headers["Accept-Ranges"] = "bytes"  # allow iOS seeking/streaming
+    return resp
+
+
+@app.route("/static/<path:filename>")
+def static_files(filename):
+    # Standard static files
+    return send_from_directory(app.static_folder, filename)
+
+
+# ------------------------ Startup -------------------------------------------
+def _start_bg_thread():
+    t = threading.Thread(target=collector_loop, name="collector", daemon=True)
+    t.start()
+
+_start_bg_thread()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
+    # Local dev only: `python server.py`
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8080")))
