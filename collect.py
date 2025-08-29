@@ -27,19 +27,18 @@ def _ok(item_text: str) -> bool:
     return pos and sporty
 
 def _hash(link: str, title: str) -> str:
-    return hashlib.sha1((link or "") .encode() + (title or "").encode()).hexdigest()[:12]
+    return hashlib.sha1((link or "").encode() + (title or "").encode()).hexdigest()[:12]
 
 def _coerce_date(entry):
-    # Try feedparser's parsed time; else now()
     ts = None
     for key in ("published_parsed", "updated_parsed", "created_parsed"):
-        if getattr(entry, key, None):
-            ts = _ts(getattr(entry, key))
+        val = getattr(entry, key, None)
+        if val:
+            ts = _ts(val)
             break
     return ts or time.time()
 
 def fetch_feed(url: str):
-    # For stability, use requests to fetch bytes, then feedparser.parse
     r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent":"Mozilla/5.0 (news-collector)"})
     r.raise_for_status()
     return feedparser.parse(r.content)
@@ -88,7 +87,7 @@ def main():
         items = items[:TOTAL_CAP]
 
     payload = {
-        "topic": "Penn State Football",
+        "topic": "Purdue Men's Basketball",
         "generated_at": int(time.time()),
         "items": items
     }
