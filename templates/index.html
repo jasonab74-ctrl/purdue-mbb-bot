@@ -1,8 +1,53 @@
-{% extends "base.html" %}
-{% block content %}
-<section class="hero">
-  <p class="eyebrow">Site is live.</p>
-  <h2 class="headline">Your one-stop for latest <strong>Purdue hoops</strong>.</h2>
-  <p>Check <a href="/news">Latest News</a> for feed items.</p>
-</section>
-{% endblock %}
+<!-- templates/index.html -->
+{% set title = title or "Penn State Football Feed" %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{ title }}</title>
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <link rel="icon" href="/static/logo.png">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <img src="/static/logo.png" class="logo" alt="logo">
+    <h1>{{ title }}</h1>
+    <nav class="links">
+      <details>
+        <summary>Sites ▾</summary>
+        <ul>
+          {% for l in static_links %}
+          <li><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </details>
+      <button id="fightBtn" class="btn">Fight Song</button>
+    </nav>
+  </header>
+
+  <div id="notice" class="notice" hidden>New items available. <button id="reloadBtn">Refresh</button></div>
+
+  <main id="list" class="list"></main>
+
+  <script>
+    // same script as inline template — keep in one place
+    {{ ("
+      const LIST=document.getElementById('list');const NOTICE=document.getElementById('notice');const RELOAD=document.getElementById('reloadBtn');let lastGen=0;let audio;
+      function fmt(ts){const d=new Date(ts*1000);return d.toLocaleString();}
+      async function load(refresh=false){const res=await fetch('/items.json'+(refresh?('?t='+Date.now()):''));const data=await res.json();
+        if(data.generated_at&&data.generated_at>lastGen&&lastGen!==0&&!refresh){NOTICE.hidden=false;}
+        if(refresh||lastGen===0){lastGen=data.generated_at||0;NOTICE.hidden=true;LIST.innerHTML='';
+          (data.items||[]).forEach(it=>{const div=document.createElement('article');div.className='card';
+            div.innerHTML=`<div class="meta"><span class='src'>${it.source||''}</span><span class='date'>${fmt(it.date_ts||0)}</span></div><a class='title' href='${it.link}' target='_blank' rel='noopener'>${it.title}</a>${it.summary?`<p class='sum'>${it.summary}</p>`:''}`;
+            LIST.appendChild(div);});}}
+      load(true);
+      setInterval(async()=>{const res=await fetch('/items.json',{method:'HEAD'});const lm=res.headers.get('Last-Modified');if(lm){const t=Date.parse(lm)/1000;if(t>lastGen){NOTICE.hidden=false;}}},300000);
+      document.getElementById('reloadBtn').onclick=()=>load(true);
+      document.getElementById('fightBtn').onclick=async()=>{try{if(!audio){audio=new Audio('/fight_song.mp3');}await audio.play();}catch(e){alert('Could not play. Make sure fight_song.mp3 exists.');}};
+    ").strip() | safe }}
+  </script>
+</body>
+</html>
