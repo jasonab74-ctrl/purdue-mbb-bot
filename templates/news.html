@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Purdue Basketball — News{% endblock %}
+{% block content %}
+  <h2>Latest News</h2>
+
+  {% if items and items|length > 0 %}
+    <ul class="feed">
+      {% for it in items %}
+        <li class="feed-item">
+          <a class="feed-title" href="{{ it.link }}" target="_blank" rel="noopener">
+            {{ it.title }}
+          </a>
+          {% if it.published %}
+            <div class="feed-meta">{{ it.published }}</div>
+          {% endif %}
+          {% if it.summary %}
+            <div class="feed-summary">{{ it.summary|safe }}</div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No items available right now.</p>
+  {% endif %}
+
+  {% if feed_url %}
+    <p class="muted"><small>Source: <code>{{ feed_url }}</code></small></p>
+  {% endif %}
+{% endblock %}
