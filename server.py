@@ -1,8 +1,9 @@
 # server.py
 import os, json, threading, time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from flask import Flask, jsonify, send_from_directory, render_template, abort, Response, request
 
+# Uses your existing feeds.py (topic sources + links + refresh settings)
 from feeds import DEFAULT_REFRESH_MIN, STATIC_LINKS, CLIENT_CHECK_SECONDS
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -13,7 +14,7 @@ app = Flask(__name__)
 
 def _read_items():
     if not os.path.exists(ITEMS_PATH):
-        return {"items":[],"generated_at":0}
+        return {"items": [], "generated_at": 0}
     with open(ITEMS_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -26,29 +27,31 @@ def health():
 def items_json():
     payload = _read_items()
     resp = jsonify(payload)
-    # Allow client cache-busting; include last-modified so the page can poll
-    lm = datetime.utcfromtimestamp(payload.get("generated_at", int(time.time()))).replace(tzinfo=timezone.utc)
+    lm_ts = payload.get("generated_at", int(time.time()))
+    lm = datetime.fromtimestamp(lm_ts, tz=timezone.utc)
     resp.headers["Last-Modified"] = lm.strftime("%a, %d %b %Y %H:%M:%S GMT")
     return resp
 
 def _partial_send_mp3(path):
-    # Robust Range support for iOS
+    # Robust Range support so iOS can stream/seek
     if not os.path.exists(path):
         abort(404)
     file_size = os.path.getsize(path)
     range_header = request.headers.get("Range")
+
     if not range_header:
-        rv = send_from_directory(APP_ROOT, os.path.basename(path), mimetype="audio/mpeg", conditional=True)
+        rv = send_from_directory(APP_ROOT, os.path.basename(path),
+                                 mimetype="audio/mpeg", conditional=True)
         rv.headers["Accept-Ranges"] = "bytes"
         return rv
 
-    # Parse "bytes=start-end"
     try:
         _, rng = range_header.split("=")
-        start_str, end_str = (rng.split("-") + [""])[:2]
-        start = int(start_str) if start_str else 0
-        end = int(end_str) if end_str else file_size - 1
-        start = max(0, start); end = min(end, file_size - 1)
+        start_s, end_s = (rng.split("-") + [""])[:2]
+        start = int(start_s) if start_s else 0
+        end = int(end_s) if end_s else file_size - 1
+        start = max(0, start)
+        end = min(end, file_size - 1)
         if start > end:
             raise ValueError
     except Exception:
@@ -59,9 +62,7 @@ def _partial_send_mp3(path):
         f.seek(start)
         data = f.read(length)
 
-    resp = Response(data, 206, mimetype="audio/mpeg",
-                    content_type="audio/mpeg",
-                    direct_passthrough=True)
+    resp = Response(data, 206, mimetype="audio/mpeg", direct_passthrough=True)
     resp.headers["Content-Range"] = f"bytes {start}-{end}/{file_size}"
     resp.headers["Accept-Ranges"] = "bytes"
     resp.headers["Content-Length"] = str(length)
@@ -144,7 +145,7 @@ async function load(refresh=false){
 }
 load(true);
 
-// poll for updates every 5 minutes
+// poll every 5 minutes
 setInterval(async () => {
   const res = await fetch('/items.json', {method:'HEAD'});
   const lm = res.headers.get('Last-Modified');
@@ -160,7 +161,7 @@ document.getElementById('fightBtn').onclick = async () => {
   try{
     if (!audio){ audio = new Audio('/fight_song.mp3'); }
     await audio.play();
-  }catch(e){ alert('Could not play. Make sure fight_song.mp3 exists.'); }
+  }catch(e){ alert('Could not play. Make sure fight_song.mp3 exists at repo root.'); }
 };
 </script>
 </body>
@@ -169,23 +170,23 @@ document.getElementById('fightBtn').onclick = async () => {
 
 @app.get("/")
 def home():
-    # Use real template if present, else inline fallback
-    title = os.environ.get("SITE_TITLE", "Penn State Football Feed")
-    if os.path.exists(os.path.join(APP_ROOT, "templates", "index.html")):
+    # Default title for this deployment (can override with SITE_TITLE env var)
+    title = os.environ.get("SITE_TITLE", "Purdue Men's Basketball Feed")
+    tmpl_path = os.path.join(APP_ROOT, "templates", "index.html")
+    if os.path.exists(tmpl_path):
         return render_template("index.html", title=title, static_links=STATIC_LINKS)
     from jinja2 import Template
     return Template(INLINE_TEMPLATE).render(title=title, static_links=STATIC_LINKS)
 
 # ----------- Background refresher -----------
 def run_collector_every(interval_min: int):
-    # Run once at boot to populate quickly
+    # One immediate run at boot for quick first load
     os.system("python collect.py")
     while True:
         time.sleep(interval_min * 60)
         os.system("python collect.py")
 
 def _start_bg():
-    # Allow disabling for debugging
     if os.environ.get("DISABLE_COLLECTOR_THREAD") == "1":
         return
     try:
