@@ -1,24 +1,29 @@
-{% extends "base.html" %}
-{% block title %}Purdue Basketball — News{% endblock %}
-{% block content %}
-  <h2>Latest News</h2>
-  <p class="muted">Source: <a href="{{ feed_url }}" target="_blank" rel="noopener">{{ feed_url }}</a></p>
-
-  {% if error %}
-    <div class="error">{{ error }}</div>
-  {% endif %}
-
-  {% if items %}
-    <ul class="news-list">
-      {% for item in items %}
-        <li class="news-item">
-          <h3 class="item-title"><a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a></h3>
-          {% if item.published %}<div class="item-date">{{ item.published }}</div>{% endif %}
-          {% if item.summary %}<p class="item-summary">{{ item.summary|safe }}</p>{% endif %}
-        </li>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Purdue Basketball — News</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:860px;margin:40px auto;padding:0 16px;line-height:1.6}
+    ul{padding-left:18px}
+    header a{color:#0b63f6;text-decoration:none;margin-right:12px}
+    header a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/">← Back</a>
+  </header>
+  <h1>Latest News</h1>
+  {% if items and items|length %}
+    <ul>
+      {% for it in items %}
+        <li><a href="{{ it.url }}">{{ it.title }}</a></li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>No news items to display.</p>
+    <p>No items found.</p>
   {% endif %}
-{% endblock %}
+</body>
+</html>
