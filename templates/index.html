@@ -8,7 +8,7 @@
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
   <link rel="icon" href="/static/logo.png" type="image/png">
   <link rel="stylesheet" href="/static/style.css">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#111214">
 </head>
 <body>
 
@@ -24,11 +24,12 @@
         </div>
       </div>
     </div>
+    <!-- Single Fight Song control (header only) -->
     <button class="fight-btn" id="fightBtn" aria-pressed="false">▶︎ Fight Song</button>
     <audio id="fightAudio" preload="none" src="/fight_song.mp3" playsinline></audio>
   </header>
 
-  <!-- Hero section (now active) -->
+  <!-- Hero (no second Fight Song button) -->
   <div class="container">
     <div class="hero">
       <div class="hero-inner">
@@ -39,7 +40,6 @@
             <div class="subtle">Updated: <span id="heroUpdated">—</span></div>
           </div>
         </div>
-        <button class="fight-btn" id="fightBtnHero">▶︎ Fight Song</button>
       </div>
     </div>
   </div>
@@ -88,10 +88,28 @@
     { label: "YouTube – Sleepers Media",   url: "https://www.youtube.com/@SleepersMedia" }
   ];
 
+  // Fallback source names (used if items.json is empty)
+  const SOURCE_HINTS = [
+    "Google News — Purdue Basketball",
+    "Google News — Matt Painter",
+    "Google News — Mackey Arena",
+    "YouTube Mentions — Purdue Basketball",
+    "YouTube Mentions — Matt Painter",
+    "Hammer & Rails",
+    "Reddit r/Boilermakers",
+    "Reddit r/CollegeBasketball",
+    "Google News — GoldandBlack (Rivals)",
+    "Google News — On3 Purdue",
+    "Google News — 247Sports Purdue",
+    "Google News — IndyStar Purdue",
+    "Google News — PurdueSports.com (MBB)"
+  ];
+
   const FEED_URL = "/items.json";
   let cacheSignature = "";
   let ALL_ITEMS = [];
 
+  // --------- Helpers ----------
   const $ = sel => document.querySelector(sel);
   const feedEl = $("#feed");
   const searchEl = $("#search");
@@ -101,43 +119,131 @@
   const updatedAgoEl = $("#updatedAgo");
   const noticeEl = $("#notice");
   const fightBtn = $("#fightBtn");
-  const fightBtnHero = $("#fightBtnHero");
   const fightAudio = $("#fightAudio");
 
-  function fmtDate(d){ try{ return new Date(d).toISOString().slice(0,10); }catch(e){ return ""; } }
-  function timeAgo(d){ try{ const diff = Date.now()-new Date(d).getTime(); const m=Math.floor(diff/60000); if(m<1)return"just now"; if(m<60)return m+" min ago"; const h=Math.floor(m/60); if(h<24)return h+" hr ago"; return Math.floor(h/24)+" d ago"; }catch(e){return"—";} }
-  function signature(items){ if(!items.length)return"0-0"; return (items[0].date||"")+"-"+items.length; }
-
-  function buildQuickLinks(){ $("#quickLinks").innerHTML = STATIC_LINKS.map(l=>`<a href="${l.url}" target="_blank">${l.label}</a>`).join(""); }
-  function uniqueSources(items){ return Array.from(new Set(items.map(it=>it.source||""))).filter(Boolean).sort(); }
-  function renderSourceOptions(items){ sourceEl.innerHTML=`<option value="__all__">All sources</option>`+uniqueSources(items).map(s=>`<option value="${s}">${s}</option>`).join(""); }
-
-  function itemMatches(it,q,src){ if(src!=="__all__" && it.source!==src) return false; if(!q)return true; return (it.title+it.summary).toLowerCase().includes(q.toLowerCase()); }
-
+  function fmtDate(d){
+    try{ return new Date(d).toISOString().slice(0,10); }catch(e){ return ""; }
+  }
+  function timeAgo(d){
+    try{
+      const diff = Date.now() - new Date(d).getTime();
+      const m = Math.floor(diff/60000); if (m < 1) return "just now";
+      if (m < 60) return `${m} min ago`;
+      const h = Math.floor(m/60); if (h < 24) return `${h} hr ago`;
+      return `${Math.floor(h/24)} d ago`;
+    }catch(e){ return "—"; }
+  }
+  function signature(items){
+    if(!items || !items.length) return "0-0";
+    const ts = items[0]?.date || items[0]?.published || items[0]?.isoDate || "";
+    return `${ts}-${items.length}`;
+  }
+  function buildQuickLinks(){
+    $("#quickLinks").innerHTML = STATIC_LINKS.map(l=>`<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`).join("");
+  }
+  function uniqueSources(items){
+    const set = new Set();
+    for (const it of items){
+      const s = it.source || it.site || it.feed || "";
+      if (s) set.add(s);
+    }
+    return Array.from(set).sort();
+  }
+  function renderSourceOptions(items){
+    let options = uniqueSources(items);
+    if (!options.length) options = SOURCE_HINTS.slice(); // fallback when 0 items
+    sourceEl.innerHTML = `<option value="__all__">All sources</option>` +
+      options.map(s => `<option value="${s}">${s}</option>`).join("");
+  }
+  function itemMatches(it,q,src){
+    if (src && src !== "__all__"){
+      const s = it.source || it.site || it.feed || "";
+      if (s !== src) return false;
+    }
+    if (!q) return true;
+    const hay = `${it.title||""} ${it.summary||""} ${it.description||""}`.toLowerCase();
+    return hay.includes(q.toLowerCase());
+  }
   function renderItems(items){
-    let q=searchEl.value.trim(),src=sourceEl.value,filtered=items.filter(it=>itemMatches(it,q,src));
-    shownCountEl.textContent=filtered.length; itemCountEl.textContent=items.length;
-    const newest=items[0]?.date; if(newest){ updatedAgoEl.textContent=timeAgo(newest); const heroUpd=$("#heroUpdated"); if(heroUpd)heroUpd.textContent=timeAgo(newest); }
-    feedEl.innerHTML=filtered.map(it=>`
-      <article class="card">
-        <h3><a href="${it.link}" target="_blank">${it.title}</a></h3>
-        <div class="meta"><span class="source">${it.source||""}</span><span class="date">${fmtDate(it.date)}</span></div>
-        ${it.summary?`<div class="snippet">${it.summary.slice(0,220)}</div>`:""}
-      </article>`).join("");
+    let q = searchEl.value.trim();
+    let src = sourceEl.value;
+    let filtered = items.filter(it => itemMatches(it,q,src));
+    shownCountEl.textContent = filtered.length.toString();
+    itemCountEl.textContent = items.length.toString();
+    const newest = items[0]?.date || items[0]?.published || items[0]?.isoDate || null;
+    if (newest){
+      updatedAgoEl.textContent = timeAgo(new Date(newest));
+      const heroUpd = document.getElementById("heroUpdated");
+      if (heroUpd) heroUpd.textContent = timeAgo(new Date(newest));
+    }
+    feedEl.innerHTML = filtered.map(it => {
+      const title = (it.title || "Untitled").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      const link  = it.link || it.url || "#";
+      const date  = fmtDate(it.date || it.published || it.isoDate || it.updated);
+      const source= it.source || it.site || it.feed || "Source";
+      const snip  = (it.summary || it.description || "").replace(/\s+/g," ").slice(0,220);
+      return `
+        <article class="card">
+          <h3><a href="${link}" target="_blank" rel="noopener">${title}</a></h3>
+          <div class="meta">
+            <span class="source">${source}</span>
+            <span class="date">${date}</span>
+          </div>
+          ${snip ? `<div class="snippet">${snip}</div>` : ``}
+        </article>`;
+    }).join("") || `<div class="subtle">No items yet. Feeds will populate shortly.</div>`;
   }
-
   async function loadItems(initial=false){
-    const data=await fetch(FEED_URL).then(r=>r.json()).catch(()=>({items:[]}));
-    const items=data.items||[]; items.sort((a,b)=>new Date(b.date)-new Date(a.date));
-    const sig=signature(items);
-    if(initial){ ALL_ITEMS=items; buildQuickLinks(); renderSourceOptions(items); renderItems(items); cacheSignature=sig; return; }
-    if(sig!==cacheSignature){ noticeEl.style.display="block"; ALL_ITEMS=items; renderSourceOptions(items); renderItems(items); cacheSignature=sig; setTimeout(()=>noticeEl.style.display="none",5000); }
+    const data = await fetch(FEED_URL, { cache: "no-store" }).then(r=>r.json()).catch(()=>({items:[]}));
+    const items = Array.isArray(data) ? data : (data.items || []);
+    items.sort((a,b)=>new Date(b.date||b.published||b.isoDate||0)-new Date(a.date||a.published||a.isoDate||0));
+    const sig = signature(items);
+    if (initial){
+      ALL_ITEMS = items;
+      buildQuickLinks();
+      renderSourceOptions(items);
+      renderItems(items);
+      cacheSignature = sig;
+      return;
+    }
+    if (sig !== cacheSignature){
+      noticeEl.style.display = "block";
+      ALL_ITEMS = items;
+      renderSourceOptions(items);
+      renderItems(items);
+      cacheSignature = sig;
+      setTimeout(()=>noticeEl.style.display="none", 4000);
+    }
   }
-
-  function startPolling(){ setInterval(()=>loadItems(false),5*60*1000); }
-  function wireFightSong(btn){ btn.addEventListener("click",async()=>{ if(fightAudio.paused){ await fightAudio.play(); btn.textContent="⏸︎ Pause"; }else{ fightAudio.pause(); btn.textContent="▶︎ Fight Song"; } }); fightAudio.addEventListener("ended",()=>{ fightBtn.textContent="▶︎ Fight Song"; if(fightBtnHero) fightBtnHero.textContent="▶︎ Fight Song"; }); }
-
-  (async function(){ await loadItems(true); startPolling(); searchEl.addEventListener("input",()=>renderItems(ALL_ITEMS)); sourceEl.addEventListener("change",()=>renderItems(ALL_ITEMS)); wireFightSong(fightBtn); if(fightBtnHero) wireFightSong(fightBtnHero); })();
+  function startPolling(){ setInterval(()=>loadItems(false), 5*60*1000); }
+  function wireFightSong(){
+    function setBtn(playing){
+      fightBtn.setAttribute("aria-pressed", playing ? "true" : "false");
+      fightBtn.textContent = playing ? "⏸︎ Pause" : "▶︎ Fight Song";
+    }
+    fightBtn.addEventListener("click", async ()=>{
+      try{
+        if (fightAudio.paused){ await fightAudio.play(); setBtn(true); }
+        else { fightAudio.pause(); setBtn(false); }
+      }catch(e){}
+    });
+    fightAudio.addEventListener("ended", ()=> setBtn(false));
+    document.addEventListener("visibilitychange", ()=>{
+      if (document.hidden && !fightAudio.paused){ fightAudio.pause(); setBtn(false); }
+    });
+  }
+  (async function(){
+    try{
+      await loadItems(true);
+      startPolling();
+      $("#search").addEventListener("input", ()=>renderItems(ALL_ITEMS));
+      $("#sourceSelect").addEventListener("change", ()=>renderItems(ALL_ITEMS));
+      wireFightSong();
+    }catch(e){
+      console.error(e);
+      feedEl.innerHTML = `<div class="subtle">Couldn’t load items. Try reloading.</div>`;
+    }
+  })();
   </script>
 </body>
 </html>
