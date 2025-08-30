@@ -3,6 +3,7 @@
 
 import os, re, json, html, hashlib, time, tempfile
 from datetime import datetime, timezone
+from urllib.parse import urlparse, parse_qs
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree as ET
 from json import JSONDecodeError
@@ -19,7 +20,7 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 def http_get(url, headers=None, timeout=TIMEOUT):
-    req = Request(url, headers=headers or {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) MBBFeedBot/1.3"})
+    req = Request(url, headers=headers or {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) MBBFeedBot/1.4"})
     with urlopen(req, timeout=timeout) as r:
         return r.read()
 
@@ -27,15 +28,56 @@ def to_text(x):
     if not x: return ""
     return html.unescape(x if isinstance(x,str) else x.decode("utf-8","ignore"))
 
+_TAG_RE   = re.compile(r"<[^>]+>")
+_WS_RE    = re.compile(r"\s+")
+def strip_html(s: str) -> str:
+    """Remove all HTML tags and collapse whitespace."""
+    if not s: return ""
+    s = to_text(s)
+    s = _TAG_RE.sub(" ", s)              # drop tags
+    s = html.unescape(s)                 # decode entities
+    s = _WS_RE.sub(" ", s).strip()       # tidy spaces/newlines
+    return s
+
+def tidy_summary(raw: str, limit: int = 300) -> str:
+    """Plain-text summary, trimmed; no <a href=...> junk."""
+    txt = strip_html(raw)
+    # common boilerplate endings
+    for bad in ("Continue reading", "Read more", "The post", "Originally appeared on"):
+        txt = re.sub(rf"{re.escape(bad)}.*$", "", txt, flags=re.I).strip()
+    if len(txt) > limit:
+        txt = txt[:limit].rsplit(" ", 1)[0].rstrip() + "…"
+    return txt
+
+def normalize_link(link: str) -> str:
+    """
+    Keep links stable, but if it's a Google News redirect with a 'url=' param,
+    expose the destination for a cleaner preview.
+    """
+    if not link: return ""
+    try:
+        u = urlparse(link)
+        if ("news.google." in u.netloc) and ("url=" in link):
+            qs = parse_qs(u.query)
+            dest = qs.get("url", [None])[0]
+            if dest: return dest
+    except Exception:
+        pass
+    return link
+
 def parse_rss(xml_bytes):
     root = ET.fromstring(xml_bytes)
     out = []
     for it in root.findall(".//item"):
+        title = (it.findtext("title") or "").strip()
+        link  = (it.findtext("link")  or "").strip()
+        desc  = (it.findtext("description") or it.findtext("content") or "").strip()
+        pub   = (it.findtext("pubDate") or it.findtext("published") or "").strip()
         out.append({
-            "title": (it.findtext("title") or "").strip(),
-            "link":  (it.findtext("link") or "").strip(),
-            "summary": (it.findtext("description") or it.findtext("content") or "").strip(),
-            "date": (it.findtext("pubDate") or it.findtext("published") or "").strip(),
+            "title": title,
+            "link":  normalize_link(link),
+            "summary": tidy_summary(desc),
+            "date": pub
         })
     return out
 
@@ -58,8 +100,8 @@ def fetch_reddit(f):
             p = c.get("data",{})
             out.append({
                 "title": p.get("title",""),
-                "link":  p.get("url","") or ("https://reddit.com" + p.get("permalink","")),
-                "summary": p.get("selftext",""),
+                "link":  normalize_link(p.get("url","") or ("https://reddit.com" + p.get("permalink",""))),
+                "summary": tidy_summary(p.get("selftext","")),
                 "date": datetime.fromtimestamp(p.get("created_utc",0), tz=timezone.utc).isoformat(),
             })
         return out
@@ -154,8 +196,12 @@ def collect():
             seen.add(uid)
             per[name] += 1
             out.append({
-                "id": uid, "title": title, "link": link, "summary": summary,
-                "source": name, "date": it.get("date","")
+                "id": uid,
+                "title": title,
+                "link": link,
+                "summary": summary,   # already plain text from tidy_summary()
+                "source": name,
+                "date": it.get("date","")
             })
 
         time.sleep(0.1)
@@ -181,7 +227,7 @@ def collect():
                      "per_feed_counts": per, "ts": now_iso()}
     }
 
-    # ATOMIC WRITE: never leave a half file behind
+    # ATOMIC WRITE
     payload = json.dumps({"items": out, "meta": meta}, ensure_ascii=False)
     dirn = os.path.dirname(ITEMS_PATH) or "."
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=dirn, delete=False) as tmp:
