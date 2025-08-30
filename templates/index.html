@@ -1,171 +1,143 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Purdue Men’s Basketball — Live Feed</title>
-  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="any">
-  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
-  <meta name="theme-color" content="#CFB87C">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <link rel="icon" href="/static/logo.png" type="image/png">
+  <link rel="stylesheet" href="/static/style.css">
+  <meta name="theme-color" content="#000000">
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <div class="brand">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Purdue" class="logo" />
-        <div>
-          <h1>Purdue Men’s Basketball — Live Feed</h1>
-          <div class="sub">({{ items|length }} dynamic items)</div>
-          <div class="stamp" id="updatedStamp" data-iso="{{ last_updated_iso or '' }}">
-            {% if last_updated_human %}Updated: {{ last_updated_human }}{% else %}Updated: never{% endif %}
-          </div>
+
+  <!-- Top header -->
+  <header class="site-header container">
+    <div class="brand">
+      <img src="/static/logo.png" class="logo" alt="Purdue">
+      <div>
+        <h1>Purdue Men’s Basketball — Live Feed</h1>
+        <div class="subtle">
+          (<span id="itemCount">0</span> dynamic items)
+          • Updated: <span id="updatedAgo">—</span>
         </div>
       </div>
-      <div class="actions">
-        <button id="fightBtn" class="btn primary">▶︎ Fight Song</button>
-      </div>
-      <nav class="quick" aria-label="Quick links">
-        {% for q in quick_links %}
-          <a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>
-        {% endfor %}
-      </nav>
-
-      <!-- Compact “Sites” dropdown (mirrors the pills, handy on mobile) -->
-      <div class="sites-row">
-        <label for="sitesSel" class="sites-label">Sites:</label>
-        <select id="sitesSel" class="select sites-select">
-          <option value="">Open a site…</option>
-          {% for q in quick_links %}
-            <option value="{{ q.url }}">{{ q.label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </header>
-
-    <div id="notice" class="notice" style="display:none">
-      New items available. <button id="refreshBtn" class="btn">Refresh</button>
     </div>
+    <button class="fight-btn" id="fightBtn" aria-pressed="false">▶︎ Fight Song</button>
+    <audio id="fightAudio" preload="none" src="/fight_song.mp3" playsinline></audio>
+  </header>
 
-    <section class="controls">
-      <input id="search" class="input" placeholder="Filter (e.g., Braden Smith, Matt Painter)" />
-      <select id="sourceFilter" class="select">
-        <option value="__all__">All sources</option>
-        {% for s in sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
-      </select>
-      <span class="muted" id="countNote"></span>
-    </section>
-
-    <main>
-      {% if items and items|length %}
-        <ul class="items" id="itemsList">
-          {% for it in items %}
-            <li class="item" data-source="{{ it.source|e }}">
-              <div class="item-head">
-                {% if it.link %}
-                  <a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>
-                {% else %}
-                  <span class="title">{{ it.title }}</span>
-                {% endif %}
-                {% if it.source %}<span class="badge">{{ it.source }}</span>{% endif %}
-              </div>
-              <div class="meta">{% if it.date %}{{ it.date }}{% endif %}</div>
-              {% if it.description %}<p class="desc">{{ it.description }}</p>{% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <div class="empty">No dynamic items yet. Quick links above are always available.</div>
-      {% endif %}
-    </main>
+  <!-- Hero section (now active) -->
+  <div class="container">
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="left">
+          <img src="/static/logo.png" alt="Purdue" class="logo">
+          <div>
+            <div class="badge">Purdue MBB — Live Feed</div>
+            <div class="subtle">Updated: <span id="heroUpdated">—</span></div>
+          </div>
+        </div>
+        <button class="fight-btn" id="fightBtnHero">▶︎ Fight Song</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Inline fight song -->
-  <audio id="fightAudio" preload="metadata" playsinline webkit-playsinline>
-    <source src="{{ url_for('fight_song_file') }}" type="audio/mpeg">
-  </audio>
+  <div class="container">
+    <!-- Quick links -->
+    <nav class="quick-links" id="quickLinks"></nav>
 
-  <div id="toast" style="display:none;position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.2);font-size:.9rem;z-index:9999"></div>
+    <!-- Controls -->
+    <div class="controls">
+      <div class="grow">
+        <input type="search" id="search" placeholder="Filter (e.g., Braden Smith, Matt Painter)" autocomplete="off">
+      </div>
+      <div>
+        <select id="sourceSelect" class="select">
+          <option value="__all__">All sources</option>
+        </select>
+      </div>
+      <div class="count-note"><span id="shownCount">0</span> shown</div>
+    </div>
+
+    <div class="notice" id="notice" role="status" aria-live="polite">
+      New items available — refresh
+    </div>
+
+    <!-- Feed list -->
+    <main class="feed" id="feed" aria-live="polite"></main>
+
+    <footer>Not affiliated with Purdue University.</footer>
+  </div>
 
   <script>
-  (function(){
-    // Sites dropdown -> open in new tab
-    const sitesSel = document.getElementById('sitesSel');
-    if (sitesSel) {
-      sitesSel.addEventListener('change', () => {
-        const v = sitesSel.value;
-        if (v) window.open(v, '_blank', 'noopener');
-        sitesSel.selectedIndex = 0;
-      });
-    }
+  // --------- Config ----------
+  const STATIC_LINKS = [
+    { label: "Purdue – Official MBB Page", url: "https://purduesports.com/sports/mens-basketball" },
+    { label: "Purdue – Schedule",          url: "https://purduesports.com/sports/mens-basketball/schedule" },
+    { label: "Purdue – Roster",            url: "https://purduesports.com/sports/mens-basketball/roster" },
+    { label: "ESPN – Purdue MBB",          url: "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" },
+    { label: "CBS Sports – Purdue",        url: "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" },
+    { label: "Yahoo Sports – Purdue",      url: "https://sports.yahoo.com/ncaab/teams/purdue/" },
+    { label: "Hammer & Rails (SB Nation)", url: "https://www.hammerandrails.com/" },
+    { label: "GoldandBlack (Rivals)",      url: "https://purdue.rivals.com/" },
+    { label: "Barstool – Purdue",          url: "https://www.barstoolsports.com/topics/purdue-boilermakers" },
+    { label: "Reddit – r/Boilermakers",    url: "https://www.reddit.com/r/Boilermakers/" },
+    { label: "YouTube – Field of 68",      url: "https://www.youtube.com/@thefieldof68" },
+    { label: "YouTube – Sleepers Media",   url: "https://www.youtube.com/@SleepersMedia" }
+  ];
 
-    // Filter controls
-    const sel=document.getElementById('sourceFilter');
-    const list=document.getElementById('itemsList');
-    const note=document.getElementById('countNote');
-    const search=document.getElementById('search');
-    function applyFilter(){
-      if(!list)return;
-      const srcVal=sel.value, q=(search.value||"").toLowerCase();
-      let shown=0;
-      for(const li of list.querySelectorAll('.item')){
-        const src=li.getAttribute('data-source')||'';
-        const text=li.textContent.toLowerCase();
-        const on=((srcVal==='__all__')||(src===srcVal)) && (!q || text.includes(q));
-        li.style.display=on?'':'none'; if(on) shown++;
-      }
-      note.textContent = (shown || 0) + " shown";
-    }
-    sel&&sel.addEventListener('change',applyFilter);
-    search&&search.addEventListener('input',applyFilter);
-    applyFilter();
+  const FEED_URL = "/items.json";
+  let cacheSignature = "";
+  let ALL_ITEMS = [];
 
-    // Fight song
-    const btn=document.getElementById('fightBtn');
-    const audio=document.getElementById('fightAudio');
-    const toastEl=document.getElementById('toast');
-    function toast(msg){ if(!toastEl) return; toastEl.textContent=msg; toastEl.style.display=''; setTimeout(()=>{toastEl.style.display='none'}, 2400); }
-    if(btn&&audio){
-      btn.addEventListener('click', ()=>{
-        if (audio.readyState < 1) { try { audio.load(); } catch(_){} }
-        if(audio.paused){
-          audio.play().then(()=>{ btn.textContent='⏸︎ Pause'; })
-          .catch(()=>{ toast('Could not play fight_song.mp3'); });
-        }else{
-          audio.pause(); btn.textContent='▶︎ Fight Song';
-        }
-      });
-    }
+  const $ = sel => document.querySelector(sel);
+  const feedEl = $("#feed");
+  const searchEl = $("#search");
+  const sourceEl = $("#sourceSelect");
+  const shownCountEl = $("#shownCount");
+  const itemCountEl = $("#itemCount");
+  const updatedAgoEl = $("#updatedAgo");
+  const noticeEl = $("#notice");
+  const fightBtn = $("#fightBtn");
+  const fightBtnHero = $("#fightBtnHero");
+  const fightAudio = $("#fightAudio");
 
-    // Updated stamp & new-items notice
-    const stamp = document.getElementById('updatedStamp');
-    function humanize(iso){
-      if(!iso) return "never";
-      const t=new Date(iso), now=new Date(), diff=Math.max(0,(now-t)/1000);
-      const units=[["day",86400],["hour",3600],["minute",60],["second",1]];
-      for(const [n,s] of units){ if(diff>=s){ const v=Math.floor(diff/s); return v+" "+n+(v>1?"s":"")+" ago"; } }
-      return "just now";
-    }
-    if(stamp){
-      const iso=stamp.getAttribute('data-iso');
-      stamp.textContent="Updated: "+humanize(iso);
-      setInterval(()=>{ stamp.textContent="Updated: "+humanize(iso); }, 30000);
-    }
-    const notice=document.getElementById('notice');
-    const refreshBtn=document.getElementById('refreshBtn');
-    let lastIso=stamp?stamp.getAttribute('data-iso'):null;
-    async function checkForNew(){
-      try{
-        const r=await fetch('/items.json',{method:'HEAD',cache:'no-store'});
-        const lm=r.headers.get('Last-Modified');
-        const newIso=lm?new Date(lm).toISOString():null;
-        if(lastIso && newIso && new Date(newIso)>new Date(lastIso)){ notice.style.display=''; }
-      }catch(_){}
-    }
-    refreshBtn&&refreshBtn.addEventListener('click',()=>location.reload());
-    setInterval(checkForNew, 5*60*1000);
-  })();
+  function fmtDate(d){ try{ return new Date(d).toISOString().slice(0,10); }catch(e){ return ""; } }
+  function timeAgo(d){ try{ const diff = Date.now()-new Date(d).getTime(); const m=Math.floor(diff/60000); if(m<1)return"just now"; if(m<60)return m+" min ago"; const h=Math.floor(m/60); if(h<24)return h+" hr ago"; return Math.floor(h/24)+" d ago"; }catch(e){return"—";} }
+  function signature(items){ if(!items.length)return"0-0"; return (items[0].date||"")+"-"+items.length; }
+
+  function buildQuickLinks(){ $("#quickLinks").innerHTML = STATIC_LINKS.map(l=>`<a href="${l.url}" target="_blank">${l.label}</a>`).join(""); }
+  function uniqueSources(items){ return Array.from(new Set(items.map(it=>it.source||""))).filter(Boolean).sort(); }
+  function renderSourceOptions(items){ sourceEl.innerHTML=`<option value="__all__">All sources</option>`+uniqueSources(items).map(s=>`<option value="${s}">${s}</option>`).join(""); }
+
+  function itemMatches(it,q,src){ if(src!=="__all__" && it.source!==src) return false; if(!q)return true; return (it.title+it.summary).toLowerCase().includes(q.toLowerCase()); }
+
+  function renderItems(items){
+    let q=searchEl.value.trim(),src=sourceEl.value,filtered=items.filter(it=>itemMatches(it,q,src));
+    shownCountEl.textContent=filtered.length; itemCountEl.textContent=items.length;
+    const newest=items[0]?.date; if(newest){ updatedAgoEl.textContent=timeAgo(newest); const heroUpd=$("#heroUpdated"); if(heroUpd)heroUpd.textContent=timeAgo(newest); }
+    feedEl.innerHTML=filtered.map(it=>`
+      <article class="card">
+        <h3><a href="${it.link}" target="_blank">${it.title}</a></h3>
+        <div class="meta"><span class="source">${it.source||""}</span><span class="date">${fmtDate(it.date)}</span></div>
+        ${it.summary?`<div class="snippet">${it.summary.slice(0,220)}</div>`:""}
+      </article>`).join("");
+  }
+
+  async function loadItems(initial=false){
+    const data=await fetch(FEED_URL).then(r=>r.json()).catch(()=>({items:[]}));
+    const items=data.items||[]; items.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const sig=signature(items);
+    if(initial){ ALL_ITEMS=items; buildQuickLinks(); renderSourceOptions(items); renderItems(items); cacheSignature=sig; return; }
+    if(sig!==cacheSignature){ noticeEl.style.display="block"; ALL_ITEMS=items; renderSourceOptions(items); renderItems(items); cacheSignature=sig; setTimeout(()=>noticeEl.style.display="none",5000); }
+  }
+
+  function startPolling(){ setInterval(()=>loadItems(false),5*60*1000); }
+  function wireFightSong(btn){ btn.addEventListener("click",async()=>{ if(fightAudio.paused){ await fightAudio.play(); btn.textContent="⏸︎ Pause"; }else{ fightAudio.pause(); btn.textContent="▶︎ Fight Song"; } }); fightAudio.addEventListener("ended",()=>{ fightBtn.textContent="▶︎ Fight Song"; if(fightBtnHero) fightBtnHero.textContent="▶︎ Fight Song"; }); }
+
+  (async function(){ await loadItems(true); startPolling(); searchEl.addEventListener("input",()=>renderItems(ALL_ITEMS)); sourceEl.addEventListener("change",()=>renderItems(ALL_ITEMS)); wireFightSong(fightBtn); if(fightBtnHero) wireFightSong(fightBtnHero); })();
   </script>
 </body>
 </html>
