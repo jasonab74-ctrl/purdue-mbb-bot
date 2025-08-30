@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Purdue MBB — fail-safe collector with host-aware headers + debug titles
-- Chrome-like UA + Referer for Google/Bing (prevents empty RSS bodies)
+Purdue MBB — fail-safe collector with host-aware headers + YouTube guard + debug titles
+
+What you get:
+- Chrome-like UA + proper Referer for Google/Bing (prevents empty RSS bodies)
+- Stricter YouTube filter (only PurdueSports channel + Purdue MBB playlist always pass;
+  other YouTube must still mention Purdue/Boilermakers/players/coach)
 - Pass 1: topic/roster/player/writer matching (football excluded)
-- If < 30 items, Pass 2: LENIENT (accept any non-football from your feeds)
-- Freshness window 365d by default (env FRESH_DAYS to adjust)
-- Atomic write to items.json
-- Prints rich JSON including per-feed http/bytes/seen/kept and debug titles
+- If < 40 items, Pass 2: LENIENT (accept any non-football from your feeds)
+- Freshness window 365d by default (env FRESH_DAYS to change)
+- Atomic write to items.json + rich diagnostics in last_run
 """
 
 import json, os, re, time, traceback
 from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import feedparser  # type: ignore
 import requests    # type: ignore
@@ -29,7 +32,7 @@ try:
 except Exception:
     FEEDS = []
     STATIC_LINKS = []
-    KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster","brian neubert"]
+    KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster"]
     KEYWORDS_EXCLUDE = ["football","qb","nfl"]
     MAX_ITEMS_PER_FEED = 200
     ALLOW_DUPLICATE_DOMAINS = True
@@ -37,11 +40,13 @@ except Exception:
     SOURCE_ALIASES = {}
 
 # -----------------------------------------------------------------------------
-# Player keywords (this-year roster + notable recent)
+# Player keywords (extended list; add more with PLAYER_EXTRA env, comma-separated)
 PLAYER_KEYWORDS_DEFAULT = [
-    "braden smith", "fletcher loyer", "trey kaufman", "trey kaufman-renn",
-    "mason gillis", "caleb furst", "myles colvin", "camden heide", "will berg",
-    "matt painter", "zach edey"
+    # Core guards/wings/bigs
+    "braden smith","fletcher loyer","trey kaufman","trey kaufman-renn","mason gillis","caleb furst",
+    "myles colvin","camden heide","will berg","jack benter","daniel jacobsen","levi cook",
+    # coach + notable alum
+    "matt painter","zach edey",
 ]
 EXTRA = os.environ.get("PLAYER_EXTRA", "").strip()
 if EXTRA:
@@ -67,10 +72,10 @@ TIMEOUT = 25
 RETRIES = 3
 BACKOFF_BASE = 1.7
 
-# Freshness window (days). You can tune with env FRESH_DAYS.
+# Freshness window (days)
 FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "365"))
 
-# Build regexes (include writer + players)
+# Regexes
 INCLUDE_TERMS = (KEYWORDS_INCLUDE or []) + PLAYER_KEYWORDS
 CORE_INCLUDE_RE = re.compile(
     r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey|roster|brian neubert)\b"
@@ -79,11 +84,18 @@ CORE_INCLUDE_RE = re.compile(
 )
 INCLUDE_RE = re.compile("|".join([re.escape(k) for k in INCLUDE_TERMS]), re.IGNORECASE)
 EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in (KEYWORDS_EXCLUDE or [])]), re.IGNORECASE)
+
 YOUTUBE_HOSTS = ("youtube.com","youtu.be")
+# IDs we always allow (official Purdue sources)
+YT_ALWAYS_ALLOW = {
+    "UC2vqJwR4Z1tcHTfb3e8Dq9g",  # example placeholder; not required if 'user=purduesports'
+}
+# playlist we always allow
+YT_PLAYLIST_ALLOW = {"PLCIT1wYGMWN80GZO_ybcH6vuHeObcOcmh"}
 
 TARGETED_FEED_HINTS = (
     "purdue","boiler","mackey","matt painter","brian neubert","youtube","r/boilermakers",
-    "bing news","google news","hammer & rails","on3","rivals","goldandblack"
+    "bing news","google news","hammer & rails","on3","rivals","goldandblack","journalcourier"
 )
 
 def now_iso() -> str: return datetime.now(timezone.utc).isoformat()
@@ -102,10 +114,11 @@ def normalize_link(url: str) -> str:
         u = urlparse(url)
         q = dict(parse_qsl(u.query, keep_blank_values=True))
         if any(h in u.netloc for h in YOUTUBE_HOSTS):
-            q = {k:v for k,v in q.items() if k in ("t","time_continue")}
+            # keep timestamp if present
+            q = {k: v for k, v in q.items() if k in ("t","time_continue","v","list","channel_id","ab_channel")}
         else:
             q = {}
-        return urlunparse((u.scheme,u.netloc,u.path,u.params, urlencode(q), "")) or url
+        return urlunparse((u.scheme, u.netloc, u.path, u.params, urlencode(q), "")) or url
     except Exception:
         return url
 
@@ -141,15 +154,33 @@ def feed_is_targeted(feed_name: str) -> bool:
     n = (feed_name or "").lower()
     return any(h in n for h in TARGETED_FEED_HINTS)
 
+def is_youtube_link(url: str) -> bool:
+    return any(h in (url or "") for h in YOUTUBE_HOSTS)
+
+def youtube_allowed(entry: Dict[str, Any], txt: str) -> bool:
+    """Allow official Purdue sources unconditionally; otherwise require Purdue/Boilermakers or player/coach mentions."""
+    link = (entry.get("link") or entry.get("id") or "")
+    if not is_youtube_link(link):
+        return True
+    # always allow official playlist
+    if "list=PLCIT1wYGMWN80GZO_ybcH6vuHeObcOcmh" in link:
+        return True
+    # allow PurdueSports channel if detectable
+    if "ab_channel=PurdueSports" in link or "user=purduesports" in link:
+        return True
+    # otherwise, require Purdue context
+    if CORE_INCLUDE_RE.search(txt) or INCLUDE_RE.search(txt):
+        return True
+    return False
+
 def passes_filters(entry: Dict[str, Any], source_name: str, *, lenient: bool) -> bool:
     txt = text_of(entry)
-    # Always block football/other excluded sports
     if EXCLUDE_RE.search(txt):
         return False
+    if not youtube_allowed(entry, txt):
+        return False
     if lenient:
-        # Fail-safe: accept anything non-football
         return True
-    # Normal pass
     if feed_is_targeted(source_name): return True
     if CORE_INCLUDE_RE.search(txt):  return True
     if INCLUDE_RE.search(txt):       return True
@@ -161,8 +192,7 @@ def entry_to_item(entry: Dict[str, Any], source_name: str) -> Dict[str, Any]:
     iso   = to_iso(entry.get("published_parsed") or entry.get("updated_parsed"))
     source= SOURCE_ALIASES.get(source_name, source_name)
     summary = clean_html(entry.get("summary") or entry.get("description") or "")
-    host = domain_of(link)
-    if any(h in host for h in YOUTUBE_HOSTS) and "YouTube" not in source:
+    if is_youtube_link(link) and "YouTube" not in source:
         source = f"YouTube — {source}"
     return {"title": title, "link": link, "date": iso, "source": source, "summary": summary[:600]}
 
@@ -196,10 +226,7 @@ def fetch_feed_with_meta(url: str):
         data, code = fetch_bytes_with_retries(url)
         meta["http"]  = int(code) if code else None
         meta["bytes"] = len(data)
-        if data:
-            parsed = feedparser.parse(data)
-        else:
-            parsed = feedparser.parse(url)
+        parsed = feedparser.parse(data or url)
         entries = parsed.entries or []
         return entries, meta
     except Exception as e:
@@ -324,7 +351,7 @@ def main():
 
     # Pass 2 (lenient) if too few
     used_lenient = False
-    if len(new_items) < 30:
+    if len(new_items) < 40:
         l_items, l_err, l_kept, l_seen, l_meta, l_dbg = collect_pass(lenient=True)
         used_lenient = True
         errors += ["-- lenient retry --"] + l_err
@@ -338,7 +365,7 @@ def main():
     new_n = len(new_items)
 
     # Guard rails
-    MIN_ABSOLUTE = 50
+    MIN_ABSOLUTE = 60
     REL_DROP = 0.6
     if new_n == 0 and prev_n > 0:
         final_items, decision = prev_items, "kept_previous_zero_new"
