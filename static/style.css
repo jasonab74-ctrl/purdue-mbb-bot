@@ -1,183 +1,118 @@
 /* ==========================================================================
-   Purdue MBB — UI theme (LIGHT + subtle fixed background)
-   SAFE: style-only; no HTML/JS/server changes required.
-   Place an image at /static/bg_purdue.jpg (optional).
+   Purdue MBB — LIGHT theme + subtle fixed backdrop
+   SAFE: style-only; no HTML/JS/server changes.
+   If /static/bg_purdue.jpg exists, it renders faintly; otherwise just a gradient.
    ========================================================================== */
 
 :root{
   --bg: #f7f6f1;
   --bg-2: #f2efe7;
   --card: #ffffff;
-  --text: #1a1a1a;
-  --muted: #6b6b6b;
+  --text: #111;
+  --muted: #666;
   --line: rgba(0,0,0,.08);
   --shadow: 0 6px 24px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
   --radius: 14px;
-
-  /* Purdue golds */
   --gold: #d7c38a;
   --gold-2: #b89a54;
-  --gold-soft: rgba(215,195,138,.18);
-
-  /* chips / badges */
   --chip-bg: rgba(215,195,138,.12);
   --chip-border: rgba(184,154,84,.45);
-  --badge-bg: rgba(0,0,0,.06);
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
-
 body{
   margin:0;
   color:var(--text);
-  background: var(--bg);
-  font: 16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(180deg,var(--bg),var(--bg-2));
+  font: 16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle fixed Purdue backdrop (won’t interfere with layout) */
-body::before{
+/* Subtle fixed watermark (doesn't overpower, doesn't reflow) */
+body::after{
   content:"";
-  position:fixed; inset:0;
-  z-index:0;
+  position:fixed; inset:0; z-index:0; pointer-events:none;
   background:
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    linear-gradient(180deg,var(--bg),var(--bg-2));
 }
-/* If you add /static/bg_purdue.jpg it will softly appear */
-@media (prefers-reduced-transparency: no-preference){
-  body::after{
-    content:"";
-    position:fixed; inset:0;
-    z-index:0;
-    background-image:url("/static/bg_purdue.jpg");
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-    opacity:.06;                 /* dialed-in so content remains primary */
-    filter:saturate(.8) contrast(1.05);
-    pointer-events:none;
-  }
+body.has-bg::after{
+  background:
+    linear-gradient(180deg,var(--bg),var(--bg-2)),
+    url("/static/bg_purdue.jpg") no-repeat 5% 0 / 820px auto;
+  opacity:.04;                /* very faint */
+  filter:saturate(.85) contrast(1.03);
+  background-attachment: fixed, fixed;
 }
 
-/* Layer main content above backdrop */
-#app, main, header, .container{ position:relative; z-index:1 }
+/* Ensure app content sits above backdrop */
+#app, main, header, .container{position:relative; z-index:1}
 
-/* Layout container */
-.container{
-  max-width: 1050px;
-  margin: 28px auto;
-  padding: 0 16px;
-}
+.container{max-width:1050px;margin:28px auto;padding:0 16px}
 
-/* Header card */
+/* Header */
 .header{
-  background: linear-gradient(180deg,#ffffff,#faf9f6);
+  background: #fff;
   border:1px solid var(--line);
   box-shadow: var(--shadow);
   border-radius: var(--radius);
-  padding: 18px 18px;
+  padding:18px;
   display:flex; align-items:center; gap:14px;
 }
-.header .logo{
-  width:44px; height:44px; object-fit:contain; flex:0 0 44px;
-}
-.header h1{
-  font-size:22px; margin:0 0 2px 0; letter-spacing:.2px;
-}
-.header .meta{
-  color:var(--muted); font-size:13px;
-}
+.header .logo{width:44px;height:44px;object-fit:contain;flex:0 0 44px}
+.header h1{font-size:22px;margin:0 0 2px 0}
+.header .meta{color:var(--muted);font-size:13px}
 
-/* Fight song button */
-.btn, .fight-btn{
-  appearance:none; border:1px solid var(--gold-2);
-  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-2) 100%);
-  color:#2a210b; font-weight:600;
-  padding:8px 12px; border-radius:999px; cursor:pointer;
-  box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 2px 8px rgba(0,0,0,.08);
+/* Fight Song */
+.btn,.fight-btn{
+  appearance:none; cursor:pointer;
+  background: linear-gradient(180deg,var(--gold),var(--gold-2));
+  border:1px solid var(--gold-2); color:#2a210b; font-weight:600;
+  padding:8px 12px;border-radius:999px;
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 2px 8px rgba(0,0,0,.08);
 }
-.btn:disabled{opacity:.6; cursor:not-allowed}
 
 /* Quick links (chips) */
-.links-row, .quick-links, .pills{
-  display:flex; flex-wrap:wrap; gap:10px; margin:14px 0 12px 0;
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 12px}
+.pills a, a.pill{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:10px 14px;border-radius:999px;text-decoration:none;
+  color:#222;font-weight:600;font-size:14px;
+  background:var(--chip-bg);border:1px solid var(--chip-border);
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset;
+  transition:transform .06s ease, background .15s ease, border-color .15s ease;
 }
-.links-row a, .quick-links a, .pills a, a.pill{
-  display:inline-flex; align-items:center; gap:7px;
-  padding:10px 14px; border-radius:999px;
-  text-decoration:none; color:#2d2d2d; font-weight:600; font-size:14px;
-  background: var(--chip-bg);
-  border:1px solid var(--chip-border);
-  box-shadow: 0 1px 0 rgba(255,255,255,.35) inset;
-  transition: transform .06s ease, background .15s ease, border-color .15s ease;
-}
-.links-row a:hover, .quick-links a:hover, .pills a:hover, a.pill:hover{
-  transform: translateY(-1px);
-  background: rgba(215,195,138,.22);
-}
+.pills a:hover, a.pill:hover{transform:translateY(-1px)}
 
-/* Controls row */
-.controls{
-  display:flex; gap:10px; align-items:center; margin:4px 0 12px 0;
-}
+/* Controls */
+.controls{display:flex;gap:10px;align-items:center;margin:6px 0 12px}
 .controls input[type="search"], .controls input[type="text"]{
-  flex:1; padding:12px 14px; border-radius:12px;
-  border:1px solid var(--line); background:#fff; outline:none;
-  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset;
+  flex:1;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset; outline:none;
 }
-.controls select{
-  min-width:240px; padding:10px 12px; border-radius:12px;
-  border:1px solid var(--line); background:#fff;
-}
+.controls select{min-width:240px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff}
 
-/* Notice bar */
-.notice{
-  margin:8px 0; background:#ffffff;
-  border:1px dashed var(--chip-border);
-  border-radius:12px; padding:10px 12px; color:#455;
-}
+/* Notice */
+.notice{margin:8px 0;background:#fff;border:1px dashed var(--chip-border);border-radius:12px;padding:10px 12px;color:#445}
 
-/* Feed list */
-.list{ display:flex; flex-direction:column; gap:12px; }
-.card, .item{
-  border:1px solid var(--line);
-  background:var(--card);
-  border-radius:16px;
-  box-shadow: var(--shadow);
-  padding:14px 16px;
+/* List */
+.list{display:flex;flex-direction:column;gap:12px}
+.item{
+  border:1px solid var(--line);background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:14px 16px;
 }
-.item .title{
-  margin:2px 0 6px 0; font-size:16px; font-weight:700; line-height:1.35;
-}
-.item .title a{ color:inherit; text-decoration:none }
-.item .title a:hover{ text-decoration:underline }
-
-.meta-row{
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  margin-top:6px; color:var(--muted); font-size:13px;
-}
-
-/* Source pills / badges */
-.badge, .source, .source-badge{
-  display:inline-flex; align-items:center; gap:6px;
-  padding:6px 10px; border-radius:999px;
-  background: var(--badge-bg); color:#333; font-weight:600; font-size:12px;
-  border:1px solid var(--line);
-}
-.badge.gold, .source.gold{
-  background: var(--gold-soft);
-  border-color: var(--chip-border);
-}
+.item .title{margin:2px 0 6px;font-size:16px;font-weight:700;line-height:1.35}
+.item .title a{color:inherit;text-decoration:none}
+.item .title a:hover{text-decoration:underline}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;color:var(--muted);font-size:13px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.06);border:1px solid var(--line);font-weight:600;font-size:12px}
 
 /* Footer */
-.footer{ color:var(--muted); font-size:13px; margin:18px 0; }
+.footer{color:var(--muted);font-size:13px;margin:18px 0}
 
-/* Mobile tweaks */
+/* Mobile */
 @media (max-width:740px){
-  .header{ padding:14px }
-  .header h1{ font-size:19px }
-  .controls{ flex-direction:column; align-items:stretch }
-  .controls select{ min-width:unset }
+  .header{padding:14px}
+  .header h1{font-size:19px}
+  .controls{flex-direction:column;align-items:stretch}
+  .controls select{min-width:unset}
 }
