@@ -1,242 +1,97 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Purdue MBB — resilient collector
-- Broad GN coverage + retries/backoff
-- Strict football filtering; CBB reddit requires 'Purdue' in title
-- Cleans HTML; dedup by link; per-domain throttling
-- Newest-first
-- Guardrails so we NEVER overwrite with a weak/empty pass
-"""
+# feeds.py — Purdue MBB Live Feed (basketball-only, broadened with "boilers")
 
-import json, os, re, time, traceback
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Tuple
+# Quick links (UI pills)
+STATIC_LINKS = [
+    {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
+    {"label": "Purdue – Schedule",          "url": "https://purduesports.com/sports/mens-basketball/schedule"},
+    {"label": "Purdue – Roster",            "url": "https://purduesports.com/sports/mens-basketball/roster"},
+    {"label": "ESPN – Purdue MBB",          "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
+    {"label": "CBS Sports – Purdue",        "url": "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"},
+    {"label": "Yahoo Sports – Purdue",      "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
+    {"label": "Hammer & Rails (SB Nation)", "url": "https://www.hammerandrails.com/"},
+    {"label": "GoldandBlack (Rivals)",      "url": "https://purdue.rivals.com/"},
+    {"label": "Barstool – Purdue",          "url": "https://www.barstoolsports.com/topics/purdue-boilermakers"},
+    {"label": "Reddit – r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/"},
+    {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@thefieldof68"},
+    {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@SleepersMedia"},
+]
 
-import feedparser  # type: ignore
-import requests    # type: ignore
-from html import unescape
+# Feeds (Google News scoped + direct RSS where possible)
+# YouTube search RSS doesn’t exist; use Google News with site:youtube.com.
+FEEDS = [
+    # Broad Purdue MBB queries
+    {"name": "Google News — Purdue Basketball",         "url": "https://news.google.com/rss/search?q=Purdue%20Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — Purdue Boilermakers MBB",   "url": "https://news.google.com/rss/search?q=%22Purdue%20Boilermakers%22%20%22men%27s%20basketball%22&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — Boilers (Basketball)",      "url": "https://news.google.com/rss/search?q=Boilers%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — Matt Painter",              "url": "https://news.google.com/rss/search?q=%22Matt%20Painter%22%20Purdue&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — Mackey Arena",              "url": "https://news.google.com/rss/search?q=%22Mackey%20Arena%22%20Purdue&hl=en-US&gl=US&ceid=US:en"},
 
-# ---- Config from feeds.py ----------------------------------------------------
-try:
-    from feeds import (
-        FEEDS, STATIC_LINKS,
-        KEYWORDS_INCLUDE, KEYWORDS_EXCLUDE,
-        MAX_ITEMS_PER_FEED, ALLOW_DUPLICATE_DOMAINS, SOURCE_ALIASES,
-        DOMAIN_PER_FEED_LIMIT,
-    )
-except Exception:
-    FEEDS = []
-    STATIC_LINKS = []
-    KEYWORDS_INCLUDE = ["purdue","men's basketball","ncaa","matt painter","mackey"]
-    KEYWORDS_EXCLUDE = ["football","cfb","quarterback","nfl"]
-    MAX_ITEMS_PER_FEED = 120
-    ALLOW_DUPLICATE_DOMAINS = False
-    DOMAIN_PER_FEED_LIMIT = 4
-    SOURCE_ALIASES = {}
+    # Wider NCAA/Big Ten context mentioning Purdue (adds volume but stays hoops)
+    {"name": "Google News — Big Ten Basketball + Purdue", "url": "https://news.google.com/rss/search?q=%22Big%20Ten%22%20basketball%20Purdue&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — NCAA Tournament + Purdue",     "url": "https://news.google.com/rss/search?q=%22NCAA%20Tournament%22%20Purdue%20basketball&hl=en-US&gl=US&ceid=US:en"},
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
-ITEMS_PATH = os.path.join(ROOT, "items.json")
+    # YouTube mentions (video links)
+    {"name": "YouTube Mentions — Purdue Basketball",    "url": "https://news.google.com/rss/search?q=Purdue%20Basketball%20site:youtube.com&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "YouTube Mentions — Matt Painter",         "url": "https://news.google.com/rss/search?q=%22Matt%20Painter%22%20site:youtube.com&hl=en-US&gl=US&ceid=US:en"},
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (PurdueMBBFeed/1.3) Python/requests",
-    "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8",
+    # Team/community & local/state via site-scoped Google News
+    {"name": "Hammer & Rails (SB Nation)",              "url": "https://www.hammerandrails.com/rss/index.xml"},
+    {"name": "Google News — GoldandBlack (Rivals)",     "url": "https://news.google.com/rss/search?q=site:purdue.rivals.com%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — On3 Purdue",                "url": "https://news.google.com/rss/search?q=site:on3.com/teams/purdue-boilermakers/%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — 247Sports Purdue",          "url": "https://news.google.com/rss/search?q=site:247sports.com/college/purdue/%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — IndyStar Purdue",           "url": "https://news.google.com/rss/search?q=site:indystar.com%20Purdue%20Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — Sports Illustrated Purdue", "url": "https://news.google.com/rss/search?q=site:si.com%20Purdue%20Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — USA Today Purdue",          "url": "https://news.google.com/rss/search?q=site:usatoday.com%20Purdue%20Basketball&hl=en-US&gl=US&ceid=US:en"},
+
+    # Official athletics (GN-scraped; native RSS inconsistent)
+    {"name": "Google News — PurdueSports.com (MBB)",    "url": "https://news.google.com/rss/search?q=site:purduesports.com%20%22Men%27s%20Basketball%22&hl=en-US&gl=US&ceid=US:en"},
+
+    # Reddit (CBB feed requires 'Purdue' in title; enforced in collector)
+    {"name": "Reddit — r/Boilermakers",                 "url": "https://www.reddit.com/r/Boilermakers/.rss"},
+    {"name": "Reddit — r/CollegeBasketball",            "url": "https://www.reddit.com/r/CollegeBasketball/.rss"},
+]
+
+# Include terms (at least one; broadened with “boilers” and variants)
+KEYWORDS_INCLUDE = [
+    # school/program nicknames
+    "purdue", "boilers", "boilermakers", "boilermaker", "boilerball",
+    # sport
+    "men’s basketball", "mens basketball", "men's basketball", "college basketball", "ncaa",
+    # context
+    "big ten", "b1g", "mackey arena", "matt painter", "painter",
+    "ranked", "preseason", "scrimmage", "exhibition", "tipoff",
+    "recruit", "commit", "transfer portal", "bracket", "seed",
+    # players (non-exhaustive; harmless if absent)
+    "zach edey", "braden smith", "fletcher loyer", "lance jones",
+    "trey kaufman", "mason gillis", "caleb first", "myles colvin",
+]
+
+# Exclude terms (football & other sports; keep hoops generic words)
+KEYWORDS_EXCLUDE = [
+    # football identifiers/positions/terms
+    "football", "cfb", "gridiron",
+    "quarterback", "qb", "running back", "rb", "wide receiver", "wr", "tight end", "te",
+    "linebacker", "lb", "cornerback", "cb", "safety", "edge", "defensive end", "de", "nose tackle",
+    "offensive line", "defensive line",
+    "kickoff", "punt", "field goal", "touchdown", "two-point conversion", "extra point",
+    "rushing yards", "passing yards", "sack", "spring game", "fall camp", "depth chart",
+    "nfl", "combine", "pro day",
+
+    # other sports
+    "baseball", "softball", "volleyball", "soccer", "wrestling",
+    "track and field", "cross country", "golf", "tennis", "swimming",
+
+    # women’s team (strict men’s-only site)
+    "women’s basketball", "womens basketball", "women's basketball",
+]
+
+# Collector knobs
+MAX_ITEMS_PER_FEED = 120            # generous cap to reach 80–150 overall
+ALLOW_DUPLICATE_DOMAINS = False
+DOMAIN_PER_FEED_LIMIT = 4           # avoid floods from a single domain
+
+SOURCE_ALIASES = {
+    "Hammer & Rails (SB Nation)": "Hammer & Rails",
+    "Reddit — r/Boilermakers": "Reddit r/Boilermakers",
+    "Reddit — r/CollegeBasketball": "Reddit r/CollegeBasketball",
 }
-TIMEOUT = 25
-RETRIES = 3
-BACKOFF_BASE = 1.6
-
-INCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_INCLUDE]), re.IGNORECASE)
-EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_EXCLUDE]), re.IGNORECASE)
-YOUTUBE_HOSTS = ("youtube.com","youtu.be")
-
-def now_iso() -> str: return datetime.now(timezone.utc).isoformat()
-
-def to_iso(dt_struct) -> str:
-    try:
-        if not dt_struct: return now_iso()
-        ts = time.mktime(dt_struct)
-        return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-    except Exception:
-        return now_iso()
-
-def normalize_link(url: str) -> str:
-    if not url: return ""
-    try:
-        from urllib.parse import urlparse, parse_qsl, urlunparse, urlencode
-        u = urlparse(url)
-        q = dict(parse_qsl(u.query, keep_blank_values=True))
-        if any(h in u.netloc for h in YOUTUBE_HOSTS):
-            q = {k:v for k,v in q.items() if k in ("t","time_continue")}
-        else:
-            q = {}
-        return urlunparse((u.scheme,u.netloc,u.path,u.params, urlencode(q), "")) or url
-    except Exception:
-        return url
-
-def domain_of(url: str) -> str:
-    try:
-        from urllib.parse import urlparse
-        return urlparse(url).netloc.lower()
-    except Exception:
-        return ""
-
-def clean_html(s: str) -> str:
-    if not s: return ""
-    s = re.sub(r"<[^>]+>", " ", s)
-    s = unescape(re.sub(r"\s+", " ", s)).strip()
-    return s
-
-def text_of(entry: Dict[str, Any]) -> str:
-    parts=[]
-    for k in ("title","summary","description"):
-        v = entry.get(k)
-        if isinstance(v,str): parts.append(v)
-    return " ".join(parts)
-
-def passes_filters(entry: Dict[str, Any], source_name: str) -> bool:
-    text = text_of(entry)
-    if not INCLUDE_RE.search(text): return False
-    if EXCLUDE_RE.search(text): return False
-    if "CollegeBasketball" in source_name and not re.search(r"\bpurdue\b", entry.get("title",""), re.IGNORECASE):
-        return False
-    return True
-
-def entry_to_item(entry: Dict[str, Any], source_name: str) -> Dict[str, Any]:
-    title = entry.get("title") or "Untitled"
-    link = normalize_link(entry.get("link") or entry.get("id") or "")
-    iso = to_iso(entry.get("published_parsed") or entry.get("updated_parsed"))
-    source = SOURCE_ALIASES.get(source_name, source_name)
-    summary = clean_html(entry.get("summary") or entry.get("description") or "")
-    host = domain_of(link)
-    if any(h in host for h in YOUTUBE_HOSTS) and "YouTube" not in source:
-        source = f"YouTube — {source}"
-    return {"title": title, "link": link, "date": iso, "source": source, "summary": summary[:600]}
-
-def fetch_bytes_with_retries(url: str) -> bytes:
-    last = None
-    for i in range(RETRIES):
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-            resp.raise_for_status()
-            return resp.content
-        except Exception as e:
-            last = e
-            time.sleep(BACKOFF_BASE ** i)
-    if last: raise last
-    return b""
-
-def fetch_feed(url: str):
-    try:
-        data = fetch_bytes_with_retries(url)
-        if data: return feedparser.parse(data)
-    except Exception:
-        pass
-    return feedparser.parse(url)
-
-def load_previous() -> Dict[str, Any]:
-    if not os.path.exists(ITEMS_PATH):
-        return {"items": [], "generated_at": now_iso()}
-    try:
-        with open(ITEMS_PATH,"r",encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {"items": [], "generated_at": now_iso()}
-
-def collect_once() -> Tuple[List[Dict[str, Any]], List[str], Dict[str,int]]:
-    items: List[Dict[str, Any]] = []
-    errors: List[str] = []
-    per_feed_counts: Dict[str,int] = {}
-    seen_links = set()
-    domain_counts: Dict[Tuple[str,str], int] = {}
-
-    per_feed_cap = max(40, int(MAX_ITEMS_PER_FEED))
-    dom_cap = max(1, int(DOMAIN_PER_FEED_LIMIT))
-
-    for f in FEEDS:
-        name = f.get("name","Feed")
-        url  = f.get("url")
-        if not url: continue
-        try:
-            parsed = fetch_feed(url)
-            entries = parsed.entries or []
-            added = 0
-            for e in entries:
-                if not passes_filters(e, name): continue
-                itm = entry_to_item(e, name)
-                if not itm["link"]: continue
-                if itm["link"] in seen_links: continue
-
-                if not ALLOW_DUPLICATE_DOMAINS:
-                    d = domain_of(itm["link"])
-                    key = (name, d)
-                    cnt = domain_counts.get(key, 0)
-                    if d and cnt >= dom_cap:  # throttle per domain
-                        continue
-                    if d:
-                        domain_counts[key] = cnt + 1
-
-                seen_links.add(itm["link"])
-                items.append(itm)
-                added += 1
-                if added >= per_feed_cap: break
-            per_feed_counts[name] = added
-        except Exception as ex:
-            errors.append(f"{name}: {ex}")
-            traceback.print_exc()
-
-    items.sort(key=lambda x: x.get("date") or "", reverse=True)
-    items = items[:700]
-    return items, errors, per_feed_counts
-
-def merge_items(new_items: List[Dict[str, Any]], prev_items: List[Dict[str, Any]], keep: int = 550) -> List[Dict[str, Any]]:
-    by_link: Dict[str, Dict[str, Any]] = {}
-    for it in prev_items: by_link[it.get("link","")] = it
-    for it in new_items:
-        link = it.get("link","")
-        if not link: continue
-        old = by_link.get(link)
-        if (not old) or (it.get("date","") > old.get("date","")):
-            by_link[link] = it
-    merged = list(by_link.values())
-    merged.sort(key=lambda x: x.get("date") or "", reverse=True)
-    return merged[:keep]
-
-def write_items_safely(items: List[Dict[str, Any]]):
-    payload = {"items": items, "generated_at": now_iso()}
-    tmp = ITEMS_PATH + ".tmp"
-    with open(tmp,"w",encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, ITEMS_PATH)
-
-def main():
-    prev = load_previous()
-    prev_items = prev.get("items", [])
-    prev_n = len(prev_items)
-
-    new_items, errors, per_feed_counts = collect_once()
-    new_n = len(new_items)
-
-    MIN_ABSOLUTE = 80   # aim ≥80 articles minimum
-    REL_DROP     = 0.6  # merge if <60% of previous volume
-
-    if new_n == 0 and prev_n > 0:
-        final_items, decision = prev_items, "kept_previous_zero_new"
-    elif new_n < MIN_ABSOLUTE and prev_n > 0:
-        final_items, decision = merge_items(new_items, prev_items), "merged_min_absolute"
-    elif prev_n > 0 and new_n < int(prev_n * REL_DROP):
-        final_items, decision = merge_items(new_items, prev_items), "merged_relative_drop"
-    else:
-        final_items, decision = new_items, "accepted_new"
-
-    write_items_safely(final_items)
-    print(json.dumps({
-        "ok": True, "decision": decision,
-        "new_count": new_n, "prev_count": prev_n,
-        "final_count": len(final_items),
-        "per_feed_counts": per_feed_counts,
-        "errors": errors, "ts": now_iso()
-    }))
-
-if __name__ == "__main__":
-    main()
