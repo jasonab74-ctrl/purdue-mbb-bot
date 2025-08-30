@@ -1,15 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Purdue MBB — robust collector (freshness + diagnostics)
-- Realistic Chrome UA (prevents empty bodies from some hosts)
-- Smart include logic (Purdue-targeted feeds auto-include)
-- Strict football/other-sport excludes
-- Freshness window (default 120 days) to keep results current
-- De-dupe, per-domain caps, newest-first
-- Atomic write to items.json
-- Guardrails: never clobber a good file with an empty pass
-- Always prints JSON summary with per-feed http/bytes/seen/kept
+Purdue MBB — robust collector (freshness + diagnostics, FIXED SYNTAX)
 """
 
 import json, os, re, time, traceback
@@ -43,7 +35,6 @@ except Exception:
 ROOT = os.path.dirname(os.path.abspath(__file__))
 ITEMS_PATH = os.path.join(ROOT, "items.json")
 
-# Realistic browser headers
 HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                    "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -57,8 +48,6 @@ HEADERS = {
 TIMEOUT = 25
 RETRIES = 3
 BACKOFF_BASE = 1.7
-
-# Freshness window (days). Items older than this are dropped.
 FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "120"))
 
 CORE_INCLUDE_RE = re.compile(
@@ -227,9 +216,12 @@ def collect_once():
             for e in entries:
                 if not passes_filters(e, name): continue
                 itm = entry_to_item(e, name)
-                if not itm["link"]: continue
-                if too_old(itm["date"]): continue
-                if itm["link"] in seen_links: continue
+                if not itm["link"]:
+                    continue
+                if too_old(itm["date"]):
+                    continue
+                if itm["link"] in seen_links:
+                    continue
 
                 if not ALLOW_DUPLICATE_DOMAINS:
                     d = domain_of(itm["link"]); key = (name, d); cnt = domain_counts.get(key, 0)
@@ -254,12 +246,19 @@ def collect_once():
 
 def merge_items(new_items, prev_items, keep: int = 550):
     by_link: Dict[str, Dict[str, Any]] = {}
-    for it in prev_items: by_link[it.get("link","")] = it
+    for it in prev_items:
+        link = it.get("link","")
+        if link:
+            by_link[link] = it
     for it in new_items:
-        link = it.get("link",""); if not link: continue
+        link = it.get("link","")
+        if not link:
+            continue
         old = by_link.get(link)
-        if (not old) or (it.get("date","") > old.get("date","")): by_link[link] = it
-    merged = list(by_link.values()); merged.sort(key=lambda x: x.get("date") or "", reverse=True)
+        if (not old) or (it.get("date","") > old.get("date","")):
+            by_link[link] = it
+    merged = list(by_link.values())
+    merged.sort(key=lambda x: x.get("date") or "", reverse=True)
     return merged[:keep]
 
 def main():
@@ -270,7 +269,6 @@ def main():
     new_items, errors, per_feed_kept, per_feed_seen, per_feed_meta = collect_once()
     new_n = len(new_items)
 
-    # Guard rails (avoid clobber on poor pass)
     MIN_ABSOLUTE = 50
     REL_DROP = 0.6
 
