@@ -1,4 +1,4 @@
-# feeds.py — Purdue MBB Live Feed (stable sources + Brian Neubert + more site scopes)
+# feeds.py — Purdue MBB sources (adds Journal & Courier + Purdue Exponent as site-scoped feeds)
 
 STATIC_LINKS = [
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
@@ -9,6 +9,7 @@ STATIC_LINKS = [
     {"label": "Yahoo Sports – Purdue",      "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
     {"label": "Hammer & Rails (SB Nation)", "url": "https://www.hammerandrails.com/"},
     {"label": "GoldandBlack (On3)",         "url": "https://www.on3.com/teams/purdue-boilermakers/"},
+    {"label": "Barstool – Purdue",          "url": "https://www.barstoolsports.com/topics/purdue-boilermakers"},
     {"label": "Reddit – r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/"},
     {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@TheFieldOf68"},
     {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@sleepersmedia"},
@@ -16,15 +17,19 @@ STATIC_LINKS = [
 
 def GN(q: str) -> dict:
     q2 = f"{q} when:60d sort:date"
-    return {"name": f"Google News — {q}",
-            "url": f"https://news.google.com/rss/search?q={q2}&hl=en-US&gl=US&ceid=US:en"}
+    return {
+        "name": f"Google News — {q}",
+        "url": f"https://news.google.com/rss/search?q={q2}&hl=en-US&gl=US&ceid=US:en",
+    }
 
 def BN(q: str) -> dict:
-    return {"name": f"Bing News — {q}",
-            "url": f"https://www.bing.com/news/search?q={q}&qft=sortbydate&setlang=en&setmkt=en-US&format=rss"}
+    return {
+        "name": f"Bing News — {q}",
+        "url": f"https://www.bing.com/news/search?q={q}&qft=sortbydate&setlang=en&setmkt=en-US&format=rss",
+    }
 
 FEEDS = [
-    # --- DIRECT, RELIABLE FEEDS (no search gatekeepers) ---
+    # --- DIRECT, RELIABLE FEEDS (video + native RSS) ---
     {"name": "YouTube — Sleepers Media (channel)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCaqPH-Ckzu_pSoO3AKcatNw"},
     {"name": "YouTube — PurdueSports (channel)",   "url": "https://www.youtube.com/feeds/videos.xml?user=purduesports"},
     {"name": "YouTube — Purdue MBB Playlist",      "url": "https://www.youtube.com/feeds/videos.xml?playlist_id=PLCIT1wYGMWN80GZO_ybcH6vuHeObcOcmh"},
@@ -32,7 +37,7 @@ FEEDS = [
     {"name": "Reddit — r/Boilermakers",            "url": "https://www.reddit.com/r/Boilermakers/.rss"},
     {"name": "Reddit — r/CollegeBasketball",       "url": "https://www.reddit.com/r/CollegeBasketball/.rss"},
 
-    # --- Search mirrors (collector sets proper headers) ---
+    # --- Broad Purdue hoops searches (news portals) ---
     GN("Purdue Basketball"),                         BN("Purdue Basketball"),
     GN("Boilers Purdue basketball"),                 BN("Boilers Purdue basketball"),
     GN("Purdue Boilermakers men's basketball"),      BN("Purdue Boilermakers men's basketball"),
@@ -41,15 +46,15 @@ FEEDS = [
     GN("Big Ten basketball Purdue"),                 BN("Big Ten basketball Purdue"),
     GN("NCAA Tournament Purdue basketball"),         BN("NCAA Tournament Purdue basketball"),
 
-    # YouTube mentions via search (backup to direct feeds)
+    # YouTube mentions via portals (backup to direct feeds)
     GN("Purdue Basketball site:youtube.com"),        BN("Purdue Basketball site:youtube.com"),
     GN("Matt Painter site:youtube.com"),             BN("Matt Painter site:youtube.com"),
 
-    # Site-scoped news (more sources for dropdown & volume)
+    # --- Site-scoped sources for more volume & better dropdown diversity ---
+    # Major/national & local already in place
     GN("site:indystar.com Purdue Basketball"),       BN("site:indystar.com Purdue Basketball"),
     GN("site:usatoday.com Purdue Basketball"),       BN("site:usatoday.com Purdue Basketball"),
     GN("site:si.com Purdue Basketball"),             BN("site:si.com Purdue Basketball"),
-    GN("site:journalcourier.com Purdue Basketball"), BN("site:journalcourier.com Purdue Basketball"),
     GN("site:theathletic.com Purdue Basketball"),    BN("site:theathletic.com Purdue Basketball"),
     GN("site:247sports.com/college/purdue/ basketball"), BN("site:247sports.com/college/purdue/ basketball"),
     GN("site:on3.com/teams/purdue-boilermakers/ basketball"), BN("site:on3.com/teams/purdue-boilermakers/ basketball"),
@@ -57,7 +62,11 @@ FEEDS = [
     GN("site:purdue.rivals.com basketball"),         BN("site:purdue.rivals.com basketball"),
     GN("site:purduesports.com \"Men's Basketball\""),BN("site:purduesports.com \"Men's Basketball\""),
 
-    # Roster 2025–26 emphasis
+    # NEW — Journal & Courier (Lafayette) and Purdue Exponent
+    GN("site:jconline.com Purdue Basketball"),       BN("site:jconline.com Purdue Basketball"),
+    GN("site:purdueexponent.org basketball"),        BN("site:purdueexponent.org basketball"),
+
+    # --- 2025–26 roster emphasis & recruiting ---
     GN("Purdue 2025-26 roster"),                     BN("Purdue 2025-26 roster"),
     GN("Purdue 2025–26 roster"),                     BN("Purdue 2025–26 roster"),
     GN("\"Purdue\" 2025 roster basketball"),         BN("\"Purdue\" 2025 roster basketball"),
@@ -82,12 +91,11 @@ KEYWORDS_INCLUDE = [
     "big ten","b1g","mackey arena","matt painter","painter",
     "roster","walk-on","signee","letter of intent","transfer portal",
     "class of 2025","class of 2026","2025-26","2025–26","2025 26",
-    # Players (current / recent)
+    # Players (current / recent core)
     "zach edey","braden smith","fletcher loyer","lance jones",
     "trey kaufman","trey kaufman-renn","mason gillis","caleb furst",
     "myles colvin","camden heide","will berg","jack benter",
-    "daniel jacobsen","levi cook","jermaine o'neal jr","isaiah cervantes",
-    "dyson jefferson","colin mcintyre",  # include walk-ons if they pop up
+    "daniel jacobsen","levi cook",
     # Writer
     "brian neubert",
 ]
