@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Purdue MBB — collector with robust fetching & diagnostics (FULL FILE)
-- Chrome-like headers to avoid bot-empty RSS responses
-- Retries with backoff
-- Smart include logic (Purdue-targeted feeds auto-allow unless excluded)
+Purdue MBB — robust collector (freshness + diagnostics)
+- Realistic Chrome UA (prevents empty bodies from some hosts)
+- Smart include logic (Purdue-targeted feeds auto-include)
 - Strict football/other-sport excludes
+- Freshness window (default 120 days) to keep results current
 - De-dupe, per-domain caps, newest-first
-- Writes items.json atomically
-- NEVER clobbers with empty/low pass (merge guards)
-- ALWAYS prints a JSON summary including per-feed HTTP status/bytes/errors
+- Atomic write to items.json
+- Guardrails: never clobber a good file with an empty pass
+- Always prints JSON summary with per-feed http/bytes/seen/kept
 """
 
 import json, os, re, time, traceback
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Tuple
 
 import feedparser  # type: ignore
@@ -31,7 +31,7 @@ try:
 except Exception:
     FEEDS = []
     STATIC_LINKS = []
-    KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster","2025-26","2025–26","class of 2025","class of 2026"]
+    KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster","class of 2025","class of 2026","2025-26","2025–26"]
     KEYWORDS_EXCLUDE = ["football","qb","nfl"]
     MAX_ITEMS_PER_FEED = 120
     ALLOW_DUPLICATE_DOMAINS = False
@@ -43,13 +43,11 @@ except Exception:
 ROOT = os.path.dirname(os.path.abspath(__file__))
 ITEMS_PATH = os.path.join(ROOT, "items.json")
 
-# Use a realistic Chrome UA & headers so Google/Bing/major sites don’t hand us empty bodies
+# Realistic browser headers
 HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/125.0 Safari/537.36"
-    ),
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                   "AppleWebKit/537.36 (KHTML, like Gecko) "
+                   "Chrome/125.0 Safari/537.36"),
     "Accept": "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.7",
     "Accept-Language": "en-US,en;q=0.9",
     "Cache-Control": "no-cache",
@@ -60,7 +58,9 @@ TIMEOUT = 25
 RETRIES = 3
 BACKOFF_BASE = 1.7
 
-# Include cues — roster/year variants included
+# Freshness window (days). Items older than this are dropped.
+FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "120"))
+
 CORE_INCLUDE_RE = re.compile(
     r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey|roster)\b"
     r"|2025[\-—–]26|class of 2025|class of 2026",
@@ -70,10 +70,9 @@ INCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_INCLUDE]), re.I
 EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_EXCLUDE]), re.IGNORECASE)
 YOUTUBE_HOSTS = ("youtube.com","youtu.be")
 
-# Purdue-targeted feeds are safe to auto-include unless excluded
 TARGETED_FEED_HINTS = (
-    "purdue", "boiler", "mackey", "matt painter", "youtube mentions",
-    "r/boilermakers", "bing news", "google news"
+    "purdue","boiler","mackey","matt painter","youtube mentions","r/boilermakers","bing news","google news",
+    "on3 — purdue","247sports — purdue"
 )
 
 def now_iso() -> str: return datetime.now(timezone.utc).isoformat()
@@ -106,6 +105,13 @@ def to_iso(dt_struct) -> str:
         return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
     except Exception:
         return now_iso()
+
+def too_old(iso: str) -> bool:
+    try:
+        dt = datetime.fromisoformat(iso.replace("Z","+00:00"))
+        return (datetime.now(timezone.utc) - dt) > timedelta(days=FRESH_DAYS)
+    except Exception:
+        return False
 
 def clean_html(s: str) -> str:
     if not s: return ""
@@ -143,30 +149,24 @@ def entry_to_item(entry: Dict[str, Any], source_name: str) -> Dict[str, Any]:
         source = f"YouTube — {source}"
     return {"title": title, "link": link, "date": iso, "source": source, "summary": summary[:600]}
 
-# ---------- Robust fetch with diagnostics ----------
-def fetch_bytes_with_retries(url: str) -> Tuple[bytes, int]:
+# ---------- fetch with diagnostics ----------
+def fetch_bytes_with_retries(url: str):
     last_exc = None
     for i in range(RETRIES):
         try:
             resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-            code = resp.status_code
-            if code >= 200 and code < 300:
-                return resp.content or b"", code
-            # retry on non-2xx
-            last_exc = RuntimeError(f"http {code}")
+            return resp.content or b"", resp.status_code
         except Exception as e:
             last_exc = e
         time.sleep(BACKOFF_BASE ** i)
-    if last_exc:
-        raise last_exc
+    if last_exc: raise last_exc
     return b"", 0
 
-def fetch_feed_with_meta(url: str) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+def fetch_feed_with_meta(url: str):
     meta = {"http": None, "bytes": 0, "error": None}
-    # Prefer requests->feedparser(data); fall back to feedparser(url)
     try:
         data, code = fetch_bytes_with_retries(url)
-        meta["http"]  = int(code)
+        meta["http"]  = int(code) if code else None
         meta["bytes"] = len(data)
         if data:
             parsed = feedparser.parse(data)
@@ -181,10 +181,10 @@ def fetch_feed_with_meta(url: str) -> Tuple[List[Dict[str, Any]], Dict[str, Any]
             entries = parsed.entries or []
             return entries, meta
         except Exception as e2:
-            meta["error"] = f"{meta['error']} | fp: {e2}"
+            meta["error"] = f"{meta['error']} | fp:{e2}"
             return [], meta
 
-# ---------- Persistence ----------
+# ---------- persistence ----------
 def load_previous() -> Dict[str, Any]:
     if not os.path.exists(ITEMS_PATH):
         return {"items": [], "generated_at": now_iso()}
@@ -201,13 +201,13 @@ def write_items_safely(items: List[Dict[str, Any]]):
         json.dump(payload, f, ensure_ascii=False, indent=2)
     os.replace(tmp, ITEMS_PATH)
 
-# ---------- Collection ----------
-def collect_once() -> Tuple[List[Dict[str, Any]], List[str], Dict[str,int], Dict[str,int], Dict[str,Dict[str,Any]]]:
+# ---------- collection ----------
+def collect_once():
     items: List[Dict[str, Any]] = []
     errors: List[str] = []
     per_feed_kept: Dict[str,int] = {}
     per_feed_seen: Dict[str,int] = {}
-    per_feed_meta: Dict[str, Dict[str, Any]] = {}
+    per_feed_meta: Dict[str,Dict[str,Any]] = {}
 
     seen_links = set()
     domain_counts: Dict[Tuple[str,str], int] = {}
@@ -228,16 +228,13 @@ def collect_once() -> Tuple[List[Dict[str, Any]], List[str], Dict[str,int], Dict
                 if not passes_filters(e, name): continue
                 itm = entry_to_item(e, name)
                 if not itm["link"]: continue
+                if too_old(itm["date"]): continue
                 if itm["link"] in seen_links: continue
 
                 if not ALLOW_DUPLICATE_DOMAINS:
-                    d = domain_of(itm["link"])
-                    key = (name, d)
-                    cnt = domain_counts.get(key, 0)
-                    if d and cnt >= dom_cap:
-                        continue
-                    if d:
-                        domain_counts[key] = cnt + 1
+                    d = domain_of(itm["link"]); key = (name, d); cnt = domain_counts.get(key, 0)
+                    if d and cnt >= dom_cap: continue
+                    if d: domain_counts[key] = cnt + 1
 
                 seen_links.add(itm["link"])
                 items.append(itm)
@@ -255,17 +252,14 @@ def collect_once() -> Tuple[List[Dict[str, Any]], List[str], Dict[str,int], Dict
     items = items[:700]
     return items, errors, per_feed_kept, per_feed_seen, per_feed_meta
 
-def merge_items(new_items: List[Dict[str, Any]], prev_items: List[Dict[str, Any]], keep: int = 550) -> List[Dict[str, Any]]:
+def merge_items(new_items, prev_items, keep: int = 550):
     by_link: Dict[str, Dict[str, Any]] = {}
     for it in prev_items: by_link[it.get("link","")] = it
     for it in new_items:
-        link = it.get("link","")
-        if not link: continue
+        link = it.get("link",""); if not link: continue
         old = by_link.get(link)
-        if (not old) or (it.get("date","") > old.get("date","")):
-            by_link[link] = it
-    merged = list(by_link.values())
-    merged.sort(key=lambda x: x.get("date") or "", reverse=True)
+        if (not old) or (it.get("date","") > old.get("date","")): by_link[link] = it
+    merged = list(by_link.values()); merged.sort(key=lambda x: x.get("date") or "", reverse=True)
     return merged[:keep]
 
 def main():
@@ -276,8 +270,8 @@ def main():
     new_items, errors, per_feed_kept, per_feed_seen, per_feed_meta = collect_once()
     new_n = len(new_items)
 
-    # Guard rails (avoid clobber with tiny/zero pass)
-    MIN_ABSOLUTE = 80
+    # Guard rails (avoid clobber on poor pass)
+    MIN_ABSOLUTE = 50
     REL_DROP = 0.6
 
     if new_n == 0 and prev_n > 0:
@@ -297,9 +291,10 @@ def main():
         "new_count": new_n,
         "prev_count": prev_n,
         "final_count": len(final_items),
-        "per_feed_counts": per_feed_kept,   # kept after filters
-        "per_feed_seen": per_feed_seen,     # raw entries seen
-        "per_feed_meta": per_feed_meta,     # http status/bytes/error
+        "per_feed_counts": per_feed_kept,
+        "per_feed_seen": per_feed_seen,
+        "per_feed_meta": per_feed_meta,
+        "fresh_days": FRESH_DAYS,
         "errors": errors,
         "ts": now_iso()
     }
