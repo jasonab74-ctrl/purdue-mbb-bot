@@ -45,14 +45,12 @@ def fetch_rss(f):     return parse_rss(http_get(f["url"]))
 
 def fetch_reddit(f):
     """
-    Supports BOTH Reddit JSON API (new style) and RSS (old style).
-    If URL looks like .rss, treat as XML; else try JSON and gracefully fall back.
+    Support both JSON and RSS endpoints; never propagate exceptions.
     """
     url = f["url"]
     try:
         if url.endswith(".rss"):
             return parse_rss(http_get(url, headers={"User-Agent":"mmblite/1.0"}))
-        # Try JSON
         raw = http_get(url, headers={"User-Agent":"mmblite/1.0"})
         j = json.loads(to_text(raw))
         out = []
@@ -66,7 +64,6 @@ def fetch_reddit(f):
             })
         return out
     except (JSONDecodeError, ET.ParseError, Exception):
-        # Last-chance: attempt RSS parse if JSON path failed
         try:
             return parse_rss(http_get(url, headers={"User-Agent":"mmblite/1.0"}))
         except Exception:
@@ -80,7 +77,7 @@ def hash_id(link, title):
     h.update(to_text(title).encode("utf-8"))
     return h.hexdigest()[:16]
 
-# -------------------- MEN’S-ONLY filter (tight on title, lenient elsewhere) --------------------
+# -------------------- MEN’S-ONLY filter --------------------
 
 PLAYERS = [
     "c.j. cox", "antione west", "fletcher loyer", "braden smith", "aaron fine", "jack lusk",
@@ -104,8 +101,9 @@ def is_trusted(feed_name: str) -> bool:
 
 def allow_item(title, summary, feed):
     """
-    Goal: Purdue **men’s** basketball only.
-    Rule: if the TITLE mentions another sport, the TITLE must also contain a hoops/men/player signal.
+    Men's Purdue basketball only.
+    - If the TITLE mentions another sport, require hoops signal IN THE TITLE.
+    - Block explicit women's unless hoops is also clearly present.
     """
     title_t   = to_text(title)
     summary_t = to_text(summary)
@@ -116,23 +114,13 @@ def allow_item(title, summary, feed):
     title_hoops = bool(BASKETBALL.search(title_t) or MEN_SIGNALS.search(title_t) or PLAYER_SIG.search(title_t))
     any_hoops   = title_hoops or bool(BASKETBALL.search(summary_t) or MEN_SIGNALS.search(summary_t) or PLAYER_SIG.search(summary_t))
 
-    # Block explicit women's when no men's signal
-    if WOMENS.search(blob) and not any_hoops:
-        return False
+    if WOMENS.search(blob) and not any_hoops: return False
+    if OTHER_SPORTS.search(title_t) and not title_hoops: return False
+    if OTHER_SPORTS.search(blob) and not any_hoops: return False
 
-    # If TITLE names another sport, require hoops signal IN TITLE
-    if OTHER_SPORTS.search(title_t) and not title_hoops:
-        return False
-
-    # If other-sport words appear anywhere and no hoops signal at all, drop
-    if OTHER_SPORTS.search(blob) and not any_hoops:
-        return False
-
-    # Trusted feeds: minimal checks (after the hard blocks above)
     if trusted:
         return bool(PURDUE_SIGNALS.search(blob) or PLAYER_SIG.search(blob) or any_hoops or "purdue" in name.lower())
 
-    # Untrusted must be Purdue-ish AND hoops-ish
     purdueish = PURDUE_SIGNALS.search(blob) or PLAYER_SIG.search(blob) or "purdue" in name.lower()
     return bool(purdueish and any_hoops)
 
@@ -155,13 +143,13 @@ def collect():
         for it in data:
             title = to_text(it.get("title","")).strip()
             link  = to_text(it.get("link","")).strip()
-            if not title or not link: 
+            if not title or not link:
                 continue
             summary = to_text(it.get("summary",""))
             if not allow_item(title, summary, feed):
                 continue
             uid = hash_id(link, title)
-            if uid in seen: 
+            if uid in seen:
                 continue
             seen.add(uid)
             per[name] += 1
@@ -172,10 +160,11 @@ def collect():
 
         time.sleep(0.1)
 
+    # Sort newest first
     def sort_key(x):
         d = x.get("date","")
         for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
-            try: 
+            try:
                 return datetime.strptime(d.replace("Z","+0000"), fmt)
             except Exception:
                 pass
@@ -188,17 +177,17 @@ def collect():
         "generated_at": now_iso(),
         "items_count": len(out),
         "items_mtime": now_iso(),
-        "last_run": {"ok": True, "rc": 0, "final_count": len(out), "per_feed_counts": per, "ts": now_iso()}
+        "last_run": {"ok": True, "rc": 0, "final_count": len(out),
+                     "per_feed_counts": per, "ts": now_iso()}
     }
 
-    # --------- ATOMIC WRITE: never leave a broken items.json ----------
+    # ATOMIC WRITE: never leave a half file behind
     payload = json.dumps({"items": out, "meta": meta}, ensure_ascii=False)
     dirn = os.path.dirname(ITEMS_PATH) or "."
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=dirn, delete=False) as tmp:
         tmp.write(payload)
         tmp_path = tmp.name
     os.replace(tmp_path, ITEMS_PATH)
-    # -----------------------------------------------------------------
 
     return len(out)
 
