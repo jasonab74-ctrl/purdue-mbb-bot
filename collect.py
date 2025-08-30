@@ -1,403 +1,179 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Purdue MBB — collector with host-aware headers, smarter football exclusion,
-YouTube guard, and fail-safe lenient pass.
+# collect.py — fetch, filter, dedupe, and write items.json (basketball-only tuning)
+import json, os, re, time, hashlib, html, datetime, urllib.parse
+from typing import List, Dict, Any
+import feedparser
+import requests
 
-- Chrome-like UA + referer for Google/Bing (prevents empty RSS bodies)
-- Smarter exclusion: only blocks football if NO basketball signal is present
-- Stricter YouTube: always allow PurdueSports channel + Purdue MBB playlist;
-  other YouTube needs Purdue/Boilermakers/players/coach context
-- Pass 1 = normal filters; if < 40 items, Pass 2 = lenient (non-football only)
-- Freshness window 365d (override with env FRESH_DAYS)
-- Atomic write to items.json + rich diagnostics
-"""
+# Import feed config
+from feeds import FEEDS, KEYWORDS_INCLUDE, KEYWORDS_EXCLUDE, MAX_ITEMS_PER_FEED, SOURCE_ALIASES, FEED_TITLE_REQUIRE
 
-import json, os, re, time, traceback
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List
+OUT_PATH = os.environ.get("ITEMS_PATH", "items.json")
+FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "365"))  # keep a season’s worth by default
+NOW = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
 
-import feedparser  # type: ignore
-import requests    # type: ignore
-from html import unescape
+USER_AGENT = "PurdueMBB/1.0 (+https://railway.app)"
+TIMEOUT = 15
 
-# ---- Config from feeds.py ----------------------------------------------------
-try:
-    from feeds import (
-        FEEDS, STATIC_LINKS,
-        KEYWORDS_INCLUDE, KEYWORDS_EXCLUDE,
-        MAX_ITEMS_PER_FEED, ALLOW_DUPLICATE_DOMAINS, SOURCE_ALIASES,
-        DOMAIN_PER_FEED_LIMIT,
-    )
-except Exception:
-    FEEDS = []
-    STATIC_LINKS = []
-    KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster","brian neubert"]
-    KEYWORDS_EXCLUDE = ["football","qb","nfl"]
-    MAX_ITEMS_PER_FEED = 200
-    ALLOW_DUPLICATE_DOMAINS = True
-    DOMAIN_PER_FEED_LIMIT = 999
-    SOURCE_ALIASES = {}
+# -------- helpers --------
+def norm_text(s: str) -> str:
+    return re.sub(r"\s+", " ", html.unescape(s or "")).strip()
 
-# -----------------------------------------------------------------------------
-# Player keywords (you can extend via env PLAYER_EXTRA="name1,name2")
-PLAYER_KEYWORDS_DEFAULT = [
-    "braden smith","fletcher loyer","trey kaufman","trey kaufman-renn","mason gillis","caleb furst",
-    "myles colvin","camden heide","will berg","jack benter","daniel jacobsen","levi cook",
-    "matt painter","zach edey"
-]
-EXTRA = os.environ.get("PLAYER_EXTRA", "").strip()
-PLAYER_KEYWORDS = PLAYER_KEYWORDS_DEFAULT + (
-    [s.strip().lower() for s in EXTRA.split(",") if s.strip()] if EXTRA else []
-)
-
-ROOT = os.path.dirname(os.path.abspath(__file__))
-ITEMS_PATH = os.path.join(ROOT, "items.json")
-
-# Browser-like headers
-BASE_HEADERS = {
-    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                   "AppleWebKit/537.36 (KHTML, like Gecko) "
-                   "Chrome/125.0 Safari/537.36"),
-    "Accept": "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.7",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Cache-Control": "no-cache",
-    "Pragma": "no-cache",
-    "Connection": "close",
-}
-TIMEOUT = 25
-RETRIES = 3
-BACKOFF_BASE = 1.7
-
-# Freshness window (days)
-FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "365"))
-
-# Regexes
-INCLUDE_TERMS = (KEYWORDS_INCLUDE or []) + PLAYER_KEYWORDS
-BASKETBALL_RE = re.compile(
-    r"\b(basketball|men['’]s basketball|boilers?|boilermakers?|boilerball|purdue|painter|mackey|roster)\b",
-    re.IGNORECASE,
-)
-CORE_INCLUDE_RE = re.compile(
-    r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey|roster|brian neubert)\b"
-    r"|2025[\-—–]26|class of 2025|class of 2026",
-    re.IGNORECASE,
-)
-INCLUDE_RE = re.compile("|".join([re.escape(k) for k in INCLUDE_TERMS]), re.IGNORECASE)
-EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in (KEYWORDS_EXCLUDE or [])]), re.IGNORECASE)
-
-YOUTUBE_HOSTS = ("youtube.com","youtu.be")
-# Always-allow playlist (official)
-YT_PLAYLIST_ALLOW = {"PLCIT1wYGMWN80GZO_ybcH6vuHeObcOcmh"}
-
-TARGETED_FEED_HINTS = (
-    "purdue","boiler","mackey","matt painter","brian neubert","youtube","r/boilermakers",
-    "bing news","google news","hammer & rails","on3","rivals","goldandblack","journalcourier"
-)
-
-def now_iso() -> str: return datetime.now(timezone.utc).isoformat()
-
-def domain_of(url: str) -> str:
+def to_utc(dt_struct) -> datetime.datetime:
+    """Convert feedparser date to aware UTC datetime."""
     try:
-        from urllib.parse import urlparse
-        return urlparse(url).netloc.lower()
-    except Exception:
-        return ""
-
-def normalize_link(url: str) -> str:
-    if not url: return ""
-    try:
-        from urllib.parse import urlparse, parse_qsl, urlunparse, urlencode
-        u = urlparse(url)
-        q = dict(parse_qsl(u.query, keep_blank_values=True))
-        if any(h in u.netloc for h in YOUTUBE_HOSTS):
-            q = {k: v for k, v in q.items() if k in ("t","time_continue","v","list","channel_id","ab_channel")}
-        else:
-            q = {}
-        return urlunparse((u.scheme, u.netloc, u.path, u.params, urlencode(q), "")) or url
-    except Exception:
-        return url
-
-def to_iso(dt_struct) -> str:
-    try:
-        if not dt_struct: return now_iso()
+        if not dt_struct: 
+            return None
         ts = time.mktime(dt_struct)
-        return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+        return datetime.datetime.fromtimestamp(ts, tz=datetime.timezone.utc)
     except Exception:
-        return now_iso()
+        return None
 
-def too_old(iso: str) -> bool:
-    try:
-        dt = datetime.fromisoformat(iso.replace("Z","+00:00"))
-        return (datetime.now(timezone.utc) - dt) > timedelta(days=FRESH_DAYS)
-    except Exception:
+def parse_date(entry: dict) -> datetime.datetime:
+    for k in ("published_parsed","updated_parsed","created_parsed"):
+        if k in entry and entry[k]:
+            dt = to_utc(entry[k])
+            if dt: return dt
+    return None
+
+def age_ok(dt: datetime.datetime) -> bool:
+    if not dt: 
+        return True  # some feeds omit dates; allow but will sort late
+    return (NOW - dt) <= datetime.timedelta(days=FRESH_DAYS)
+
+def sha(text: str) -> str:
+    return hashlib.sha1(text.encode("utf-8")).hexdigest()
+
+def alias_source(name: str) -> str:
+    return SOURCE_ALIASES.get(name, name)
+
+# -------- filtering --------
+INC = [t.lower() for t in KEYWORDS_INCLUDE]
+EXC = [t.lower() for t in KEYWORDS_EXCLUDE]
+
+PLAYER_OR_TERMS = [
+    "purdue","boiler","boilers","boilermaker","boilermakers","painter",
+    # player last names likely to appear by themselves
+    "edey","smith","loyer","kaufman","kaufman-renn","gillis","furst",
+    "colvin","heide","berg","benter","jacobsen","mayer","cook",
+]
+
+def has_any(hay: str, needles: List[str]) -> bool:
+    h = hay.lower()
+    return any(n in h for n in needles)
+
+def feed_requires(feed_name: str, title: str) -> bool:
+    for key, req_list in FEED_TITLE_REQUIRE.items():
+        if key.lower() in feed_name.lower():
+            return has_any(title, [r.lower() for r in req_list])
+    return True
+
+def looks_like_basketball(title: str, summary: str, link: str) -> bool:
+    text = f"{title} {summary} {link}".lower()
+    if has_any(text, EXC):
         return False
-
-def clean_html(s: str) -> str:
-    if not s: return ""
-    s = re.sub(r"<[^>]+>", " ", s)
-    s = unescape(re.sub(r"\s+", " ", s)).strip()
-    return s
-
-def text_of(entry: Dict[str, Any]) -> str:
-    parts=[]
-    for k in ("title","summary","description"):
-        v = entry.get(k)
-        if isinstance(v,str): parts.append(v)
-    return " ".join(parts)
-
-def feed_is_targeted(feed_name: str) -> bool:
-    n = (feed_name or "").lower()
-    return any(h in n for h in TARGETED_FEED_HINTS)
-
-def is_youtube_link(url: str) -> bool:
-    return any(h in (url or "") for h in YOUTUBE_HOSTS)
-
-def youtube_allowed(entry: Dict[str, Any], txt: str) -> bool:
-    """Allow official Purdue sources unconditionally; otherwise require Purdue context."""
-    link = (entry.get("link") or entry.get("id") or "")
-    if not is_youtube_link(link):
+    # Require either explicit basketball terms OR Purdue+player name context
+    if has_any(text, INC):
         return True
-    if "list=PLCIT1wYGMWN80GZO_ybcH6vuHeObcOcmh" in link:
-        return True  # official playlist
-    if "ab_channel=PurdueSports" in link or "user=purduesports" in link:
-        return True  # PurdueSports channel
-    # otherwise require Purdue/basketball signals
-    if CORE_INCLUDE_RE.search(txt) or INCLUDE_RE.search(txt) or BASKETBALL_RE.search(txt):
+    # r/CollegeBasketball etc needs Purdue mention
+    if ("reddit.com" in link.lower()) and not has_any(text, ["purdue","boiler","boilermaker","boilermakers"]):
+        return False
+    # be permissive if Purdue is present and a likely player/coach is mentioned
+    if "purdue" in text and has_any(text, PLAYER_OR_TERMS):
         return True
     return False
 
-def passes_filters(entry: Dict[str, Any], source_name: str, *, lenient: bool) -> bool:
-    txt = text_of(entry)
+def item_from_entry(feed_name: str, entry: dict) -> Dict[str, Any]:
+    title = norm_text(entry.get("title", ""))
+    link  = entry.get("link") or entry.get("id") or ""
+    if not link:
+        return None
+    if not feed_requires(feed_name, title):
+        return None
 
-    # Smart exclusion: only block if football appears AND no basketball context present
-    has_football = bool(EXCLUDE_RE.search(txt))
-    has_hoops    = bool(BASKETBALL_RE.search(txt) or INCLUDE_RE.search(txt) or CORE_INCLUDE_RE.search(txt))
-    if has_football and not has_hoops:
-        return False
+    summary = norm_text(entry.get("summary", ""))
+    if not looks_like_basketball(title, summary, link):
+        return None
 
-    if not youtube_allowed(entry, txt):
-        return False
+    dt = parse_date(entry)
+    if not age_ok(dt):
+        return None
 
-    if lenient:
-        # In lenient pass, any non-football (or mixed but with hoops) gets through
-        return True
+    date_iso = dt.isoformat() if dt else None
+    source = alias_source(feed_name)
+    uid = sha(f"{title}|{link}")
 
-    if feed_is_targeted(source_name): return True
-    if CORE_INCLUDE_RE.search(txt):  return True
-    if INCLUDE_RE.search(txt):       return True
-    if BASKETBALL_RE.search(txt):    return True
-    return False
+    # badge text = source
+    badge = source
 
-def entry_to_item(entry: Dict[str, Any], source_name: str) -> Dict[str, Any]:
-    title = entry.get("title") or "Untitled"
-    link  = normalize_link(entry.get("link") or entry.get("id") or "")
-    iso   = to_iso(entry.get("published_parsed") or entry.get("updated_parsed"))
-    source= SOURCE_ALIASES.get(source_name, source_name)
-    summary = clean_html(entry.get("summary") or entry.get("description") or "")
-    if is_youtube_link(link) and "YouTube" not in source:
-        source = f"YouTube — {source}"
-    return {"title": title, "link": link, "date": iso, "source": source, "summary": summary[:600]}
-
-# ---------- host-aware fetch with diagnostics ----------
-def _headers_for(url: str) -> Dict[str,str]:
-    h = dict(BASE_HEADERS)
-    host = domain_of(url)
-    if "news.google.com" in host:
-        h["Referer"] = "https://news.google.com/"
-    elif "bing.com" in host:
-        h["Referer"] = "https://www.bing.com/news"
-    elif "reddit.com" in host:
-        h["Accept"] = "*/*"
-    return h
-
-def fetch_bytes_with_retries(url: str):
-    last_exc = None
-    for i in range(RETRIES):
-        try:
-            resp = requests.get(url, headers=_headers_for(url), timeout=TIMEOUT, allow_redirects=True)
-            return resp.content or b"", resp.status_code
-        except Exception as e:
-            last_exc = e
-        time.sleep(BACKOFF_BASE ** i)
-    if last_exc: raise last_exc
-    return b"", 0
-
-def fetch_feed_with_meta(url: str):
-    meta = {"http": None, "bytes": 0, "error": None}
-    try:
-        data, code = fetch_bytes_with_retries(url)
-        meta["http"]  = int(code) if code else None
-        meta["bytes"] = len(data)
-        parsed = feedparser.parse(data or url)
-        entries = parsed.entries or []
-        return entries, meta
-    except Exception as e:
-        meta["error"] = str(e)
-        try:
-            parsed = feedparser.parse(url)
-            entries = parsed.entries or []
-            return entries, meta
-        except Exception as e2:
-            meta["error"] = f"{meta['error']} | fp:{e2}"
-            return [], meta
-
-# ---------- persistence ----------
-def write_items_with_meta(items: List[Dict[str, Any]], last_run: Dict[str, Any]):
-    payload = {
-        "items": items,
-        "generated_at": now_iso(),
-        "last_run": last_run,
-        "items_mtime": now_iso(),
+    return {
+        "id": uid,
+        "title": title,
+        "link": link,
+        "date": date_iso,
+        "source": source,
+        "badge": badge,
+        "snippet": summary[:400],
     }
-    tmp = ITEMS_PATH + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, ITEMS_PATH)
 
-def load_previous() -> Dict[str, Any]:
-    if not os.path.exists(ITEMS_PATH):
-        return {"items": [], "generated_at": now_iso(), "last_run": {}}
-    try:
-        with open(ITEMS_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {"items": [], "generated_at": now_iso(), "last_run": {}}
+# -------- fetchers --------
+def fetch_rss(url: str) -> feedparser.FeedParserDict:
+    return feedparser.parse(url, request_headers={"User-Agent": USER_AGENT})
 
-# ---------- collection ----------
-def collect_pass(*, lenient: bool):
+def fetch_all() -> List[Dict[str, Any]]:
     items: List[Dict[str, Any]] = []
-    errors: List[str] = []
-    per_feed_kept: Dict[str,int] = {}
-    per_feed_seen: Dict[str,int] = {}
-    per_feed_meta: Dict[str,Dict[str,Any]] = {}
-    debug_seen_titles: Dict[str, List[str]] = {}
-    debug_kept_titles: Dict[str, List[str]] = {}
-
-    seen_links = set()
-    per_feed_cap = max(80, int(MAX_ITEMS_PER_FEED))
-
-    for f in FEEDS:
-        name = f.get("name","Feed")
-        url  = f.get("url")
-        if not url: continue
+    for feed in FEEDS:
+        name, url = feed["name"], feed["url"]
         try:
-            entries, meta = fetch_feed_with_meta(url)
-            per_feed_meta[name] = meta
-            per_feed_seen[name] = len(entries)
-            debug_seen_titles[name] = []
-            debug_kept_titles[name] = []
-            added = 0
+            parsed = fetch_rss(url)
+            # Soft skip on HTTP failures but continue overall
+            entries = parsed.entries or []
+            count = 0
             for e in entries:
-                title = (e.get("title") or "").strip()
-                if len(debug_seen_titles[name]) < 5:
-                    debug_seen_titles[name].append(title)
-
-                if not passes_filters(e, name, lenient=lenient):
-                    continue
-
-                itm = entry_to_item(e, name)
-                if not itm["link"]:
-                    continue
-                if too_old(itm["date"]):
-                    continue
-                if itm["link"] in seen_links:
-                    continue
-
-                if len(debug_kept_titles[name]) < 5:
-                    debug_kept_titles[name].append(itm["title"])
-
-                seen_links.add(itm["link"])
-                items.append(itm)
-                added += 1
-                if added >= per_feed_cap:
-                    break
-            per_feed_kept[name] = added
-        except Exception as ex:
-            errors.append(f"{name}: {ex}")
-            per_feed_seen[name] = per_feed_seen.get(name, 0)
-            per_feed_kept[name] = per_feed_kept.get(name, 0)
-            per_feed_meta[name] = {"http": None, "bytes": 0, "error": str(ex)}
-            debug_seen_titles[name] = debug_seen_titles.get(name, [])
-            debug_kept_titles[name] = debug_kept_titles.get(name, [])
-            traceback.print_exc()
-
-    items.sort(key=lambda x: x.get("date") or "", reverse=True)
-    items = items[:800]
-    debug = {"seen_titles": debug_seen_titles, "kept_titles": debug_kept_titles}
-    return items, errors, per_feed_kept, per_feed_seen, per_feed_meta, debug
-
-def merge_items(new_items, prev_items, keep: int = 650):
-    by_link: Dict[str, Dict[str, Any]] = {}
-    for it in prev_items:
-        link = it.get("link","")
-        if link:
-            by_link[link] = it
-    for it in new_items:
-        link = it.get("link","")
-        if not link:
+                it = item_from_entry(name, e)
+                if it:
+                    items.append(it)
+                    count += 1
+                    if count >= MAX_ITEMS_PER_FEED:
+                        break
+        except Exception:
+            # Never crash collection on one bad feed
             continue
-        old = by_link.get(link)
-        if (not old) or (it.get("date","") > old.get("date","")):
-            by_link[link] = it
-    merged = list(by_link.values())
-    merged.sort(key=lambda x: x.get("date") or "", reverse=True)
-    return merged[:keep]
+    return items
+
+# -------- write out --------
+def dedupe_sort(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen = set()
+    out = []
+    for it in items:
+        key = it["id"]
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(it)
+
+    # sort newest first; undated sinks
+    def keyfn(x):
+        return x["date"] or "1900-01-01T00:00:00+00:00"
+    out.sort(key=keyfn, reverse=True)
+    return out
 
 def main():
-    prev = load_previous()
-    prev_items = prev.get("items", [])
-    prev_n = len(prev_items)
-
-    # Pass 1 (strict)
-    new_items, errors, kept, seen, meta, dbg = collect_pass(lenient=False)
-
-    # Pass 2 (lenient) if too few
-    used_lenient = False
-    if len(new_items) < 40:
-        l_items, l_err, l_kept, l_seen, l_meta, l_dbg = collect_pass(lenient=True)
-        used_lenient = True
-        errors += ["-- lenient retry --"] + l_err
-        for k,v in l_kept.items(): kept[k] = max(kept.get(k,0), v)
-        for k,v in l_seen.items(): seen[k] = max(seen.get(k,0), v)
-        for k,v in l_meta.items(): meta[k] = v
-        dbg["seen_titles"].update(l_dbg["seen_titles"])
-        dbg["kept_titles"].update(l_dbg["kept_titles"])
-        new_items = l_items
-
-    new_n = len(new_items)
-
-    # Guard rails
-    MIN_ABSOLUTE = 60
-    REL_DROP = 0.6
-    if new_n == 0 and prev_n > 0:
-        final_items, decision = prev_items, "kept_previous_zero_new"
-    elif new_n < MIN_ABSOLUTE and prev_n > 0:
-        final_items, decision = merge_items(new_items, prev_items), "merged_min_absolute"
-    elif prev_n > 0 and new_n < int(prev_n * REL_DROP):
-        final_items, decision = merge_items(new_items, prev_items), "merged_relative_drop"
-    else:
-        final_items, decision = new_items, "accepted_new"
-
-    last_run = {
-        "ok": True,
-        "invoked_at": now_iso(),
-        "decision": decision,
-        "used_lenient": used_lenient,
-        "new_count": new_n,
-        "prev_count": prev_n,
-        "final_count": len(final_items),
-        "per_feed_counts": kept,
-        "per_feed_seen": seen,
-        "per_feed_meta": meta,
-        "fresh_days": FRESH_DAYS,
-        "player_keywords": PLAYER_KEYWORDS,
-        "debug_titles": dbg,
-        "ts": now_iso()
+    items = fetch_all()
+    items = dedupe_sort(items)
+    data = {
+        "generated_at": NOW.isoformat(),
+        "items_count": len(items),
+        "items": items,
     }
-
-    write_items_with_meta(final_items, last_run)
-    print(json.dumps(last_run))
+    tmp = OUT_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+    os.replace(tmp, OUT_PATH)
+    print(json.dumps({
+        "ok": True,
+        "final_count": len(items),
+        "ts": NOW.isoformat(),
+    }))
 
 if __name__ == "__main__":
     main()
