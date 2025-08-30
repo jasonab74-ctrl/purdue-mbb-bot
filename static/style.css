@@ -1,25 +1,17 @@
 /* ===================================================================
-   Purdue MBB — Clean Light Theme (with fixed top buttons)
+   Purdue MBB — Clean Light Theme (with working top pill buttons)
    =================================================================== */
 
 :root{
   --gold: #CFB991;
   --gold-strong:#B4975A;
   --black:#101112;
-  --black-soft:#1a1b1c;
-
   --bg:#f7f7f6;
   --card:#ffffff;
   --text:#111;
   --muted:#6b7280;
   --border:#e6e6e6;
   --shadow:0 10px 28px rgba(0,0,0,.07);
-
-  --chip-bg: rgba(207,185,145,.18);
-  --chip-bd: rgba(180,151,90,.55);
-  --pill-bg: rgba(207,185,145,.22);
-  --pill-bd: rgba(16,17,18,.12);
-
   --radius:16px;
   --pad:16px;
 }
@@ -27,95 +19,79 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 html,body{
-  margin:0; padding:0;
-  background:var(--bg);
-  color:var(--text);
+  margin:0; padding:0; background:var(--bg); color:var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 
 a{color:inherit}
-a:hover{color:var(--black-soft)}
 
 .container{max-width:1040px; margin:28px auto; padding:0 18px}
 
-/* Header */
+/* Header card */
 .header{
   display:flex; flex-direction:column; gap:12px;
-  background: var(--card);
-  border:1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 14px 16px;
-  margin-bottom: 16px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:14px 16px; margin-bottom:16px;
 }
 .brand{display:flex; gap:14px; align-items:center}
 .logo{max-height:56px; width:auto; object-fit:contain; display:block}
 .header h1{margin:0; font-size:1.7rem; line-height:1.2}
-.sub,.header .meta{color:var(--muted); font-size:.9rem}
+.header .meta{color:var(--muted); font-size:.9rem}
 
-/* Fight Song button */
-.btn,.fight-btn{
+/* Fight Song */
+.fight-btn{
   appearance:none; cursor:pointer; user-select:none;
   border:1px solid var(--gold-strong);
   background: linear-gradient(180deg, var(--gold), var(--gold-strong));
-  color:#2b2312; font-weight:800;
-  border-radius:999px; padding:9px 14px;
-  box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 2px 10px rgba(0,0,0,.08);
+  color:#2b2312; font-weight:800; border-radius:999px; padding:9px 14px;
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset, 0 2px 10px rgba(0,0,0,.08);
   text-decoration:none; display:inline-flex; align-items:center; gap:8px;
 }
-.btn:hover,.fight-btn:hover{filter:brightness(1.06)}
+.fight-btn:hover{filter:brightness(1.06)}
 
-/* Pills / quick links */
-.pills,.quick{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 6px}
-.pills a,.quick a,.pill,a.pill{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:8px 12px; border-radius:999px; text-decoration:none;
-  background:var(--pill-bg); border:1px solid var(--pill-bd);
-  color:#1f2937; font-weight:600; font-size:.95rem;
+/* ---------------------------------------------------------------
+   QUICK-LINK PILL BUTTONS (no HTML change needed)
+   Styles anchors in the FIRST paragraph/div right after the header.
+   --------------------------------------------------------------- */
+.container > .header + :is(p,div) {
+  display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 12px;
 }
-.pills a:hover,.quick a:hover,.pill:hover,a.pill:hover{filter:brightness(1.03)}
+.container > .header + :is(p,div) > a{
+  display:inline-block;
+  background: rgba(207,185,145,.22);
+  border:1px solid rgba(16,17,18,.12);
+  color:#1f2937; font-weight:600; font-size:.95rem;
+  padding:8px 12px; border-radius:999px; text-decoration:none;
+}
+.container > .header + :is(p,div) > a:hover{filter:brightness(1.03); text-decoration:none}
 
 /* Controls */
 .controls{display:flex; gap:10px; align-items:center; margin:8px 0 16px}
-.controls input[type="search"],
-.controls .input,
-input[type="search"].input{
-  flex:1; min-width:280px;
-  padding:10px 12px; border:1px solid var(--border);
-  border-radius:12px; background:#fff; color:var(--text);
+.controls input[type="search"]{
+  flex:1; min-width:280px; padding:10px 12px;
+  border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--text);
 }
-.controls select,.select,select{
-  min-width:240px;
-  padding:10px 12px; border:1px solid var(--border);
-  border-radius:12px; background:#fff; color:var(--text);
+.controls select{
+  min-width:240px; padding:10px 12px;
+  border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--text);
 }
 .muted{color:var(--muted)}
-
 .notice{
-  background:#fff; border:1px dashed var(--chip-bd);
-  color:#444; padding:10px 12px; border-radius:12px;
-  margin:8px 0 12px; display:flex; align-items:center; gap:10px;
+  background:#fff; border:1px dashed rgba(180,151,90,.55);
+  color:#444; padding:10px 12px; border-radius:12px; margin:8px 0 12px;
 }
 
 /* Items */
-.items,.list{display:grid; gap:12px; list-style:none; padding:0; margin:0}
+.list{display:grid; gap:12px; list-style:none; padding:0; margin:0}
 .item{
   background:var(--card); border:1px solid var(--border);
-  border-radius:var(--radius); padding:var(--pad);
-  box-shadow:var(--shadow);
+  border-radius:var(--radius); padding:var(--pad); box-shadow:var(--shadow);
 }
-.item-head{display:flex; justify-content:space-between; gap:12px; align-items:flex-start}
-.title,.item .title{margin:2px 0 6px; font-weight:800; font-size:1rem; line-height:1.35}
+.item .title{margin:2px 0 6px; font-weight:800; font-size:1rem; line-height:1.35}
 .item .title a{color:inherit; text-decoration:none}
 .item .title a:hover{text-decoration:underline}
-.badge{
-  display:inline-flex; align-items:center; gap:6px;
-  padding:4px 10px; border-radius:999px;
-  background:#f3f4f6; border:1px solid var(--border);
-  color:#111827; font-weight:700; font-size:.75rem;
-}
 .meta{color:var(--muted); font-size:.87rem; margin-top:6px; display:flex; gap:8px; flex-wrap:wrap}
 .desc{margin:.5rem 0 0}
 .empty{padding:18px; border:1px dashed var(--border); border-radius:var(--radius); background:#fff; color:var(--muted)}
@@ -130,25 +106,5 @@ input[type="search"].input{
   .logo{max-height:44px}
   .controls{flex-direction:column; align-items:stretch; gap:8px}
   .controls select,.controls input[type="search"]{width:100%; min-width:0}
-  .pills,.quick{gap:6px}
-  .pills a,.quick a,.pill,a.pill{padding:7px 10px}
   .item{padding:12px; border-radius:12px}
-  .badge{font-size:.7rem; padding:3px 8px}
 }
-
-/* ------ FIX FOR TOP BUTTON ROW (your case) ------ */
-.header + .link-row,
-.header + div > a,
-.container > a{
-  display:inline-flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px;
-}
-.header + div > a,
-.container > a{
-  background:var(--pill-bg); border:1px solid var(--pill-bd);
-  border-radius:999px; padding:8px 12px; font-weight:600;
-  text-decoration:none; color:#1f2937; font-size:.95rem;
-  margin:4px;
-  display:inline-block;
-}
-.header + div > a:hover,
-.container > a:hover{filter:brightness(1.03)}
