@@ -1,303 +1,167 @@
-import os, sys, json, pathlib, logging, threading, time, subprocess
-from datetime import datetime, timezone
-from flask import Flask, render_template, render_template_string, url_for, send_file, jsonify
-from jinja2 import TemplateNotFound
+# collect.py — Purdue MBB collector (strict basketball focus)
+from pathlib import Path
+import time, json, re
+from html import unescape
+from typing import List, Dict, Tuple
+import requests, feedparser
+from feeds import FEEDS_META, KEYWORDS_EXCLUDE, KEYWORDS_INCLUDE
 
-logging.basicConfig(level=logging.INFO)
-BASE_DIR = pathlib.Path(__file__).parent
-app = Flask(__name__, static_folder="static", template_folder="templates")
+OUT_FILE = Path("items.json")
+MAX_PER_FEED          = 60
+TOTAL_MAX             = 500
+TIMEOUT               = 15
+UA                    = "Mozilla/5.0 (X11; Linux x86_64) PurdueMBBFeed/1.2 (+https://example.local)"
+YT_PEEK_TIMEOUT       = 4
+YT_PEEK_MAX_PER_FEED  = 6
 
-# ===== Background refresher =====
-REFRESH_MIN = int(os.getenv("FEED_REFRESH_MIN", "30"))
-_started_refresher = False
+INCLUDE = [s.lower() for s in KEYWORDS_INCLUDE]
+EXCLUDE = [s.lower() for s in KEYWORDS_EXCLUDE]
 
-def _run_collector_once():
+def clean_html(s: str) -> str:
+    return unescape(re.sub("<[^>]+>", " ", s or "").strip())
+
+def parse_feed(url: str):
     try:
-        logging.info("[refresher] starting collector")
-        proc = subprocess.run(
-            [sys.executable, str(BASE_DIR / "collect.py")],
-            capture_output=True, text=True, timeout=300
-        )
-        if proc.stdout: logging.info(proc.stdout.strip())
-        if proc.stderr: logging.warning(proc.stderr.strip())
-        logging.info("[refresher] collector finished with code %s", proc.returncode)
+        r = requests.get(url, headers={"User-Agent": UA}, timeout=TIMEOUT)
+        r.raise_for_status()
+        return feedparser.parse(r.content)
+    except Exception:
+        return feedparser.parse(url)
+
+def norm_date(e) -> str:
+    if getattr(e, "published_parsed", None):
+        tm = e.published_parsed
+        return f"{tm.tm_year:04d}-{tm.tm_mon:02d}-{tm.tm_mday:02d}"
+    if getattr(e, "updated", None):
+        return (e.updated or "").split("T")[0][:10]
+    return ""
+
+def fields_blob(e, source_name: str) -> str:
+    parts = [
+        getattr(e, "title", ""),
+        getattr(e, "summary", "") or getattr(e, "description", "")
+    ]
+    if isinstance(e, dict):
+        for key in ("media_description", "media_title"):
+            v = e.get(key);  parts.append(v or "")
+        content = e.get("content")
+        if isinstance(content, list):
+            for c in content:
+                parts.append((c or {}).get("value") or "")
+        if "youtube" in source_name.lower():
+            for tag in (e.get("tags") or []):
+                term = tag.get("term") if isinstance(tag, dict) else getattr(tag, "term", "")
+                parts.append(term or "")
+    return " ".join([clean_html(p) for p in parts if p])
+
+def title_passes(t: str) -> bool:
+    tl = (t or "").lower()
+    if any(x in tl for x in EXCLUDE): return False
+    # Purist: demand Purdue + basketball signals in title
+    require = ["purdue", "boilermaker", "boilerball"]
+    hoops   = ["basketball", "mbb", "men's basketball", "matt painter"] + [
+        "guard","forward","center","tipoff","assist","rebound","kenpom","net ranking"
+    ]
+    return any(r in tl for r in require) and (any(h in tl for h in hoops) or "purdue" in tl)
+
+def blob_passes(b: str) -> bool:
+    bl = (b or "").lower()
+    if any(x in bl for x in EXCLUDE): return False
+    inc_hits = sum(1 for k in INCLUDE if k in bl)
+    return ("purdue" in bl or "boilermaker" in bl or "boilerball" in bl) and inc_hits >= 1
+
+def youtube_watch_link(e) -> str:
+    vid = None
+    if isinstance(e, dict):
+        vid = e.get("yt_videoid")
+        if not vid:
+            mg = e.get("media_group") or {}
+            if isinstance(mg, dict):
+                vid = mg.get("yt_videoid")
+    link = (getattr(e, "link", "") or "").strip()
+    return f"https://www.youtube.com/watch?v={vid}" if vid else link
+
+def youtube_peek_psu(link: str) -> bool:
+    try:
+        r = requests.get(link, headers={"User-Agent": UA}, timeout=YT_PEEK_TIMEOUT)
+        if r.status_code != 200: return False
+        html = r.text.lower()
+        return "purdue" in html or "boilermaker" in html or "boilerball" in html
+    except Exception:
+        return False
+
+def collect() -> List[Dict]:
+    ranked: List[Tuple[Dict, int]] = []
+    seen_link, seen_title = set(), set()
+
+    for f in FEEDS_META:
+        name, url = f["name"], f["url"]
+        parsed = parse_feed(url)
+        pulled = 0
+        yt_peeks = 0
+        lname = name.lower()
+
+        for e in parsed.entries:
+            title = (getattr(e, "title", "") or "").strip()
+            if not title: continue
+            link = (getattr(e, "link", "") or "").strip()
+            if "youtube" in lname:
+                link = youtube_watch_link(e) or link
+            if not link: continue
+
+            desc = clean_html(getattr(e, "summary", "") or getattr(e, "description", ""))
+            blob = fields_blob(e, name)
+            full = f"{title} {blob}"
+
+            # Reddit r/CollegeBasketball: require title to pass (less noise)
+            passes = title_passes(title) if "reddit – r/collegebasketball" in lname else blob_passes(full)
+
+            # YouTube: allow a few light peeks for Purdue mentions in HTML
+            if not passes and "youtube" in lname and yt_peeks < YT_PEEK_MAX_PER_FEED:
+                yt_peeks += 1
+                if youtube_peek_psu(link):
+                    passes = True
+
+            if not passes: continue
+
+            key_title = re.sub(r"\s+", " ", title.lower())
+            if link in seen_link or key_title in seen_title: continue
+
+            item = {
+                "title": title,
+                "link": link,
+                "source": name,
+                "date": norm_date(e),
+                "description": (desc[:280] + ("…" if len(desc) > 280 else "")) if desc else ""
+            }
+            # Basic scoring: boost official + direct Purdue mentions
+            score = 0
+            tl = title.lower()
+            if "purdue" in tl or "boilermaker" in tl or "boilerball" in tl: score += 5
+            if "basketball" in tl or "mbb" in tl: score += 3
+            if "purdue athletics" in name.lower() or "purduesports" in name.lower(): score += 2
+            ranked.append((item, score))
+
+            seen_link.add(link); seen_title.add(key_title)
+            pulled += 1
+            if pulled >= MAX_PER_FEED: break
+
+        print(f"[collector] {name}: {pulled} items (YT peeks: {yt_peeks})")
+        time.sleep(0.2)
+
+    def date_key(it: Dict) -> str:
+        return it.get("date") or "0000-00-00"
+    ranked.sort(key=lambda p: (date_key(p[0]), p[1]), reverse=True)
+    return [it for it, _ in ranked][:TOTAL_MAX]
+
+def main():
+    try:
+        items = collect()
     except Exception as e:
-        logging.exception("[refresher] collector error: %s", e)
+        print(f"[collector] ERROR: {e}")
+        items = []
+    OUT_FILE.write_text(json.dumps({"items": items}, indent=2), encoding="utf-8")
+    print(f"[collector] Wrote {len(items)} items to {OUT_FILE}")
 
-def _refresher_loop():
-    time.sleep(10)
-    while True:
-        _run_collector_once()
-        for _ in range(REFRESH_MIN * 60):
-            time.sleep(1)
-
-def _ensure_refresher():
-    global _started_refresher
-    if not _started_refresher:
-        threading.Thread(target=_refresher_loop, daemon=True).start()
-        _started_refresher = True
-        app.logger.info("[refresher] background refresher started (every %d min)", REFRESH_MIN)
-
-# ---------- Inline fallback template ----------
-INLINE_INDEX_TEMPLATE = """<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Purdue Men’s Basketball — Live Feed</title>
-<link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="any">
-<link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-<link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
-<meta name="theme-color" content="#CFB87C">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
-</head>
-<body>
-  <div class="container">
-    <header class="header">
-      <div class="brand">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Purdue" class="logo" />
-        <div>
-          <h1>Purdue Men’s Basketball — Live Feed</h1>
-          <div class="sub">({{ items|length }} dynamic items)</div>
-          <div class="stamp" id="updatedStamp" data-iso="{{ last_updated_iso or '' }}">
-            {% if last_updated_human %}Updated: {{ last_updated_human }}{% else %}Updated: never{% endif %}
-          </div>
-        </div>
-      </div>
-      <div class="actions"><button id="fightBtn" class="btn primary">▶︎ Fight Song</button></div>
-      <nav class="quick" aria-label="Quick links">
-        {% for q in quick_links %}<a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>{% endfor %}
-      </nav>
-    </header>
-
-    <div id="notice" class="notice" style="display:none">
-      New items available. <button id="refreshBtn" class="btn">Refresh</button>
-    </div>
-
-    <section class="controls">
-      <input id="search" class="input" placeholder="Filter (e.g., Braden Smith, Matt Painter)" />
-      <select id="sourceFilter" class="select">
-        <option value="__all__">All sources</option>
-        {% for s in sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
-      </select>
-      <span class="muted" id="countNote"></span>
-    </section>
-
-    <main>
-      {% if items and items|length %}
-        <ul class="items" id="itemsList">
-          {% for it in items %}
-            <li class="item" data-source="{{ it.source|e }}">
-              <div class="item-head">
-                {% if it.link %}
-                  <a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>
-                {% else %}
-                  <span class="title">{{ it.title }}</span>
-                {% endif %}
-                {% if it.source %}<span class="badge">{{ it.source }}</span>{% endif %}
-              </div>
-              <div class="meta">{% if it.date %}{{ it.date }}{% endif %}</div>
-              {% if it.description %}<p class="desc">{{ it.description }}</p>{% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <div class="empty">No dynamic items yet. Quick links above are always available.</div>
-      {% endif %}
-    </main>
-  </div>
-
-  <!-- Inline fight song playback (root-level file) -->
-  <audio id="fightAudio" preload="metadata" playsinline webkit-playsinline>
-    <source src="{{ fight_song_src }}" type="audio/mpeg">
-  </audio>
-
-  <div id="toast" style="display:none;position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.2);font-size:.9rem;z-index:9999"></div>
-
-  <script>
-  (function(){
-    const sel=document.getElementById('sourceFilter');
-    const list=document.getElementById('itemsList');
-    const note=document.getElementById('countNote');
-    const search=document.getElementById('search');
-    function applyFilter(){
-      if(!list)return;
-      const srcVal=sel.value, q=(search.value||"").toLowerCase();
-      let shown=0;
-      for(const li of list.querySelectorAll('.item')){
-        const src=li.getAttribute('data-source')||'';
-        const text=li.textContent.toLowerCase();
-        const on=((srcVal==='__all__')||(src===srcVal)) && (!q || text.includes(q));
-        li.style.display=on?'':'none'; if(on) shown++;
-      }
-      note.textContent=`${shown} shown`;
-    }
-    sel&&sel.addEventListener('change',applyFilter);
-    search&&search.addEventListener('input',applyFilter);
-    applyFilter();
-
-    const btn=document.getElementById('fightBtn');
-    const audio=document.getElementById('fightAudio');
-    const toastEl=document.getElementById('toast');
-
-    function toast(msg){
-      if(!toastEl) return;
-      toastEl.textContent=msg; toastEl.style.display='';
-      setTimeout(()=>{toastEl.style.display='none'}, 2600);
-    }
-
-    if(btn&&audio){
-      btn.addEventListener('click', ()=>{
-        if (audio.readyState < 1) { try { audio.load(); } catch(_){} }
-        if(audio.paused){
-          audio.play().then(()=>{ btn.textContent='⏸︎ Pause'; })
-          .catch(()=>{ toast('Could not play fight_song.mp3'); });
-        }else{
-          audio.pause(); btn.textContent='▶︎ Fight Song';
-        }
-      });
-    }
-
-    // Humanized "Updated:"
-    const stamp = document.getElementById('updatedStamp');
-    function humanize(iso){
-      if(!iso) return "never";
-      const t=new Date(iso), now=new Date(), diff=Math.max(0,(now-t)/1000);
-      const units=[["day",86400],["hour",3600],["minute",60],["second",1]];
-      for(const [n,s] of units){ if(diff>=s){ const v=Math.floor(diff/s); return v+" "+n+(v>1?"s":"")+" ago"; } }
-      return "just now";
-    }
-    if(stamp){
-      const iso=stamp.getAttribute('data-iso');
-      stamp.textContent="Updated: "+humanize(iso);
-      setInterval(()=>{ stamp.textContent="Updated: "+humanize(iso); }, 30000);
-    }
-    const notice=document.getElementById('notice');
-    const refreshBtn=document.getElementById('refreshBtn');
-    let lastIso=stamp?stamp.getAttribute('data-iso'):null;
-    async function checkForNew(){
-      try{
-        const r=await fetch('/items.json',{method:'HEAD',cache:'no-store'});
-        const lm=r.headers.get('Last-Modified');
-        const newIso=lm?new Date(lm).toISOString():null;
-        if(lastIso && newIso && new Date(newIso)>new Date(lastIso)){ notice.style.display=''; }
-      }catch(_){}
-    }
-    refreshBtn&&refreshBtn.addEventListener('click',()=>location.reload());
-    setInterval(checkForNew, 5*60*1000);
-  })();
-  </script>
-</body></html>
-"""
-
-# ---------- Helpers ----------
-def load_items():
-    p = BASE_DIR / "items.json"
-    if not p.exists():
-        return []
-    try:
-        raw = json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-    raw_items = raw.get("items", raw) if isinstance(raw, (dict, list)) else []
-    out=[]
-    for it in (raw_items or []):
-        if not isinstance(it, dict): continue
-        out.append({
-            "title": it.get("title") or "Untitled",
-            "link": it.get("link") or "",
-            "source": (it.get("source") or "").strip(),
-            "date": it.get("date") or "",
-            "description": it.get("description") or ""
-        })
-    return out
-
-def quick_links():
-    try:
-        from feeds import STATIC_LINKS
-        return [{"id": str(i), "label": x["label"], "url": x["url"]} for i, x in enumerate(STATIC_LINKS)]
-    except Exception:
-        return []
-
-def fight_song_src():
-    return url_for("fight_song_file")
-
-def items_last_modified_iso():
-    p = BASE_DIR / "items.json"
-    if not p.exists():
-        return None
-    ts = p.stat().st_mtime
-    return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-
-def human_last_modified():
-    iso = items_last_modified_iso()
-    if not iso:
-        return None
-    dt = datetime.fromisoformat(iso)
-    return dt.strftime("%Y-%m-%d %H:%M UTC")
-
-def static_version():
-    p = BASE_DIR / "static" / "style.css"
-    try:
-        return str(int(p.stat().st_mtime))
-    except Exception:
-        return "1"
-
-# ---------- Routes ----------
-@app.before_request
-def _kick_refresher():
-    _ensure_refresher()
-
-@app.get("/")
-def index():
-    items = load_items()
-    try:
-        from feeds import FEEDS_META
-        configured_sources = {f["name"] for f in FEEDS_META}
-    except Exception:
-        configured_sources = set()
-    sources = sorted({it["source"] for it in items if it.get("source")} | configured_sources)
-
-    try:
-        return render_template(
-            "index.html",
-            items=items,
-            sources=sources,
-            quick_links=quick_links(),
-            fight_song_src=fight_song_src(),
-            last_updated_iso=items_last_modified_iso(),
-            last_updated_human=human_last_modified(),
-            static_v=static_version(),
-        )
-    except TemplateNotFound:
-        return render_template_string(
-            INLINE_INDEX_TEMPLATE,
-            items=items,
-            sources=sources,
-            quick_links=quick_links(),
-            fight_song_src=fight_song_src(),
-            last_updated_iso=items_last_modified_iso(),
-            last_updated_human=human_last_modified(),
-            static_v=static_version(),
-        )
-
-@app.get("/health")
-def health():
-    return {"ok": True}
-
-@app.get("/items.json")
-def items_json():
-    p = BASE_DIR / "items.json"
-    if p.exists():
-        return send_file(p, mimetype="application/json", conditional=True)
-    return jsonify({"items": []})
-
-# -------- Fight song from ROOT --------
-@app.get("/fight_song.mp3")
-def fight_song_file():
-    path = BASE_DIR / "fight_song.mp3"  # root-level file
-    if not path.exists():
-        app.logger.warning("fight_song.mp3 not found at %s", path)
-        return ("", 404)
-    resp = send_file(path, mimetype="audio/mpeg", conditional=True)
-    resp.headers["Accept-Ranges"] = "bytes"
-    resp.headers["Cache-Control"] = "public, max-age=604800"
-    return resp
+if __name__ == "__main__":
+    main()
