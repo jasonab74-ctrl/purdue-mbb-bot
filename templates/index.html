@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Purdue Men’s Basketball — Live Feed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -10,7 +11,7 @@
     <!-- Header -->
     <div class="header">
       <div class="brand">
-        <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Purdue logo">
         <div>
           <h1>Purdue Men’s Basketball</h1>
           <div class="sub">
@@ -19,27 +20,27 @@
           </div>
         </div>
       </div>
-      <button class="btn" onclick="toggleFightSong()">▶ Fight Song</button>
+      <button class="fight-btn" onclick="toggleFightSong()">▶ Fight Song</button>
       <audio id="fightSong" src="{{ url_for('static', filename='../fight_song.mp3') }}"></audio>
     </div>
 
     <!-- Quick Links -->
     <div class="quick">
       {% for link in static_links %}
-        <a class="pill" href="{{ link.url }}" target="_blank">{{ link.label }}</a>
+        <a class="pill" href="{{ link.url }}" target="_blank" rel="noopener">{{ link.label }}</a>
       {% endfor %}
     </div>
 
     <!-- Controls -->
     <div class="controls">
-      <input type="search" class="input" id="searchBox" placeholder="Search articles…"
-             oninput="filterItems()">
+      <input type="search" class="input" id="searchBox" placeholder="Search articles…" oninput="filterItems()">
       <select class="select" id="sourceFilter" onchange="filterItems()">
         <option value="">All Sources</option>
         {% for f in feeds %}
           <option value="{{ f.name }}">{{ f.name }}</option>
         {% endfor %}
       </select>
+      <span class="muted" id="visibleCount"></span>
     </div>
 
     <!-- Notice -->
@@ -52,11 +53,12 @@
       {% for it in items %}
         <li class="item">
           <div class="item-head">
-            <a class="title" href="{{ it.link }}" target="_blank">{{ it.title }}</a>
+            <a class="title" href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a>
             <span class="badge">{{ it.source }}</span>
           </div>
           <div class="meta">{{ it.date }}</div>
           {% if it.summary %}
+            <!-- summary is already cleaned to plain text in collect.py -->
             <div class="desc">{{ it.summary }}</div>
           {% endif %}
         </li>
@@ -75,12 +77,16 @@
   function filterItems() {
     let q = document.getElementById("searchBox").value.toLowerCase();
     let f = document.getElementById("sourceFilter").value;
+    let visible = 0;
     document.querySelectorAll("#feedList .item").forEach(it => {
       let t = it.innerText.toLowerCase();
       let s = it.querySelector(".badge").innerText;
       let show = (!q || t.includes(q)) && (!f || s === f);
       it.style.display = show ? "" : "none";
+      if (show) visible++;
     });
+    const vc = document.getElementById("visibleCount");
+    if (vc) vc.textContent = visible ? visible + " shown" : "No matches";
   }
 
   async function checkUpdates() {
