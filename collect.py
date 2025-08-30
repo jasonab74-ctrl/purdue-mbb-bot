@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Purdue MBB — robust collector (freshness + diagnostics + player-name matching)
-- Realistic Chrome UA (prevents empty bodies from some hosts)
-- Smart include logic (Purdue-targeted feeds auto-include)
-- Strict football/other-sport excludes
-- Freshness window (default 120 days) to keep results current
-- De-dupe, per-domain caps, newest-first
-- Atomic write to items.json
-- Guardrails: never clobber a good file with an empty pass
-- Always prints JSON summary with per-feed http/bytes/seen/kept
-- NEW: PLAYER_KEYWORDS merged into include matching (this-year roster names)
+Purdue MBB — fail-safe collector with DEBUG TITLES
+- Real Chrome UA, retries, atomic write
+- Pass 1: topic/roster/player matching (strict football excludes)
+- If < 30 items, Pass 2: LENIENT (accept any non-football from your feeds)
+- Freshness window (FRESH_DAYS, default 180)
+- Writes items.json and embeds a rich `last_run` block that /diag can show
+- DEBUG: stores FIRST 5 seen titles and kept titles per feed (always)
 """
 
 import json, os, re, time, traceback
@@ -35,27 +32,16 @@ except Exception:
     KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster","class of 2025","class of 2026","2025-26","2025–26"]
     KEYWORDS_EXCLUDE = ["football","qb","nfl"]
     MAX_ITEMS_PER_FEED = 120
-    ALLOW_DUPLICATE_DOMAINS = False
-    DOMAIN_PER_FEED_LIMIT = 4
+    ALLOW_DUPLICATE_DOMAINS = True
+    DOMAIN_PER_FEED_LIMIT = 999
     SOURCE_ALIASES = {}
 
 # -----------------------------------------------------------------------------
-# Player keywords (this-year roster + common recent names/variants).
-# You can extend via env var PLAYER_EXTRA (comma-separated names).
-# -----------------------------------------------------------------------------
+# Player keywords (this-year roster + notable recent)
 PLAYER_KEYWORDS_DEFAULT = [
-    # Core returners / recent main rotation
-    "braden smith",
-    "fletcher loyer",
-    "trey kaufman", "trey kaufman-renn",
-    "mason gillis",
-    "caleb furst",
-    "myles colvin",
-    "camden heide",
-    "will berg",
-    # Coach / notable recent star references still relevant in news context
-    "matt painter",
-    "zach edey",
+    "braden smith", "fletcher loyer", "trey kaufman", "trey kaufman-renn",
+    "mason gillis", "caleb furst", "myles colvin", "camden heide", "will berg",
+    "matt painter", "zach edey"
 ]
 EXTRA = os.environ.get("PLAYER_EXTRA", "").strip()
 if EXTRA:
@@ -63,12 +49,10 @@ if EXTRA:
 else:
     PLAYER_KEYWORDS = PLAYER_KEYWORDS_DEFAULT
 
-# -----------------------------------------------------------------------------
-
 ROOT = os.path.dirname(os.path.abspath(__file__))
 ITEMS_PATH = os.path.join(ROOT, "items.json")
 
-# Realistic browser headers
+# Browser-like headers
 HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                    "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -83,10 +67,10 @@ TIMEOUT = 25
 RETRIES = 3
 BACKOFF_BASE = 1.7
 
-# Freshness window (days). Items older than this are dropped.
-FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "120"))
+# Freshness window (days). Increase if you want more history.
+FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "180"))
 
-# Build include/exclude regexes (merge player names into include)
+# Build regexes
 INCLUDE_TERMS = (KEYWORDS_INCLUDE or []) + PLAYER_KEYWORDS
 CORE_INCLUDE_RE = re.compile(
     r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey|roster)\b"
@@ -98,8 +82,8 @@ EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in (KEYWORDS_EXCLUDE or [])
 YOUTUBE_HOSTS = ("youtube.com","youtu.be")
 
 TARGETED_FEED_HINTS = (
-    "purdue","boiler","mackey","matt painter","youtube mentions","r/boilermakers","bing news","google news",
-    "on3 — purdue","247sports — purdue"
+    "purdue","boiler","mackey","matt painter","youtube mentions","r/boilermakers",
+    "bing news","google news","on3 — purdue","247sports — purdue","hammer & rails"
 )
 
 def now_iso() -> str: return datetime.now(timezone.utc).isoformat()
@@ -157,12 +141,15 @@ def feed_is_targeted(feed_name: str) -> bool:
     n = (feed_name or "").lower()
     return any(h in n for h in TARGETED_FEED_HINTS)
 
-def passes_filters(entry: Dict[str, Any], source_name: str) -> bool:
+def passes_filters(entry: Dict[str, Any], source_name: str, *, lenient: bool) -> bool:
     txt = text_of(entry)
-    if EXCLUDE_RE.search(txt): return False
+    if EXCLUDE_RE.search(txt):
+        return False
+    if lenient:
+        return True
     if feed_is_targeted(source_name): return True
-    if CORE_INCLUDE_RE.search(txt): return True
-    if INCLUDE_RE.search(txt): return True
+    if CORE_INCLUDE_RE.search(txt):  return True
+    if INCLUDE_RE.search(txt):       return True
     return False
 
 def entry_to_item(entry: Dict[str, Any], source_name: str) -> Dict[str, Any]:
@@ -212,35 +199,39 @@ def fetch_feed_with_meta(url: str):
             return [], meta
 
 # ---------- persistence ----------
-def load_previous() -> Dict[str, Any]:
-    if not os.path.exists(ITEMS_PATH):
-        return {"items": [], "generated_at": now_iso()}
-    try:
-        with open(ITEMS_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {"items": [], "generated_at": now_iso()}
-
-def write_items_safely(items: List[Dict[str, Any]]):
-    payload = {"items": items, "generated_at": now_iso()}
+def write_items_with_meta(items: List[Dict[str, Any]], last_run: Dict[str, Any]):
+    payload = {
+        "items": items,
+        "generated_at": now_iso(),
+        "last_run": last_run,
+        "items_mtime": now_iso(),
+    }
     tmp = ITEMS_PATH + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
     os.replace(tmp, ITEMS_PATH)
 
+def load_previous() -> Dict[str, Any]:
+    if not os.path.exists(ITEMS_PATH):
+        return {"items": [], "generated_at": now_iso(), "last_run": {}}
+    try:
+        with open(ITEMS_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"items": [], "generated_at": now_iso(), "last_run": {}}
+
 # ---------- collection ----------
-def collect_once():
+def collect_pass(*, lenient: bool):
     items: List[Dict[str, Any]] = []
     errors: List[str] = []
     per_feed_kept: Dict[str,int] = {}
     per_feed_seen: Dict[str,int] = {}
     per_feed_meta: Dict[str,Dict[str,Any]] = {}
+    debug_seen_titles: Dict[str, List[str]] = {}
+    debug_kept_titles: Dict[str, List[str]] = {}
 
     seen_links = set()
-    domain_counts: Dict[Tuple[str,str], int] = {}
-
-    per_feed_cap = max(40, int(MAX_ITEMS_PER_FEED))
-    dom_cap = max(1, int(DOMAIN_PER_FEED_LIMIT)) if "DOMAIN_PER_FEED_LIMIT" in globals() else 3
+    per_feed_cap = max(80, int(MAX_ITEMS_PER_FEED))
 
     for f in FEEDS:
         name = f.get("name","Feed")
@@ -250,9 +241,17 @@ def collect_once():
             entries, meta = fetch_feed_with_meta(url)
             per_feed_meta[name] = meta
             per_feed_seen[name] = len(entries)
+            debug_seen_titles[name] = []
+            debug_kept_titles[name] = []
             added = 0
             for e in entries:
-                if not passes_filters(e, name): continue
+                title = (e.get("title") or "").strip()
+                if len(debug_seen_titles[name]) < 5:
+                    debug_seen_titles[name].append(title)
+
+                if not passes_filters(e, name, lenient=lenient):
+                    continue
+
                 itm = entry_to_item(e, name)
                 if not itm["link"]:
                     continue
@@ -261,28 +260,30 @@ def collect_once():
                 if itm["link"] in seen_links:
                     continue
 
-                if not ALLOW_DUPLICATE_DOMAINS:
-                    d = domain_of(itm["link"]); key = (name, d); cnt = domain_counts.get(key, 0)
-                    if d and cnt >= dom_cap: continue
-                    if d: domain_counts[key] = cnt + 1
+                if len(debug_kept_titles[name]) < 5:
+                    debug_kept_titles[name].append(itm["title"])
 
                 seen_links.add(itm["link"])
                 items.append(itm)
                 added += 1
-                if added >= per_feed_cap: break
+                if added >= per_feed_cap:
+                    break
             per_feed_kept[name] = added
         except Exception as ex:
             errors.append(f"{name}: {ex}")
             per_feed_seen[name] = per_feed_seen.get(name, 0)
             per_feed_kept[name] = per_feed_kept.get(name, 0)
             per_feed_meta[name] = {"http": None, "bytes": 0, "error": str(ex)}
+            debug_seen_titles[name] = debug_seen_titles.get(name, [])
+            debug_kept_titles[name] = debug_kept_titles.get(name, [])
             traceback.print_exc()
 
     items.sort(key=lambda x: x.get("date") or "", reverse=True)
-    items = items[:700]
-    return items, errors, per_feed_kept, per_feed_seen, per_feed_meta
+    items = items[:800]
+    debug = {"seen_titles": debug_seen_titles, "kept_titles": debug_kept_titles}
+    return items, errors, per_feed_kept, per_feed_seen, per_feed_meta, debug
 
-def merge_items(new_items, prev_items, keep: int = 550):
+def merge_items(new_items, prev_items, keep: int = 650):
     by_link: Dict[str, Dict[str, Any]] = {}
     for it in prev_items:
         link = it.get("link","")
@@ -304,12 +305,28 @@ def main():
     prev_items = prev.get("items", [])
     prev_n = len(prev_items)
 
-    new_items, errors, per_feed_kept, per_feed_seen, per_feed_meta = collect_once()
+    # Pass 1 (strict)
+    new_items, errors, kept, seen, meta, dbg = collect_pass(lenient=False)
+
+    # Pass 2 (lenient) if too few
+    used_lenient = False
+    if len(new_items) < 30:
+        l_items, l_err, l_kept, l_seen, l_meta, l_dbg = collect_pass(lenient=True)
+        used_lenient = True
+        errors += ["-- lenient retry --"] + l_err
+        for k,v in l_kept.items(): kept[k] = max(kept.get(k,0), v)
+        for k,v in l_seen.items(): seen[k] = max(seen.get(k,0), v)
+        for k,v in l_meta.items(): meta[k] = v
+        # merge debug (prefer lenient titles when present)
+        dbg["seen_titles"].update(l_dbg["seen_titles"])
+        dbg["kept_titles"].update(l_dbg["kept_titles"])
+        new_items = l_items
+
     new_n = len(new_items)
 
+    # Guard rails
     MIN_ABSOLUTE = 50
     REL_DROP = 0.6
-
     if new_n == 0 and prev_n > 0:
         final_items, decision = prev_items, "kept_previous_zero_new"
     elif new_n < MIN_ABSOLUTE and prev_n > 0:
@@ -319,23 +336,24 @@ def main():
     else:
         final_items, decision = new_items, "accepted_new"
 
-    write_items_safely(final_items)
-
-    summary = {
+    last_run = {
         "ok": True,
         "decision": decision,
+        "used_lenient": used_lenient,
         "new_count": new_n,
         "prev_count": prev_n,
         "final_count": len(final_items),
-        "per_feed_counts": per_feed_kept,
-        "per_feed_seen": per_feed_seen,
-        "per_feed_meta": per_feed_meta,
+        "per_feed_counts": kept,
+        "per_feed_seen": seen,
+        "per_feed_meta": meta,
         "fresh_days": FRESH_DAYS,
         "player_keywords": PLAYER_KEYWORDS,
-        "errors": errors,
+        "debug_titles": dbg,
         "ts": now_iso()
     }
-    print(json.dumps(summary))
+
+    write_items_with_meta(final_items, last_run)
+    print(json.dumps(last_run))
 
 if __name__ == "__main__":
     main()
