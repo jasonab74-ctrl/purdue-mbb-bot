@@ -3,6 +3,7 @@
 
 import os, re, json, html, hashlib, time, tempfile
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from urllib.parse import urlparse, parse_qs
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree as ET
@@ -20,7 +21,7 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 def http_get(url, headers=None, timeout=TIMEOUT):
-    req = Request(url, headers=headers or {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) MBBFeedBot/1.4"})
+    req = Request(url, headers=headers or {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) MBBFeedBot/1.5"})
     with urlopen(req, timeout=timeout) as r:
         return r.read()
 
@@ -31,18 +32,15 @@ def to_text(x):
 _TAG_RE   = re.compile(r"<[^>]+>")
 _WS_RE    = re.compile(r"\s+")
 def strip_html(s: str) -> str:
-    """Remove all HTML tags and collapse whitespace."""
     if not s: return ""
     s = to_text(s)
-    s = _TAG_RE.sub(" ", s)              # drop tags
-    s = html.unescape(s)                 # decode entities
-    s = _WS_RE.sub(" ", s).strip()       # tidy spaces/newlines
+    s = _TAG_RE.sub(" ", s)
+    s = html.unescape(s)
+    s = _WS_RE.sub(" ", s).strip()
     return s
 
 def tidy_summary(raw: str, limit: int = 300) -> str:
-    """Plain-text summary, trimmed; no <a href=...> junk."""
     txt = strip_html(raw)
-    # common boilerplate endings
     for bad in ("Continue reading", "Read more", "The post", "Originally appeared on"):
         txt = re.sub(rf"{re.escape(bad)}.*$", "", txt, flags=re.I).strip()
     if len(txt) > limit:
@@ -50,10 +48,6 @@ def tidy_summary(raw: str, limit: int = 300) -> str:
     return txt
 
 def normalize_link(link: str) -> str:
-    """
-    Keep links stable, but if it's a Google News redirect with a 'url=' param,
-    expose the destination for a cleaner preview.
-    """
     if not link: return ""
     try:
         u = urlparse(link)
@@ -65,6 +59,32 @@ def normalize_link(link: str) -> str:
         pass
     return link
 
+def parse_any_dt(s: str):
+    """Parse RFC-822 or ISO-8601 to UTC datetime; None on fail."""
+    if not s: return None
+    s = s.strip()
+    # RFC 822 (e.g., Thu, 29 Aug 2025 07:00:00 GMT)
+    try:
+        dt = parsedate_to_datetime(s)
+        if dt:
+            if not dt.tzinfo:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(timezone.utc)
+    except Exception:
+        pass
+    # ISO 8601 (with Z or offset)
+    try:
+        s2 = s.replace("Z", "+00:00") if s.endswith("Z") else s
+        dt = datetime.fromisoformat(s2)
+        if not dt.tzinfo:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except Exception:
+        return None
+
+def fmt_display(dt: datetime) -> str:
+    return dt.astimezone(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+
 def parse_rss(xml_bytes):
     root = ET.fromstring(xml_bytes)
     out = []
@@ -73,11 +93,14 @@ def parse_rss(xml_bytes):
         link  = (it.findtext("link")  or "").strip()
         desc  = (it.findtext("description") or it.findtext("content") or "").strip()
         pub   = (it.findtext("pubDate") or it.findtext("published") or "").strip()
+
+        dt = parse_any_dt(pub) or datetime.now(timezone.utc)
         out.append({
             "title": title,
             "link":  normalize_link(link),
             "summary": tidy_summary(desc),
-            "date": pub
+            "date": fmt_display(dt),
+            "ts": int(dt.timestamp())
         })
     return out
 
@@ -86,9 +109,6 @@ def fetch_bing(f):    return parse_rss(http_get(f["url"]))
 def fetch_rss(f):     return parse_rss(http_get(f["url"]))
 
 def fetch_reddit(f):
-    """
-    Support both JSON and RSS endpoints; never propagate exceptions.
-    """
     url = f["url"]
     try:
         if url.endswith(".rss"):
@@ -98,11 +118,13 @@ def fetch_reddit(f):
         out = []
         for c in j.get("data",{}).get("children",[]):
             p = c.get("data",{})
+            dt = datetime.fromtimestamp(p.get("created_utc",0), tz=timezone.utc)
             out.append({
                 "title": p.get("title",""),
                 "link":  normalize_link(p.get("url","") or ("https://reddit.com" + p.get("permalink",""))),
                 "summary": tidy_summary(p.get("selftext","")),
-                "date": datetime.fromtimestamp(p.get("created_utc",0), tz=timezone.utc).isoformat(),
+                "date": fmt_display(dt),
+                "ts": int(dt.timestamp())
             })
         return out
     except (JSONDecodeError, ET.ParseError, Exception):
@@ -142,11 +164,6 @@ def is_trusted(feed_name: str) -> bool:
     return feed_name in TRUSTED_NAMES
 
 def allow_item(title, summary, feed):
-    """
-    Men's Purdue basketball only.
-    - If the TITLE mentions another sport, require hoops signal IN THE TITLE.
-    - Block explicit women's unless hoops is also clearly present.
-    """
     title_t   = to_text(title)
     summary_t = to_text(summary)
     blob      = f"{title_t}\n{summary_t}"
@@ -199,24 +216,23 @@ def collect():
                 "id": uid,
                 "title": title,
                 "link": link,
-                "summary": summary,   # already plain text from tidy_summary()
+                "summary": summary,   # already plain text
                 "source": name,
-                "date": it.get("date","")
+                "date": it.get("date",""),
+                "ts": int(it.get("ts", 0)) if isinstance(it.get("ts", 0), int) else 0
             })
 
         time.sleep(0.1)
 
-    # Sort newest first
-    def sort_key(x):
-        d = x.get("date","")
-        for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
-            try:
-                return datetime.strptime(d.replace("Z","+0000"), fmt)
-            except Exception:
-                pass
-        return datetime.now(timezone.utc)
+    # sort strictly by numeric ts (fallback: now if 0)
+    for x in out:
+        if not x.get("ts"):
+            # best-effort parse from x['date']
+            dt = parse_any_dt(x.get("date","")) or datetime.now(timezone.utc)
+            x["ts"] = int(dt.timestamp())
+            x["date"] = fmt_display(dt)
 
-    out.sort(key=sort_key, reverse=True)
+    out.sort(key=lambda x: x["ts"], reverse=True)
     out = out[:MAX_ITEMS]
 
     meta = {
@@ -227,7 +243,6 @@ def collect():
                      "per_feed_counts": per, "ts": now_iso()}
     }
 
-    # ATOMIC WRITE
     payload = json.dumps({"items": out, "meta": meta}, ensure_ascii=False)
     dirn = os.path.dirname(ITEMS_PATH) or "."
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=dirn, delete=False) as tmp:
