@@ -12,7 +12,7 @@
 </head>
 <body>
 
-  <!-- Top header -->
+  <!-- Single banner/header -->
   <header class="site-header container">
     <div class="brand">
       <img src="/static/logo.png" class="logo" alt="Purdue">
@@ -24,25 +24,9 @@
         </div>
       </div>
     </div>
-    <!-- Single Fight Song control (header only) -->
     <button class="fight-btn" id="fightBtn" aria-pressed="false">▶︎ Fight Song</button>
     <audio id="fightAudio" preload="none" src="/fight_song.mp3" playsinline></audio>
   </header>
-
-  <!-- Hero (no second Fight Song button) -->
-  <div class="container">
-    <div class="hero">
-      <div class="hero-inner">
-        <div class="left">
-          <img src="/static/logo.png" alt="Purdue" class="logo">
-          <div>
-            <div class="badge">Purdue MBB — Live Feed</div>
-            <div class="subtle">Updated: <span id="heroUpdated">—</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div class="container">
     <!-- Quick links -->
@@ -88,7 +72,7 @@
     { label: "YouTube – Sleepers Media",   url: "https://www.youtube.com/@SleepersMedia" }
   ];
 
-  // Fallback source names (used if items.json is empty)
+  // Fallback list for the dropdown when items.json is temporarily empty
   const SOURCE_HINTS = [
     "Google News — Purdue Basketball",
     "Google News — Matt Painter",
@@ -121,9 +105,7 @@
   const fightBtn = $("#fightBtn");
   const fightAudio = $("#fightAudio");
 
-  function fmtDate(d){
-    try{ return new Date(d).toISOString().slice(0,10); }catch(e){ return ""; }
-  }
+  function fmtDate(d){ try{ return new Date(d).toISOString().slice(0,10); }catch(e){ return ""; } }
   function timeAgo(d){
     try{
       const diff = Date.now() - new Date(d).getTime();
@@ -139,7 +121,9 @@
     return `${ts}-${items.length}`;
   }
   function buildQuickLinks(){
-    $("#quickLinks").innerHTML = STATIC_LINKS.map(l=>`<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`).join("");
+    $("#quickLinks").innerHTML = STATIC_LINKS
+      .map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`)
+      .join("");
   }
   function uniqueSources(items){
     const set = new Set();
@@ -151,7 +135,7 @@
   }
   function renderSourceOptions(items){
     let options = uniqueSources(items);
-    if (!options.length) options = SOURCE_HINTS.slice(); // fallback when 0 items
+    if (!options.length) options = SOURCE_HINTS.slice();
     sourceEl.innerHTML = `<option value="__all__">All sources</option>` +
       options.map(s => `<option value="${s}">${s}</option>`).join("");
   }
@@ -165,17 +149,16 @@
     return hay.includes(q.toLowerCase());
   }
   function renderItems(items){
-    let q = searchEl.value.trim();
-    let src = sourceEl.value;
-    let filtered = items.filter(it => itemMatches(it,q,src));
+    const q = searchEl.value.trim();
+    const src = sourceEl.value;
+    const filtered = items.filter(it => itemMatches(it,q,src));
+
     shownCountEl.textContent = filtered.length.toString();
     itemCountEl.textContent = items.length.toString();
+
     const newest = items[0]?.date || items[0]?.published || items[0]?.isoDate || null;
-    if (newest){
-      updatedAgoEl.textContent = timeAgo(new Date(newest));
-      const heroUpd = document.getElementById("heroUpdated");
-      if (heroUpd) heroUpd.textContent = timeAgo(new Date(newest));
-    }
+    if (newest) updatedAgoEl.textContent = timeAgo(new Date(newest));
+
     feedEl.innerHTML = filtered.map(it => {
       const title = (it.title || "Untitled").replace(/</g,"&lt;").replace(/>/g,"&gt;");
       const link  = it.link || it.url || "#";
@@ -198,6 +181,7 @@
     const items = Array.isArray(data) ? data : (data.items || []);
     items.sort((a,b)=>new Date(b.date||b.published||b.isoDate||0)-new Date(a.date||a.published||a.isoDate||0));
     const sig = signature(items);
+
     if (initial){
       ALL_ITEMS = items;
       buildQuickLinks();
@@ -232,6 +216,7 @@
       if (document.hidden && !fightAudio.paused){ fightAudio.pause(); setBtn(false); }
     });
   }
+
   (async function(){
     try{
       await loadItems(true);
