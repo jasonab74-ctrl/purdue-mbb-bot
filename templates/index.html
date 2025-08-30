@@ -20,8 +20,11 @@
           </div>
         </div>
       </div>
-      <button class="fight-btn" onclick="toggleFightSong()">▶ Fight Song</button>
-      <audio id="fightSong" src="{{ url_for('static', filename='../fight_song.mp3') }}"></audio>
+      <button class="fight-btn" id="fightBtn" onclick="toggleFightSong()">▶ Fight Song</button>
+      <!-- IMPORTANT: file lives at /static/fight_song.mp3 -->
+      <audio id="fightSong" preload="none" playsinline>
+        <source src="{{ url_for('static', filename='fight_song.mp3') }}" type="audio/mpeg">
+      </audio>
     </div>
 
     <!-- Quick Links -->
@@ -58,7 +61,6 @@
           </div>
           <div class="meta">{{ it.date }}</div>
           {% if it.summary %}
-            <!-- summary is already cleaned to plain text in collect.py -->
             <div class="desc">{{ it.summary }}</div>
           {% endif %}
         </li>
@@ -71,7 +73,18 @@
   <script>
   function toggleFightSong() {
     const a = document.getElementById("fightSong");
-    if (a.paused) { a.play(); } else { a.pause(); }
+    const btn = document.getElementById("fightBtn");
+    // iOS Safari returns a promise from play(); catch for UX
+    if (a.paused) {
+      a.play().then(() => { btn.textContent = "⏸ Fight Song"; })
+               .catch(err => {
+                 alert("Could not start audio. Make sure your ringer is on and try again.");
+                 console.error(err);
+               });
+    } else {
+      a.pause();
+      btn.textContent = "▶ Fight Song";
+    }
   }
 
   function filterItems() {
