@@ -1,193 +1,192 @@
-# collect.py — Purdue Men’s Basketball collector (strict)
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from pathlib import Path
-import time, json, re
+import os, re, json, time
 from html import unescape
-from typing import List, Dict, Tuple
-import requests, feedparser
-from feeds import FEEDS_META, KEYWORDS_EXCLUDE
+from datetime import datetime, timezone
+from typing import Dict, List, Tuple
 
-OUT_FILE = Path("items.json")
-MAX_PER_FEED          = 60
-TOTAL_MAX             = 500
-TIMEOUT               = 15
-UA                    = "Mozilla/5.0 (X11; Linux x86_64) PurdueMBBFeed/1.1 (+https://example.local)"
-YT_PEEK_TIMEOUT       = 4
-YT_PEEK_MAX_PER_FEED  = 6
+import requests, feedparser   # robust parsing for Google/Bing/Reddit/blog RSS
 
-# Purdue basketball language (positive signals)
-PURDUE_CORE = [
-    "purdue","boilermakers","boilers","mackey","painter","big ten","march madness","ncaa tournament",
-    "basketball","mbb","men’s basketball","men's basketball",
-    # roster names (2025–26)
-    "c.j. cox","antione west jr.","fletcher loyer","braden smith","aaron fine","jack lusk",
-    "jack benter","omer mayer","gicarri harris","jace rayl","trey kaufman-renn","liam murphy",
-    "sam king","raleigh burgess","daniel jacobsen","oscar cluff",
-]
-PURDUE_CORE = [t.lower() for t in PURDUE_CORE]
+# ---- config ----
+ITEMS_PATH = Path(os.environ.get("ITEMS_PATH", "items.json"))
+MAX_ITEMS  = int(os.environ.get("MAX_ITEMS", "500"))
+MAX_PER_FEED = 80
+HTTP_TIMEOUT = 18
+UA = "Mozilla/5.0 (X11; Linux x86_64) PurdueMBBFeed/1.2 (+https://example.local)"
 
-EXC = [k.lower() for k in KEYWORDS_EXCLUDE] + [
-    # ban non-basketball sports explicitly
-    "football","wbb","women","volleyball","wrestling","baseball","softball",
-    "soccer","hockey","golf","track","cross country","tennis","swimming","lacrosse",
-    # betting spam
-    "odds","parlay","props","fanduel","draftkings","promo code",
+from feeds import FEEDS  # dropdown + sources
+
+# ---- men’s-only matching (lenient but targeted) ----
+
+PLAYERS = [
+    # 2025–26 roster you provided
+    "c.j. cox","cj cox","antione west jr","fletcher loyer","braden smith","aaron fine",
+    "jack lusk","jack benter","omer mayer","gicarri harris","jace rayl",
+    "trey kaufman-renn","liam murphy","sam king","raleigh burgess","daniel jacobsen","oscar cluff",
+    # coaches / program signals
+    "matt painter","mackey arena","boilermakers","boilers"
 ]
 
-def _contains_any(text: str, tokens) -> bool:
-    t = text.lower()
-    return any(tok in t for tok in tokens)
+WOMENS = re.compile(r"\bwomen'?s\b|\bwbb\b|\bwbk\b|\blady\b", re.I)
+MEN_SIG = re.compile(r"\bmen'?s\b|\bmbb\b|\bmen'?s?\s+basketball\b", re.I)
+BASKETBALL = re.compile(r"\bbasketball\b", re.I)
+PURDUE = re.compile(r"\bpurdue\b|\bboilermakers?\b|\bboilers?\b", re.I)
+PLAYER_RX = re.compile("|".join(re.escape(n) for n in PLAYERS), re.I)
+OTHER_SPORTS = re.compile(
+    r"\bfootball\b|\bvolleyball\b|\bbaseball\b|\bsoccer\b|\bwrestling\b|\bsoftball\b|\bhockey\b|"
+    r"\btrack\b|\bgolf\b|\bswim|min|swimming|xc|cross\s*country", re.I
+)
 
-def passes_core_blob(text: str) -> bool:
-    t = text.lower()
-    if any(x in t for x in EXC):    # hard negatives
-        return False
-    return ("purdue" in t or "boilermakers" in t or "mackey" in t) and (
-        "basketball" in t or "mbb" in t or any(k in t for k in PURDUE_CORE)
-    )
+def _clean_html(s: str) -> str:
+    if not s: return ""
+    s = re.sub(r"<[^>]+>", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return unescape(s)
 
-def passes_core_title(title: str) -> bool:
-    t = (title or "").lower()
-    if any(x in t for x in EXC): return False
-    return ("purdue" in t or "boilermakers" in t) and (
-        "basketball" in t or "mbb" in t or any(k in t for k in PURDUE_CORE)
-    )
+def _norm_date(e) -> str:
+    # Try feedparser’s published / updated
+    for key in ("published_parsed","updated_parsed"):
+        tm = getattr(e, key, None)
+        if tm:
+            return f"{tm.tm_year:04d}-{tm.tm_mon:02d}-{tm.tm_mday:02d}T{tm.tm_hour:02d}:{tm.tm_min:02d}:00Z"
+    # Last resort: today (keeps sort stable)
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-def norm_date(e) -> str:
-    if getattr(e, "published_parsed", None):
-        tm = e.published_parsed
-        return f"{tm.tm_year:04d}-{tm.tm_mon:02d}-{tm.tm_mday:02d}"
-    if getattr(e, "updated", None):
-        return (e.updated or "").split("T")[0][:10]
-    return ""
-
-def clean_html(s: str) -> str:
-    return unescape(re.sub("<[^>]+>", " ", s or "").strip())
-
-def parse_feed(url: str):
-    try:
-        r = requests.get(url, headers={"User-Agent": UA}, timeout=TIMEOUT)
-        r.raise_for_status()
-        return feedparser.parse(r.content)
-    except Exception:
-        return feedparser.parse(url)
-
-def yt_watch_link(entry) -> str:
-    vid = None
-    if isinstance(entry, dict):
-        vid = entry.get("yt_videoid")
-        if not vid:
-            mg = entry.get("media_group") or {}
-            if isinstance(mg, dict):
-                vid = mg.get("yt_videoid")
-    link = (getattr(entry, "link", "") or "").strip()
-    return f"https://www.youtube.com/watch?v={vid}" if vid else link
-
-def harvest_text_fields(e, source_name: str) -> str:
+def _blob_from_entry(e, source_name: str) -> str:
     parts = [
         getattr(e, "title", ""),
         getattr(e, "summary", "") or getattr(e, "description", "")
     ]
-    if isinstance(e, dict):
-        for key in ("media_description", "media_title"):
-            v = e.get(key);  parts.append(v or "")
-        content = e.get("content")
-        if isinstance(content, list):
-            for c in content:
-                parts.append((c or {}).get("value") or "")
-        if "youtube" in source_name.lower():
-            for tag in (e.get("tags") or []):
-                term = tag.get("term") if isinstance(tag, dict) else getattr(tag, "term", "")
-                parts.append(term or "")
-    return " ".join([clean_html(p) for p in parts if p])
+    # feedparser sometimes exposes content[]
+    content = getattr(e, "content", None)
+    if isinstance(content, list):
+        for c in content:
+            parts.append((c or {}).get("value") or "")
+    # tags/keywords help for YouTube/news
+    tags = getattr(e, "tags", None)
+    if isinstance(tags, list):
+        for t in tags:
+            term = getattr(t, "term", "") if hasattr(t, "term") else (t.get("term") if isinstance(t, dict) else "")
+            parts.append(term or "")
+    return _clean_html(" ".join(p for p in parts if p))
 
-def score_item(title: str, desc: str, source: str) -> int:
-    t = (title or "").lower(); d = (desc or "").lower(); s = 0
-    if "purdue" in t or "boilermakers" in t: s += 5
-    if "basketball" in t or "mbb" in t: s += 3
-    s += sum(2 for k in PURDUE_CORE if k in t)
-    s += sum(1 for k in PURDUE_CORE if k in d)
-    if "purdue" in source.lower(): s += 2
-    if "reddit" in source.lower(): s -= 1
-    return s
-
-def youtube_peek_has_purdue(link: str) -> bool:
-    try:
-        r = requests.get(link, headers={"User-Agent": UA}, timeout=YT_PEEK_TIMEOUT)
-        if r.status_code != 200: return False
-        html = r.text.lower()
-        return passes_core_blob(html)
-    except Exception:
+def _is_mbb(title: str, body: str, source_name: str) -> bool:
+    blob = f"{title}\n{body}"
+    # never include explicit women's items unless men's is also present
+    if WOMENS.search(blob) and not MEN_SIG.search(blob):
         return False
 
-def collect() -> List[Dict]:
-    ranked: List[Tuple[Dict, int]] = []
-    seen_link, seen_title = set(), set()
+    purdueish = PURDUE.search(blob) or ("purdue" in source_name.lower())
+    hoopsish = BASKETBALL.search(blob) or MEN_SIG.search(blob) or PLAYER_RX.search(blob)
 
-    for f in FEEDS_META:
-        name, url = f["name"], f["url"]
-        parsed = parse_feed(url)
+    # if it's clearly another sport AND we don't see any hoops-ish signal, drop
+    if OTHER_SPORTS.search(blob) and not hoopsish:
+        return False
+
+    # trusted path: lots of our feeds already query for basketball — allow if purdue-ish OR player/coach
+    if purdueish and hoopsish:
+        return True
+
+    # fallback: if the source name itself is basketball-focused, be more lenient
+    lname = source_name.lower()
+    if ("basketball" in lname or "mbb" in lname or "hammer & rails" in lname or "goldandblack" in lname):
+        return hoopsish or purdueish
+
+    # final nudge: strong player or coach mention + generic headline
+    if PLAYER_RX.search(blob) and PURDUE.search(blob):
+        return True
+
+    return False
+
+def _score(title: str, body: str, source: str) -> int:
+    t, b = title.lower(), body.lower()
+    s = 0
+    if "purdue" in t or "boilermaker" in t: s += 4
+    if "basketball" in t or "mbb" in t: s += 3
+    s += sum(2 for k in ("matt painter","mackey") if k in t)
+    s += sum(1 for k in PLAYERS if k in t)
+    s += sum(1 for k in PLAYERS if k in b)
+    if any(k in source.lower() for k in ("purduesports", "goldandblack", "hammer & rails")):
+        s += 1
+    return s
+
+def _fetch(url: str):
+    # Robust fetch (Google/Bing/Reddit/blog) -> feedparser entries
+    r = requests.get(url, headers={"User-Agent": UA}, timeout=HTTP_TIMEOUT)
+    r.raise_for_status()
+    return feedparser.parse(r.content)
+
+def collect() -> Tuple[List[Dict], Dict[str,int]]:
+    ranked: List[Tuple[Dict,int]] = []
+    per_counts: Dict[str,int] = {}
+
+    for f in FEEDS:
+        name, url = f.get("name","Feed"), f["url"]
+        per_counts[name] = 0
+        try:
+            parsed = _fetch(url)
+        except Exception:
+            # skip but keep count at 0
+            continue
+
         pulled = 0
-        yt_peeks = 0
-        lname = name.lower()
-
         for e in parsed.entries:
             title = (getattr(e, "title", "") or "").strip()
-            if not title: continue
+            link  = (getattr(e, "link", "") or "").strip()
+            if not title or not link: 
+                continue
 
-            link = (getattr(e, "link", "") or "").strip()
-            if "youtube" in lname:
-                link = yt_watch_link(e) or link
-            if not link: continue
-
-            desc = clean_html(getattr(e, "summary", "") or getattr(e, "description", ""))
-            blob = harvest_text_fields(e, name)
-            fulltext = f"{title} {blob}"
-
-            passes = passes_core_blob(fulltext)
-            if "reddit – r/cbb" in lname:
-                passes = passes_core_title(title)
-
-            if not passes and "youtube" in lname and yt_peeks < YT_PEEK_MAX_PER_FEED:
-                yt_peeks += 1
-                if youtube_peek_has_purdue(link):
-                    passes = True
-
-            if not passes: continue
-
-            key_title = re.sub(r"\s+", " ", title.lower())
-            if link in seen_link or key_title in seen_title: continue
+            body = _blob_from_entry(e, name)
+            if not _is_mbb(title, body, name):
+                continue
 
             item = {
                 "title": title,
                 "link": link,
                 "source": name,
-                "date": norm_date(e),
-                "description": (desc[:280] + ("…" if len(desc) > 280 else "")) if desc else ""
+                "date": _norm_date(e),
+                "summary": (body[:260] + ("…" if len(body) > 260 else "")) if body else ""
             }
-            score = score_item(title, desc, name)
-            ranked.append((item, score))
-            seen_link.add(link)
-            seen_title.add(key_title)
+            ranked.append((item, _score(title, body, name)))
             pulled += 1
-            if pulled >= MAX_PER_FEED: break
+            if pulled >= MAX_PER_FEED:
+                break
 
-        print(f"[collector] {name}: {pulled} items (YT peeks: {yt_peeks})")
-        time.sleep(0.2)
+        per_counts[name] = pulled
+        time.sleep(0.15)  # be polite
 
-    def date_key(it: Dict) -> str:
-        return it.get("date") or "0000-00-00"
-    ranked.sort(key=lambda p: (date_key(p[0]), p[1]), reverse=True)
-    return [it for it, _ in ranked][:TOTAL_MAX]
+    # sort by (date, score)
+    def dkey(it: Dict) -> str:
+        return it.get("date") or "0000-00-00T00:00:00Z"
+
+    ranked.sort(key=lambda p: (dkey(p[0]), p[1]), reverse=True)
+    items = [it for it,_ in ranked][:MAX_ITEMS]
+    return items, per_counts
+
+def now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+def write_items(items: List[Dict], per_counts: Dict[str,int]):
+    meta = {
+        "generated_at": now_iso(),
+        "items_count": len(items),
+        "items_mtime": now_iso(),
+        "last_run": {
+            "ok": True, "rc": 0, "final_count": len(items),
+            "per_feed_counts": per_counts, "ts": now_iso()
+        }
+    }
+    ITEMS_PATH.write_text(json.dumps({"items": items, "meta": meta}, ensure_ascii=False), encoding="utf-8")
 
 def main():
     try:
-        items = collect()
+        items, per = collect()
     except Exception as e:
-        print(f"[collector] ERROR: {e}")
-        items = []
-    OUT_FILE.write_text(json.dumps({"items": items}, indent=2), encoding="utf-8")
-    print(f"[collector] Wrote {len(items)} items to {OUT_FILE}")
+        items, per = [], {}
+    write_items(items, per)
+    print(json.dumps({"ok": True, "count": len(items), "ts": now_iso()}))
 
 if __name__ == "__main__":
     main()
