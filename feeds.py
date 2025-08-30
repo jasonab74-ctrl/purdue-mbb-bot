@@ -1,4 +1,4 @@
-# feeds.py — Purdue MBB Live Feed (stable sources + search mirrors)
+# feeds.py — Purdue MBB Live Feed (stable sources + Brian Neubert + search mirrors)
 
 STATIC_LINKS = [
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
@@ -15,10 +15,12 @@ STATIC_LINKS = [
 ]
 
 def GN(q: str) -> dict:
+    # Fresh + newest-first
     q2 = f"{q} when:60d sort:date"
     return {"name": f"Google News — {q}", "url": f"https://news.google.com/rss/search?q={q2}&hl=en-US&gl=US&ceid=US:en"}
 
 def BN(q: str) -> dict:
+    # Bing News with date sorting
     return {"name": f"Bing News — {q}", "url": f"https://www.bing.com/news/search?q={q}&qft=sortbydate&setlang=en&setmkt=en-US&format=rss"}
 
 FEEDS = [
@@ -30,7 +32,7 @@ FEEDS = [
     {"name": "Reddit — r/Boilermakers",            "url": "https://www.reddit.com/r/Boilermakers/.rss"},
     {"name": "Reddit — r/CollegeBasketball",       "url": "https://www.reddit.com/r/CollegeBasketball/.rss"},
 
-    # --- Search mirrors (still useful; collector sets proper headers) ---
+    # --- Search mirrors (collector sets proper headers) ---
     GN("Purdue Basketball"),                         BN("Purdue Basketball"),
     GN("Boilers Purdue basketball"),                 BN("Boilers Purdue basketball"),
     GN("Purdue Boilermakers men's basketball"),      BN("Purdue Boilermakers men's basketball"),
@@ -57,6 +59,12 @@ FEEDS = [
     GN("\"class of 2025\" Purdue basketball"),       BN("\"class of 2025\" Purdue basketball"),
     GN("\"class of 2026\" Purdue basketball"),       BN("\"class of 2026\" Purdue basketball"),
     GN("\"Purdue\" basketball transfer portal"),     BN("\"Purdue\" basketball transfer portal"),
+
+    # Brian Neubert (writer) — articles & clips via news mirrors + site scopes
+    GN("Brian Neubert Purdue basketball"),           BN("Brian Neubert Purdue basketball"),
+    GN("site:goldandblack.com Brian Neubert"),       BN("site:goldandblack.com Brian Neubert"),
+    GN("site:on3.com Brian Neubert Purdue"),         BN("site:on3.com Brian Neubert Purdue"),
+    GN("site:purdue.rivals.com Brian Neubert"),      BN("site:purdue.rivals.com Brian Neubert"),
 ]
 
 KEYWORDS_INCLUDE = [
@@ -67,6 +75,10 @@ KEYWORDS_INCLUDE = [
     "class of 2025","class of 2026","2025-26","2025–26","2025 26",
     "zach edey","braden smith","fletcher loyer","lance jones",
     "trey kaufman","trey kaufman-renn","mason gillis","caleb furst","myles colvin","camden heide","will berg",
+    # add writer so mentions/syndications hit
+    "brian neubert",
+    # widen common nicknames
+    "boilers","boilermakers"
 ]
 
 KEYWORDS_EXCLUDE = [
