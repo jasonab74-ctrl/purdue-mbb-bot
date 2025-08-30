@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os, re, json, html, hashlib, time
+import os, re, json, html, hashlib, time, tempfile
 from datetime import datetime, timezone
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree as ET
+from json import JSONDecodeError
 
 ITEMS_PATH = os.environ.get("ITEMS_PATH", "items.json")
 MAX_ITEMS  = int(os.environ.get("MAX_ITEMS", "500"))
@@ -18,7 +19,7 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 def http_get(url, headers=None, timeout=TIMEOUT):
-    req = Request(url, headers=headers or {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) MBBFeedBot/1.2"})
+    req = Request(url, headers=headers or {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) MBBFeedBot/1.3"})
     with urlopen(req, timeout=timeout) as r:
         return r.read()
 
@@ -41,18 +42,35 @@ def parse_rss(xml_bytes):
 def fetch_google(f):  return parse_rss(http_get(f["url"]))
 def fetch_bing(f):    return parse_rss(http_get(f["url"]))
 def fetch_rss(f):     return parse_rss(http_get(f["url"]))
+
 def fetch_reddit(f):
-    j = json.loads(to_text(http_get(f["url"], headers={"User-Agent":"mmblite/1.0"})))
-    out = []
-    for c in j.get("data",{}).get("children",[]):
-        p = c.get("data",{})
-        out.append({
-            "title": p.get("title",""),
-            "link":  p.get("url","") or ("https://reddit.com" + p.get("permalink","")),
-            "summary": p.get("selftext",""),
-            "date": datetime.fromtimestamp(p.get("created_utc",0), tz=timezone.utc).isoformat(),
-        })
-    return out
+    """
+    Supports BOTH Reddit JSON API (new style) and RSS (old style).
+    If URL looks like .rss, treat as XML; else try JSON and gracefully fall back.
+    """
+    url = f["url"]
+    try:
+        if url.endswith(".rss"):
+            return parse_rss(http_get(url, headers={"User-Agent":"mmblite/1.0"}))
+        # Try JSON
+        raw = http_get(url, headers={"User-Agent":"mmblite/1.0"})
+        j = json.loads(to_text(raw))
+        out = []
+        for c in j.get("data",{}).get("children",[]):
+            p = c.get("data",{})
+            out.append({
+                "title": p.get("title",""),
+                "link":  p.get("url","") or ("https://reddit.com" + p.get("permalink","")),
+                "summary": p.get("selftext",""),
+                "date": datetime.fromtimestamp(p.get("created_utc",0), tz=timezone.utc).isoformat(),
+            })
+        return out
+    except (JSONDecodeError, ET.ParseError, Exception):
+        # Last-chance: attempt RSS parse if JSON path failed
+        try:
+            return parse_rss(http_get(url, headers={"User-Agent":"mmblite/1.0"}))
+        except Exception:
+            return []
 
 FETCHERS = {"google": fetch_google, "bing": fetch_bing, "rss": fetch_rss, "reddit": fetch_reddit}
 
@@ -62,7 +80,7 @@ def hash_id(link, title):
     h.update(to_text(title).encode("utf-8"))
     return h.hexdigest()[:16]
 
-# -------------------- MEN’S-ONLY filter (title-first, strict) --------------------
+# -------------------- MEN’S-ONLY filter (tight on title, lenient elsewhere) --------------------
 
 PLAYERS = [
     "c.j. cox", "antione west", "fletcher loyer", "braden smith", "aaron fine", "jack lusk",
@@ -74,11 +92,8 @@ MEN_SIGNALS     = re.compile(r"\bmen'?s\b|\bmbb\b|\bmen'?s?\s+basketball\b", re.
 PURDUE_SIGNALS  = re.compile(r"\bpurdue\b|\bboilermakers?\b|\bboilers?\b", re.I)
 BASKETBALL      = re.compile(r"\bbasketball\b", re.I)
 PLAYER_SIG      = re.compile("|".join(re.escape(n) for n in PLAYERS), re.I)
-
-# Hard negatives
-WOMENS_TITLE    = re.compile(r"\b(women'?s|wbb|wbk|lad(?:y|ies))\b", re.I)
-OTHER_SPORTS_T  = re.compile(r"\b(football|volleyball|baseball|softball|soccer|wrestling|hockey|golf|track|cross country|xc)\b", re.I)
-OTHER_SPORTS_B  = re.compile(r"\b(football|volleyball|baseball|softball|soccer|wrestling|hockey|golf|track|cross country|xc)\b", re.I)
+WOMENS          = re.compile(r"\bwomen'?s\b|\bwbb\b|\bwbk\b|\blady\b", re.I)
+OTHER_SPORTS    = re.compile(r"\bfootball\b|\bvolleyball\b|\bbaseball\b|\bsoccer\b|\bwrestling\b|\bsoftball\b|\btrack\b|\bgolf\b", re.I)
 
 TRUSTED_NAMES = None
 def is_trusted(feed_name: str) -> bool:
@@ -89,45 +104,37 @@ def is_trusted(feed_name: str) -> bool:
 
 def allow_item(title, summary, feed):
     """
-    STRATEGY:
-      1) Make decisions primarily from the TITLE to avoid sidebar/meta noise.
-      2) Hard-block women's and other-sport titles.
-      3) Require hoops signal IN TITLE (basketball/mbb/men's or player name in title).
-      4) Require Purdue IN TITLE (word or player) OR trusted Purdue feed name, but still with hoops-in-title.
-      5) Use summary only for extra negatives (never to 'rescue' a non-hoops title).
+    Goal: Purdue **men’s** basketball only.
+    Rule: if the TITLE mentions another sport, the TITLE must also contain a hoops/men/player signal.
     """
+    title_t   = to_text(title)
+    summary_t = to_text(summary)
+    blob      = f"{title_t}\n{summary_t}"
     name      = feed.get("name","")
     trusted   = is_trusted(name)
 
-    title_t   = to_text(title)
-    t         = title_t.lower()
-    summary_t = to_text(summary)
-    blob      = f"{title_t}\n{summary_t}".lower()
-    feed_has_purdue = ("purdue" in name.lower())  # do NOT accept solely because of this
+    title_hoops = bool(BASKETBALL.search(title_t) or MEN_SIGNALS.search(title_t) or PLAYER_SIG.search(title_t))
+    any_hoops   = title_hoops or bool(BASKETBALL.search(summary_t) or MEN_SIGNALS.search(summary_t) or PLAYER_SIG.search(summary_t))
 
-    # --- Hard blocks on TITLE ---
-    if WOMENS_TITLE.search(t):
-        return False
-    if OTHER_SPORTS_T.search(t):
+    # Block explicit women's when no men's signal
+    if WOMENS.search(blob) and not any_hoops:
         return False
 
-    # --- Positive signals must be IN TITLE ---
-    title_has_hoops  = bool(BASKETBALL.search(t) or MEN_SIGNALS.search(t) or PLAYER_SIG.search(t))
-    title_has_purdue = bool(PURDUE_SIGNALS.search(t) or PLAYER_SIG.search(t))
-
-    if not title_has_hoops:
+    # If TITLE names another sport, require hoops signal IN TITLE
+    if OTHER_SPORTS.search(title_t) and not title_hoops:
         return False
 
-    # If title has hoops, require Purdue in title OR (trusted feed AND feed name has Purdue)
-    if not title_has_purdue:
-        if not (trusted and feed_has_purdue):
-            return False
+    # If other-sport words appear anywhere and no hoops signal at all, drop
+    if OTHER_SPORTS.search(blob) and not any_hoops:
+        return False
 
-    # --- Extra negative: if other sports appear anywhere in blob but title didn't mention hoops (already required) ---
-    # Here, title_has_hoops is True, so we just prevent extreme noise: if blob is dominated by other sports and no hoops in title (not our case), we'd drop.
-    # We keep this as a weak guard; no action needed since we already required hoops in title.
+    # Trusted feeds: minimal checks (after the hard blocks above)
+    if trusted:
+        return bool(PURDUE_SIGNALS.search(blob) or PLAYER_SIG.search(blob) or any_hoops or "purdue" in name.lower())
 
-    return True
+    # Untrusted must be Purdue-ish AND hoops-ish
+    purdueish = PURDUE_SIGNALS.search(blob) or PLAYER_SIG.search(blob) or "purdue" in name.lower()
+    return bool(purdueish and any_hoops)
 
 # -------------------- collect --------------------
 
@@ -140,20 +147,21 @@ def collect():
         name = feed.get("name","Feed")
         per[name] = 0
         try:
-            data = FETCHERS.get(feed.get("type","rss"), fetch_rss)(feed)
+            fetcher = FETCHERS.get(feed.get("type","rss"), fetch_rss)
+            data = fetcher(feed)
         except Exception:
             continue
 
         for it in data:
             title = to_text(it.get("title","")).strip()
             link  = to_text(it.get("link","")).strip()
-            if not title or not link:
+            if not title or not link: 
                 continue
             summary = to_text(it.get("summary",""))
             if not allow_item(title, summary, feed):
                 continue
             uid = hash_id(link, title)
-            if uid in seen:
+            if uid in seen: 
                 continue
             seen.add(uid)
             per[name] += 1
@@ -167,7 +175,7 @@ def collect():
     def sort_key(x):
         d = x.get("date","")
         for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
-            try:
+            try: 
                 return datetime.strptime(d.replace("Z","+0000"), fmt)
             except Exception:
                 pass
@@ -182,8 +190,16 @@ def collect():
         "items_mtime": now_iso(),
         "last_run": {"ok": True, "rc": 0, "final_count": len(out), "per_feed_counts": per, "ts": now_iso()}
     }
-    with open(ITEMS_PATH, "w", encoding="utf-8") as f:
-        json.dump({"items": out, "meta": meta}, f, ensure_ascii=False)
+
+    # --------- ATOMIC WRITE: never leave a broken items.json ----------
+    payload = json.dumps({"items": out, "meta": meta}, ensure_ascii=False)
+    dirn = os.path.dirname(ITEMS_PATH) or "."
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=dirn, delete=False) as tmp:
+        tmp.write(payload)
+        tmp_path = tmp.name
+    os.replace(tmp_path, ITEMS_PATH)
+    # -----------------------------------------------------------------
+
     return len(out)
 
 if __name__ == "__main__":
