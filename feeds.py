@@ -1,93 +1,103 @@
-# feeds.py — Purdue Men's Basketball sources (buttons + feeds)
-# ------------------------------------------------------------
-# Exposes:
-#   STATIC_LINKS   -> list[{label,url}]
-#   FEEDS_META     -> list[{name,url,category}]
-#   FEEDS          -> list[(name,url)]  (for collectors expecting a tuple list)
-# Optional topic guards (used by some collectors):
-KEYWORDS_INCLUDE = [
-    "purdue", "boilermakers", "boilerball", "purdue men's basketball", "purdue mbb",
-    "mackey arena", "west lafayette", "big ten", "b1g",
-    "matt painter", "assistant coach",
-    # common hoops terms
-    "basketball", "mbb", "guard", "forward", "center", "three-pointer", "assist",
-    "rebound", "kenpom", "net ranking", "ncaa tournament", "march madness",
-]
-KEYWORDS_EXCLUDE = [
-    # filter non-hoops noise
-    "football", "nfl", "qb", "quarterback", "running back", "wide receiver",
-    "linebacker", "tight end", "touchdown", "field goal", "kickoff", "bowl",
-    "odds", "parlay", "spread", "fanduel", "draftkings",
-    "volleyball", "wrestling", "baseball", "softball", "soccer", "hockey",
-    "golf", "tennis", "track", "cross country", "swim", "diving", "gymnastics",
-]
+# feeds.py
+# -------------------------------------------------------------------
+# Purdue MBB Live Feed — complete, paste-in file
+# Layout-agnostic. Safe to drop in without touching server/collector.
+# -------------------------------------------------------------------
 
-# 🔗 Buttons / “Sites” dropdown entries (always visible in UI)
+# 🧭 Quick links (always-visible pill buttons in the UI)
 STATIC_LINKS = [
     # --- Official Purdue Athletics ---
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
-    {"label": "Purdue – Schedule", "url": "https://purduesports.com/sports/mens-basketball/schedule"},
-    {"label": "Purdue – Roster", "url": "https://purduesports.com/sports/mens-basketball/roster"},
+    {"label": "Purdue – Schedule",          "url": "https://purduesports.com/sports/mens-basketball/schedule"},
+    {"label": "Purdue – Roster",            "url": "https://purduesports.com/sports/mens-basketball/roster"},
 
-    # --- National Sports Sites ---
-    {"label": "ESPN – Purdue MBB", "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
-    {"label": "CBS Sports – Purdue", "url": "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"},
-    {"label": "Yahoo Sports – Purdue", "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
+    # --- Major Sports Sites ---
+    {"label": "ESPN – Purdue MBB",          "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
+    {"label": "CBS Sports – Purdue",        "url": "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"},
+    {"label": "Yahoo Sports – Purdue",      "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
 
-    # --- Blogs & Media ---
+    # --- Community / Coverage ---
     {"label": "Hammer & Rails (SB Nation)", "url": "https://www.hammerandrails.com/"},
-    {"label": "GoldandBlack (Rivals)", "url": "https://purdue.rivals.com/"},
-    {"label": "Barstool – Purdue", "url": "https://www.barstoolsports.com/tag/purdue"},
+    {"label": "GoldandBlack (Rivals)",      "url": "https://purdue.rivals.com/"},
+    {"label": "Barstool – Purdue",          "url": "https://www.barstoolsports.com/topics/purdue-boilermakers"},
 
-    # --- Reddit ---
-    {"label": "Reddit – r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/"},
-    {"label": "Reddit – r/CollegeBasketball", "url": "https://www.reddit.com/r/CollegeBasketball/"},
-
-    # --- YouTube Channels ---
+    # --- Social / Video ---
+    {"label": "Reddit – r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/"},
+    {"label": "Reddit – r/CollegeBasketball","url": "https://www.reddit.com/r/CollegeBasketball/"},
     {"label": "YouTube – BoilerBall (Official)", "url": "https://www.youtube.com/@BoilerBall"},
-    {"label": "YouTube – Field of 68", "url": "https://www.youtube.com/@TheFieldOf68"},
-    {"label": "YouTube – Sleepers Media", "url": "https://www.youtube.com/@SleepersMedia"},
+    {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@thefieldof68"},
+    {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@SleepersMedia"},
 ]
 
-# 📰 Dynamic feeds the collector reads (RSS/Atom)
-FEEDS_META = [
-    # News aggregators
-    {"name": "Google News – Purdue Basketball",
-     "url": "https://news.google.com/rss/search?q=Purdue+Basketball&hl=en-US&gl=US&ceid=US:en",
-     "category": "news"},
-    {"name": "Bing News – Purdue Basketball",
-     "url": "https://www.bing.com/news/search?q=Purdue+Basketball&format=RSS",
-     "category": "news"},
+# 📰 Feeds to collect (articles + video mentions)
+# Notes:
+# - YouTube search RSS does not exist; we use Google News RSS scoped to youtube.com.
+# - Collector should use the "name" for source badges and the "url" to fetch.
+FEEDS = [
+    # ------ Google News scoped searches (broad but relevant) ------
+    {"name": "Google News — Purdue Basketball", "url": "https://news.google.com/rss/search?q=Purdue%20Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — Matt Painter",      "url": "https://news.google.com/rss/search?q=%22Matt%20Painter%22%20Purdue&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — Mackey Arena",      "url": "https://news.google.com/rss/search?q=%22Mackey%20Arena%22%20Purdue&hl=en-US&gl=US&ceid=US:en"},
 
-    # Reddit
-    {"name": "Reddit – r/Boilermakers",
-     "url": "https://www.reddit.com/r/Boilermakers/.rss",
-     "category": "reddit"},
-    {"name": "Reddit – r/CollegeBasketball (Purdue search)",
-     "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue&restrict_sr=on&sort=new",
-     "category": "reddit"},
+    # ------ Google News → YouTube mentions (video-first without channel IDs) ------
+    {"name": "YouTube Mentions — Purdue Basketball", "url": "https://news.google.com/rss/search?q=Purdue%20Basketball%20site:youtube.com&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "YouTube Mentions — Matt Painter",      "url": "https://news.google.com/rss/search?q=%22Matt%20Painter%22%20site:youtube.com&hl=en-US&gl=US&ceid=US:en"},
 
-    # YouTube (channel RSS by channel_id)
-    {"name": "YouTube – BoilerBall (Official)",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCQzI9QfpbJ9y4CQfA3z0H_g",
-     "category": "youtube"},
-    {"name": "YouTube – Field of 68",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCs7L0m8JMXwPP0zJX9v3ePQ",
-     "category": "youtube"},
-    {"name": "YouTube – Sleepers Media",
-     "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCUsGjUPB5GQU9H8H1zZX95g",
-     "category": "youtube"},
+    # ------ Team/community sites ------
+    {"name": "Hammer & Rails (SB Nation)",     "url": "https://www.hammerandrails.com/rss/index.xml"},
+    # Rivals/On3 often lack public RSS; catch them via Google News:
+    {"name": "Google News — GoldandBlack (Rivals)", "url": "https://news.google.com/rss/search?q=site:purdue.rivals.com%20Purdue%20Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — On3 Purdue",             "url": "https://news.google.com/rss/search?q=site:on3.com/teams/purdue-boilermakers/%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — 247Sports Purdue",       "url": "https://news.google.com/rss/search?q=site:247sports.com/college/purdue/%20basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Google News — IndyStar Purdue",        "url": "https://news.google.com/rss/search?q=site:indystar.com%20Purdue%20Basketball&hl=en-US&gl=US&ceid=US:en"},
 
-    # Official / team
-    {"name": "Purdue Athletics – Men’s Basketball",
-     "url": "https://purduesports.com/rss.aspx?path=mbball",
-     "category": "official"},
+    # ------ Official athletics domain (captured via Google News) ------
+    {"name": "Google News — PurdueSports.com (MBB)", "url": "https://news.google.com/rss/search?q=site:purduesports.com%20%22Men%27s%20Basketball%22&hl=en-US&gl=US&ceid=US:en"},
 
-    # Blogs & Media
-    {"name": "Barstool – Purdue",
-     "url": "https://www.barstoolsports.com/feed/tag/purdue",
-     "category": "media"},
+    # ------ Reddit (broad; will be filtered by include keywords) ------
+    {"name": "Reddit — r/Boilermakers",        "url": "https://www.reddit.com/r/Boilermakers/.rss"},
+    {"name": "Reddit — r/CollegeBasketball",   "url": "https://www.reddit.com/r/CollegeBasketball/.rss"},
 ]
 
-# Back-compat simple list
-FEEDS = [(f["name"], f["url"]) for f in FEEDS_META]
+# ✅ Include terms (must match at least one — case-insensitive)
+# Keep this generous for basketball while excluding football below.
+KEYWORDS_INCLUDE = [
+    # program
+    "purdue", "boilermakers", "boilermaker", "boilerball",
+    "men’s basketball", "mens basketball", "men's basketball", "college basketball", "ncaa",
+    # venue / coach
+    "mackey arena", "matt painter", "painter",
+    # players / common roster names (past & present; harmless if absent)
+    "braden smith", "fletcher loyer", "lance jones", "trey kaufman", "mason gillis",
+    "zach edey", "caleb first", "myles colvin", "purdue guard", "purdue forward", "purdue center",
+    # game terms
+    "tipoff", "big ten", "b1g", "march madness", "ncaa tournament", "nonconference",
+    "preseason", "exhibition", "scrimmage", "recruit", "commit", "transfer portal",
+]
+
+# 🚫 Exclude terms (remove football and other sports noise)
+KEYWORDS_EXCLUDE = [
+    # football
+    "football", "cfb", "quarterback", "qb", "running back", "wide receiver", "tight end",
+    "linebacker", "offensive line", "defensive line", "kickoff return", "punt return",
+    "nfl", "draft combine", "spring game",
+    # other sports
+    "baseball", "softball", "volleyball", "soccer", "golf", "tennis", "wrestling",
+    "track and field", "swim", "swimming", "cross country",
+    # obvious unrelated
+    "women’s", "womens", "women's soccer", "women's volleyball",
+]
+
+# 🔧 Optional knobs used by some collectors (safe defaults)
+MAX_ITEMS_PER_FEED = 50           # soft cap per source before sorting/merge
+ALLOW_DUPLICATE_DOMAINS = False   # if collector supports domain-based dedupe
+
+# Some collectors map friendly source names; harmless if unused.
+SOURCE_ALIASES = {
+    "Google News — Purdue Basketball": "Google News – Purdue Basketball",
+    "YouTube Mentions — Purdue Basketball": "YouTube (mentions)",
+    "YouTube Mentions — Matt Painter": "YouTube (mentions)",
+    "Reddit — r/Boilermakers": "Reddit r/Boilermakers",
+    "Reddit — r/CollegeBasketball": "Reddit r/CollegeBasketball",
+    "Hammer & Rails (SB Nation)": "Hammer & Rails",
+}
