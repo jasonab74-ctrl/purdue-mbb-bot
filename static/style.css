@@ -1,108 +1,189 @@
-/* Purdue Men's Basketball — Clean light UI (style-only) */
+/* ===================================================================
+   Purdue MBB — Clean Light Theme (style-only, safe to drop in)
+   - Neutral light background
+   - Card-style items
+   - Purdue palette (gold/black)
+   - Works with either .pills or .quick; .items or .list; .badge/meta, etc.
+   - No layout/JS changes, CSS only
+   =================================================================== */
 
-/* ===== Theme tokens (Purdue palette) ===== */
+/* ------- Purdue palette & tokens ------- */
 :root{
-  --gold:#CFB991;          /* primary Purdue gold */
-  --gold-700:#B89A5D;      /* darker gold for borders/hover */
-  --black:#111111;         /* near-black text */
-  --bg:#F7F6F3;            /* warm light background */
-  --card:#FFFFFF;          /* cards */
-  --muted:#6B7280;         /* subdued text */
-  --border:#E6E2D9;        /* soft divider matching bg tone */
-  --shadow:0 10px 30px rgba(0,0,0,.06);
+  /* Purdue core */
+  --gold: #CFB991;           /* official Purdue gold */
+  --gold-strong:#B4975A;     /* deeper gold for borders/hover */
+  --black:#101112;           /* near-black for text/UI */
+  --black-soft:#1a1b1c;
+
+  /* Surface + text */
+  --bg:#f7f7f6;              /* soft off-white backdrop */
+  --card:#ffffff;
+  --text:#111;               /* body text */
+  --muted:#6b7280;           /* secondary text */
+  --border:#e6e6e6;
+  --shadow:0 10px 28px rgba(0,0,0,.07);
+
+  /* Accents */
+  --chip-bg: rgba(207,185,145,.18);
+  --chip-bd: rgba(180,151,90,.55);
+  --pill-bg: rgba(207,185,145,.22);
+  --pill-bd: rgba(16,17,18,.12);
+
   --radius:16px;
   --pad:16px;
 }
 
-/* ===== Base ===== */
+/* ------- Base ------- */
 *{box-sizing:border-box}
+html,body{height:100%}
 html,body{
-  margin:0; padding:0; background:var(--bg); color:var(--black);
-  font: 16px/1.45 system-ui, -apple-system, Segoe UI, Inter, Roboto, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  margin:0; padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== Layout ===== */
+/* clickable defaults */
+a{color:inherit}
+a:hover{color:var(--black-soft)}
+
+/* container */
 .container{max-width:1040px; margin:28px auto; padding:0 18px}
 
-/* ===== Header ===== */
-.header{display:flex; flex-direction:column; gap:12px; margin-bottom:16px}
+/* ------- Header / Brand ------- */
+.header{
+  display:flex; flex-direction:column; gap:12px;
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
 .brand{display:flex; gap:14px; align-items:center}
-.logo{max-height:56px; width:auto; object-fit:contain; display:block} /* keeps aspect, no cropping */
+.logo{max-height:56px; width:auto; object-fit:contain; display:block}
+.header h1{margin:0; font-size:1.7rem; line-height:1.2}
+.sub, .header .meta{color:var(--muted); font-size:.9rem}
 
-.header h1{margin:0; font-size:1.7rem; line-height:1.2; color:var(--black)}
-.sub{color:var(--muted); font-size:.92rem}
-
-.actions{margin-top:2px}
-.btn{
-  appearance:none; cursor:pointer;
-  border:1px solid var(--gold-700); background:linear-gradient(180deg, var(--gold), var(--gold-700));
-  color:#1f1a10; font-weight:700; border-radius:999px; padding:9px 14px;
-  box-shadow:0 1px 0 rgba(255,255,255,.45) inset, 0 4px 12px rgba(0,0,0,.06);
+/* Fight song / action button (works for a button or link with .btn / .fight-btn) */
+.btn,.fight-btn{
+  appearance:none; cursor:pointer; user-select:none;
+  border:1px solid var(--gold-strong);
+  background: linear-gradient(180deg, var(--gold), var(--gold-strong));
+  color:#2b2312; font-weight:800; letter-spacing:.2px;
+  border-radius: 999px; padding:9px 14px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 2px 10px rgba(0,0,0,.08);
+  text-decoration:none; display:inline-flex; align-items:center; gap:8px;
 }
-.btn:hover{filter:brightness(1.04)}
+.btn:hover,.fight-btn:hover{filter:brightness(1.06)}
 
-/* ===== Quick links (pills row) ===== */
-.quick{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 18px}
-.pill{
-  background: rgba(207,185,145,.16);
-  color:#1f2937; text-decoration:none;
-  padding:8px 12px; border-radius:999px;
-  border:1px solid rgba(184,154,93,.55);
-  box-shadow:0 1px 0 rgba(255,255,255,.55) inset;
-  font-weight:600; font-size:.94rem;
+/* ------- Quick links / pills ------- */
+/* supports either .pills or .quick wrappers; anchors or .pill elements */
+.pills,.quick{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 6px}
+.pills a, .quick a, .pill, a.pill{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:999px; text-decoration:none;
+  background: var(--pill-bg);
+  border:1px solid var(--pill-bd);
+  color:#1f2937; font-weight:600; font-size:.95rem;
 }
-.pill:hover{transform:translateY(-1px)}
+.pills a:hover, .quick a:hover, .pill:hover, a.pill:hover{filter:brightness(1.03)}
 
-/* ===== Controls (search + source select) ===== */
-.controls{display:flex; gap:10px; align-items:center; margin:8px 0 18px}
-.input,.select{
-  padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--black)
+/* ------- Controls (search + filter select) ------- */
+.controls{display:flex; gap:10px; align-items:center; margin:8px 0 16px}
+.controls input[type="search"],
+.controls .input,
+input[type="search"].input{
+  flex:1; min-width:280px;
+  padding:10px 12px; border:1px solid var(--border);
+  border-radius:12px; background:#fff; color:var(--text);
 }
-.input{min-width:320px}
+.controls select, .select, select{
+  min-width:240px;
+  padding:10px 12px; border:1px solid var(--border);
+  border-radius:12px; background:#fff; color:var(--text);
+}
 .muted{color:var(--muted)}
 
-/* ===== Items ===== */
-.items{display:grid; gap:12px; list-style:none; padding:0; margin:0}
+/* small in-flow notice (e.g., “new items available”) */
+.notice{
+  background:#fff; border:1px dashed var(--chip-bd);
+  color:#444; padding:10px 12px; border-radius:12px; margin:8px 0 12px;
+  display:flex; align-items:center; gap:10px;
+}
+
+/* ------- Items list ------- */
+/* supports .items (ul/ol) or .list (div) containers */
+.items,.list{display:grid; gap:12px; list-style:none; padding:0; margin:0}
 .item{
-  background:var(--card); border:1px solid var(--border);
-  border-radius:var(--radius); padding:var(--pad); box-shadow:var(--shadow);
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--pad);
+  box-shadow: var(--shadow);
 }
 .item-head{display:flex; justify-content:space-between; gap:12px; align-items:flex-start}
-.title{font-weight:800; text-decoration:none; color:var(--black); font-size:1.02rem; line-height:1.35}
-.title:hover{text-decoration:underline}
 
+/* Title line */
+.title, .item .title, .item h3, .item h2{
+  margin:2px 0 6px;
+  font-weight:800; line-height:1.35; font-size:1rem;
+}
+.item .title a, .title a{color:inherit; text-decoration:none}
+.item .title a:hover, .title a:hover{text-decoration:underline}
+
+/* Source badge + meta line */
 .badge{
-  background:#F4F3EF; border:1px solid var(--border); color:#1f1f1f;
-  border-radius:999px; padding:4px 10px; font-size:.75rem; font-weight:700
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 10px; border-radius:999px;
+  background:#f3f4f6; border:1px solid var(--border);
+  color:#111827; font-weight:700; font-size:.75rem;
 }
-.meta{color:var(--muted); font-size:.88rem; margin-top:6px}
-.desc{margin:.55rem 0 0}
+.meta, .meta-row{
+  color:var(--muted); font-size:.87rem; margin-top:6px;
+  display:flex; gap:8px; flex-wrap:wrap;
+}
+.desc, .item .summary{margin:.5rem 0 0}
 
-/* Empty / info notice */
-.empty{padding:18px; border:1px dashed var(--border); border-radius:var(--radius); background:#fff; color:#444}
+/* Empty state */
+.empty{
+  padding:18px; border:1px dashed var(--border);
+  border-radius: var(--radius); background:#fff; color:var(--muted);
+}
 
-/* Updated stamp + alert */
+/* Updated timestamp */
 .stamp{color:var(--muted); font-size:.85rem; margin-top:4px}
-.notice{
-  background:#fff8ec; border:1px solid var(--gold-700); color:#5b3d10;
-  padding:10px 12px; border-radius:12px; margin:8px 0 12px; display:flex; gap:10px; align-items:center
+
+/* Little gold hint on filters/info boxes */
+.info-chip{
+  background: var(--chip-bg); border:1px solid var(--chip-bd);
+  padding:6px 10px; border-radius:999px; font-weight:600; color:#3b3b3b;
 }
 
-/* ===== Small helper styles seen in template ===== */
-hr{border:0; height:1px; background:var(--border); margin:12px 0}
-a{color:#0f1111}
-a:focus{outline:2px solid var(--gold-700); outline-offset:2px}
+/* ------- Footer ------- */
+.footer{color:var(--muted); font-size:.9rem; margin:18px 0}
 
-/* ===== Mobile polish ===== */
+/* ------- Mobile polish ------- */
 @media (max-width: 640px){
   .container{padding:0 14px}
+  .header{padding:14px}
   .brand{align-items:flex-start}
   .logo{max-height:44px}
   .controls{flex-direction:column; align-items:stretch; gap:8px}
-  .input,.select{width:100%; min-width:0}
-  .quick{gap:6px}
-  .pill{padding:7px 10px}
+  .controls select{min-width:0; width:100%}
+  .controls input[type="search"]{min-width:0; width:100%}
+  .pills,.quick{gap:6px}
+  .pills a, .quick a, .pill, a.pill{padding:7px 10px}
   .item{padding:12px; border-radius:12px}
   .badge{font-size:.7rem; padding:3px 8px}
 }
+
+/* ------- Helper: keep legacy link rows tidy if they’re plain anchors ------- */
+.link-row{display:flex; flex-wrap:wrap; gap:10px; margin:10px 0}
+.link-row a{
+  padding:8px 12px; border-radius:999px; text-decoration:none;
+  background: var(--chip-bg); border:1px solid var(--chip-bd); color:#1f2937; font-weight:600;
+}
+.link-row a:hover{filter:brightness(1.03)}
