@@ -70,30 +70,38 @@ def _clear_stale_lock():
     except Exception:
         pass
 
-def run_collect_once(force: bool = False) -> dict:
-    """Run collect.py safely with a simple file lock. Return a summary dict."""
-    # Clear stale locks up-front
+def _acquire_lock(force: bool) -> dict | None:
+    # Try to clear stale lock first
     _clear_stale_lock()
 
-    # Non-blocking lock so two workers don’t overlap
     if LOCK_PATH.exists():
-        if force and _lock_is_stale():
+        if force:
+            # 🔐 HARD OVERRIDE: if caller passed force=1, blow away any lock
             try:
                 LOCK_PATH.unlink(missing_ok=True)
             except Exception:
                 pass
         else:
-            payload = {"skipped": True, "reason": "lock_exists", "invoked_at": utc_now_iso()}
-            _write_last_run(payload)
-            return payload
+            return {"skipped": True, "reason": "lock_exists", "invoked_at": utc_now_iso()}
 
-    # Acquire lock
     try:
         LOCK_PATH.touch(exist_ok=False)
     except FileExistsError:
-        payload = {"skipped": True, "reason": "lock_exists", "invoked_at": utc_now_iso()}
-        _write_last_run(payload)
-        return payload
+        return {"skipped": True, "reason": "lock_exists", "invoked_at": utc_now_iso()}
+    return None  # success
+
+def _release_lock():
+    try:
+        LOCK_PATH.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+def run_collect_once(force: bool = False) -> dict:
+    """Run collect.py safely. Return a summary dict (always)."""
+    lock_fail = _acquire_lock(force=force)
+    if lock_fail:
+        _write_last_run(lock_fail)
+        return lock_fail
 
     try:
         last_err = None
@@ -104,9 +112,9 @@ def run_collect_once(force: bool = False) -> dict:
                     cwd=str(APP_DIR),
                     capture_output=True,
                     text=True,
-                    timeout=max(60, REFRESH_SEC // 2),
+                    timeout=max(90, REFRESH_SEC // 2),  # give GN a bit longer
                 )
-                # Parse collector JSON summary from stdout
+                # Try to parse collector JSON summary from stdout
                 try:
                     payload = json.loads((proc.stdout or "").strip() or "{}")
                 except Exception:
@@ -128,20 +136,16 @@ def run_collect_once(force: bool = False) -> dict:
         _write_last_run(payload)
         return payload
     finally:
-        try:
-            LOCK_PATH.unlink(missing_ok=True)
-        except Exception:
-            pass
+        _release_lock()
 
 def scheduler_loop():
     # Immediate pass on boot so items.json populates quickly
-    run_collect_once()
+    run_collect_once(force=False)
     while True:
         time.sleep(REFRESH_SEC)
-        run_collect_once()
+        run_collect_once(force=False)
 
 def ensure_scheduler_started():
-    # Clean any stale lock before starting
     _clear_stale_lock()
     t = threading.Thread(target=scheduler_loop, name="collector-scheduler", daemon=True)
     t.start()
@@ -175,9 +179,9 @@ def index():
 @app.route("/items.json")
 def items_json():
     data = _read_items_file()
-    # Opportunistic self-heal: if empty or stale, kick a refresh (non-blocking) and re-read.
+    # Self-heal: if empty or stale, kick a refresh (non-blocking) and re-read.
     if _is_stale_or_empty(data):
-        run_collect_once()
+        run_collect_once(force=False)
         data = _read_items_file()
     resp = make_response(json.dumps(data))
     resp.headers["Content-Type"] = "application/json; charset=utf-8"
@@ -197,18 +201,17 @@ def health():
     data = _read_items_file()
     items = data.get("items", [])
     count = len(items) if isinstance(items, list) else 0
-    mtime = None
     try:
         mtime = datetime.fromtimestamp(ITEMS_PATH.stat().st_mtime, timezone.utc).isoformat()
     except Exception:
-        ok = False
-    last_run = _read_last_run()
+        mtime, ok = None, False
     return jsonify({
         "ok": ok,
         "items": count,
         "mtime": mtime,
         "now": utc_now_iso(),
-        "last_run": last_run
+        "last_run": _read_last_run(),
+        "lock_exists": LOCK_PATH.exists(),
     })
 
 @app.route("/diag")
@@ -218,14 +221,12 @@ def diag():
     items = data.get("items") or []
     out["items_count"] = len(items) if isinstance(items, list) else 0
     out["generated_at"] = data.get("generated_at")
+    out["lock_exists"] = LOCK_PATH.exists()
     try:
         out["items_mtime"] = datetime.fromtimestamp(ITEMS_PATH.stat().st_mtime, timezone.utc).isoformat()
     except Exception:
         out["items_mtime"] = None
-    out["lock_exists"] = LOCK_PATH.exists()
-    out["lock_stale"] = _lock_is_stale() if LOCK_PATH.exists() else False
     out["last_run"] = _read_last_run()
-    # sample items
     sample = []
     for it in items[:5]:
         sample.append({"title": (it.get("title") or "")[:90], "source": it.get("source"), "date": it.get("date")})
@@ -234,11 +235,21 @@ def diag():
 
 @app.route("/collect-now", methods=["POST", "GET"])
 def collect_now():
-    """Manual trigger to run collector immediately.
-       Add ?force=1 to break a stale lock (> STALE_LOCK_SEC)."""
+    """Manual trigger; add ?force=1 to ignore any existing lock."""
     force = request.args.get("force") in ("1", "true", "yes")
     payload = run_collect_once(force=force)
     return jsonify(payload)
+
+@app.route("/unlock", methods=["POST", "GET"])
+def unlock():
+    """Hard unlock: delete lock file and report status."""
+    existed = LOCK_PATH.exists()
+    _clear_stale_lock()
+    try:
+        LOCK_PATH.unlink(missing_ok=True)
+    except Exception:
+        pass
+    return jsonify({"ok": True, "existed_before": existed, "now_exists": LOCK_PATH.exists(), "ts": utc_now_iso()})
 
 # Start scheduler
 ensure_scheduler_started()
