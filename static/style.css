@@ -4,14 +4,14 @@
    =========================== */
 
 :root{
-  --bg: #f6f2ea;
-  --panel: #fffdf8;
-  --text: #1b1b1b;
-  --muted: #6b6b6b;
-  --gold: #c5a559;         /* Purdue gold */
+  --bg:#f6f2ea;
+  --panel:#fffdf8;
+  --text:#1b1b1b;
+  --muted:#6b6b6b;
+  --gold:#c5a559;         /* Purdue gold */
   --gold-2:#b39448;
-  --ring: rgba(197,165,89,.35);
-  --shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.08);
+  --ring:rgba(197,165,89,.35);
+  --shadow:0 1px 2px rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.08);
 }
 
 @media (prefers-color-scheme: dark){
@@ -20,7 +20,7 @@
     --panel:#141414;
     --text:#f2f2f2;
     --muted:#9aa0a6;
-    --shadow: 0 1px 2px rgba(0,0,0,.2), 0 10px 24px rgba(0,0,0,.45);
+    --shadow:0 1px 2px rgba(0,0,0,.2), 0 10px 24px rgba(0,0,0,.45);
   }
 }
 
@@ -28,7 +28,7 @@
 html,body{height:100%}
 body{
   margin:0;
-  font-family: ui-sans-serif,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+  font-family:ui-sans-serif,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial;
   color:var(--text);
   background:radial-gradient(1200px 500px at 50% -40%, rgba(197,165,89,.08), transparent), var(--bg);
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
@@ -36,138 +36,6 @@ body{
 
 /* ---- Page frame ---- */
 .container{
-  max-width: 980px;
-  margin: 0 auto;
-  padding: clamp(12px, 2.8vw, 24px);
-}
-
-/* ---- Header ---- */
-.header{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:14px; flex-wrap:wrap; margin-bottom: 8px;
-}
-.brand{display:flex; align-items:center; gap:12px; min-width:280px}
-.logo{width: clamp(52px, 9vw, 84px); height:auto; object-fit:contain}
-
-h1{ margin:0; line-height:1.05; font-size: clamp(28px, 5.8vw, 48px) }
-.sub{ color:var(--muted); font-size: clamp(12px, 2.4vw, 14px); margin-top: 2px }
-
-/* Fight song button */
-.fight-btn{
-  appearance:none; border:0; cursor:pointer;
-  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-2) 100%);
-  color:#221f1f; font-weight:700;
-  padding: 10px 14px; border-radius: 999px;
-  box-shadow: var(--shadow);
-  font-size: 14px;
-}
-.fight-btn:hover{ filter:saturate(1.05) }
-.fight-btn:active{ transform: translateY(1px) }
-
-/* ---- Quick links (“bubbles”) ----
-   Smaller, tighter, and higher on the page */
-.quick{
-  display:grid; gap:10px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  margin: 8px 0 6px 0;
-}
-.pill{
-  display:inline-flex; align-items:center; justify-content:center;
-  padding: 8px 10px;                   /* smaller */
-  border-radius: 999px;
-  background: var(--panel);
-  border: 1px solid rgba(0,0,0,.08);
-  text-decoration:none; color:var(--text);
-  box-shadow: var(--shadow);
-  font-size: 14px;                     /* smaller text */
-  line-height: 1.2;
-}
-.pill:hover{ border-color: var(--ring) }
-
-/* ---- Controls ---- */
-.controls{
-  display:flex; gap:8px; flex-wrap:wrap;
-  margin: 10px 0 6px 0;
-}
-.input,.select{
-  flex:1 1 260px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border:1px solid rgba(0,0,0,.12);
-  background: var(--panel);
-  color: var(--text);
-  box-shadow: var(--shadow);
-  font-size: 14px;
-}
-.input::placeholder{ color:var(--muted) }
-.select{ max-width: 220px }
-
-/* ---- “New items” notice ---- */
-.notice{
-  background:#fff7e0; color:#5b4300;
-  border:1px solid #f0d48a;
-  border-radius:10px;
-  padding:8px 10px;
-  margin: 6px 0 10px 0;
-  font-size: 14px;
-}
-
-/* ---- Feed cards ---- */
-.items{ list-style:none; padding:0; margin:0; display:grid; gap:10px }
-
-.item{
-  background: var(--panel);
-  border:1px solid rgba(0,0,0,.08);
-  border-radius: 14px;
-  padding: 12px 12px 10px 12px;
-  box-shadow: var(--shadow);
-  transition: transform .06s ease, box-shadow .12s ease, border-color .12s ease;
-}
-.item:hover{ transform: translateY(-1px); border-color: var(--ring) }
-
-.item-head{
-  display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;
-}
-.title{
-  color: var(--text); text-decoration:none; font-weight: 750;
-  font-size: clamp(16px, 3.2vw, 20px); line-height:1.25;
-}
-.title:hover{ text-decoration: underline }
-.badge{
-  font-size: 12px; font-weight:600;
-  color:#222; background:#f1e6c8;
-  padding: 5px 8px; border-radius:999px;
-  border:1px solid rgba(0,0,0,.08);
-  white-space:nowrap;
-}
-
-.meta{ color:var(--muted); font-size: 12.5px; margin-top: 6px }
-.desc{
-  margin: 6px 0 0 0; color:#333;
-  font-size: 14.5px; line-height:1.5;
-  display:-webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow:hidden;
-}
-
-/* ---- Footer ---- */
-.footer{
-  text-align:center; color:var(--muted);
-  margin: 22px 0 8px 0; font-size: 13px;
-}
-
-/* ---- Small screens polish ---- */
-@media (max-width: 560px){
-  .brand{ gap:10px }
-  .logo{ width: 56px }
-  .fight-btn{ width: 100% }                   /* easy tap */
-  .quick{ grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:8px }
-  .pill{ padding: 8px 10px; font-size: 13.5px }
-  .controls{ gap:8px }
-  .select{ flex:1 1 160px; max-width:none }
-  .item{ border-radius: 12px }
-}
-
-/* ---- Focus rings for accessibility ---- */
-a:focus-visible, .pill:focus-visible, .input:focus-visible, .select:focus-visible, .fight-btn:focus-visible{
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
-}
+  max-width:980px;
+  margin:0 auto;
+  padding:
