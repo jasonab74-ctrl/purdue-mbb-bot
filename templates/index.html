@@ -21,7 +21,6 @@
         </div>
       </div>
       <button class="fight-btn" id="fightBtn" onclick="toggleFightSong()">▶ Fight Song</button>
-      <!-- IMPORTANT: file lives at /static/fight_song.mp3 -->
       <audio id="fightSong" preload="none" playsinline>
         <source src="{{ url_for('static', filename='fight_song.mp3') }}" type="audio/mpeg">
       </audio>
@@ -54,7 +53,7 @@
     <!-- Articles -->
     <ul class="items" id="feedList">
       {% for it in items %}
-        <li class="item">
+        <li class="item" data-ts="{{ it.ts }}">
           <div class="item-head">
             <a class="title" href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a>
             <span class="badge">{{ it.source }}</span>
@@ -74,16 +73,11 @@
   function toggleFightSong() {
     const a = document.getElementById("fightSong");
     const btn = document.getElementById("fightBtn");
-    // iOS Safari returns a promise from play(); catch for UX
     if (a.paused) {
       a.play().then(() => { btn.textContent = "⏸ Fight Song"; })
-               .catch(err => {
-                 alert("Could not start audio. Make sure your ringer is on and try again.");
-                 console.error(err);
-               });
+               .catch(() => { alert("Could not start audio. Make sure your ringer is on and try again."); });
     } else {
-      a.pause();
-      btn.textContent = "▶ Fight Song";
+      a.pause(); btn.textContent = "▶ Fight Song";
     }
   }
 
