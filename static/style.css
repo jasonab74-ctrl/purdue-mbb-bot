@@ -1,85 +1,98 @@
-/* Purdue MBB — Clean light theme (SAFE revert) */
-
+/* Purdue palette */
 :root{
-  --bg: #f6f5f1;
-  --card: #ffffff;
-  --text: #111;
-  --muted: #5b5b5b;
-  --line: rgba(0,0,0,.08);
-  --shadow: 0 6px 22px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
-  --radius: 14px;
-  --gold: #d7c38a;
-  --gold-2:#b89a54;
-  --chip-bg: rgba(215,195,138,.14);
-  --chip-bd: rgba(184,154,84,.45);
+  --black:#101010;              /* near-black for smoother text */
+  --black-true:#000000;         /* solid black for borders/buttons */
+  --gold:#CFB991;               /* Purdue Old Gold */
+  --gold-deep:#B89A54;          /* deeper Old Gold for hover/gradients */
+  --gold-weak:#F4EBD2;          /* very light gold for chips */
+  --text:#0b0b0b;
+  --bg:#f7f6f3;                 /* warm off-white */
+  --card:#ffffff;
+  --muted:#5f6368;
+  --border:#e6e1d6;             /* soft warm border */
+  --shadow:0 10px 30px rgba(0,0,0,.06);
+  --radius:16px;
+  --pad:16px;
 }
 
 *{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0; background:linear-gradient(180deg,#faf9f6,var(--bg));
-  color:var(--text);
-  font: 16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial;
-  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.container{max-width:1040px;margin:28px auto;padding:0 18px}
+.header{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.brand{display:flex;gap:14px;align-items:center}
 
-/* Container */
-.container{max-width:1050px;margin:28px auto;padding:0 16px}
+/* Logo keeps aspect, not cut off */
+.logo{max-height:56px;width:auto;object-fit:contain;display:block}
 
-/* Header card */
-.header{
-  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-  box-shadow:var(--shadow); padding:16px; display:flex;align-items:center;gap:14px;
+.header h1{margin:0;font-size:1.7rem;line-height:1.2}
+.sub{color:var(--muted)}
+.actions{margin-top:2px}
+.btn{
+  border:1px solid var(--black-true);
+  background:linear-gradient(180deg,var(--black),var(--black-true));
+  color:#fff;border-radius:999px;padding:9px 14px;cursor:pointer
 }
-.header .logo{width:44px;height:44px;object-fit:contain}
-.header h1{margin:0 0 2px;font-size:22px}
-.header .meta{color:var(--muted);font-size:13px}
+.btn:hover{filter:brightness(1.06)}
 
-/* Fight Song button */
-.fight-btn{
-  margin-left:auto; appearance:none; cursor:pointer;
-  background: linear-gradient(180deg,var(--gold),var(--gold-2));
-  border:1px solid var(--gold-2); color:#2a210b; font-weight:700;
-  padding:8px 12px;border-radius:999px;
-  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 2px 8px rgba(0,0,0,.08);
+/* Quick links as gold chips with thin black outline */
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
+.pill{
+  background:var(--gold-weak);
+  color:#1f1f1f;
+  padding:8px 12px;border-radius:999px;text-decoration:none;
+  border:1px solid var(--black-true)
 }
-
-/* Link chips row */
-.pills{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 12px}
-.pills a, a.pill{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:10px 14px;border-radius:999px;text-decoration:none;
-  color:#1d1d1d;font-weight:600;font-size:14px;
-  background:var(--chip-bg); border:1px solid var(--chip-bd);
-  box-shadow:0 1px 0 rgba(255,255,255,.35) inset;
-}
-.pills a:hover{transform:translateY(-1px)}
+.pill:hover{filter:brightness(1.02)}
 
 /* Controls */
-.controls{display:flex;gap:10px;align-items:center;margin:6px 0 12px}
-.controls input[type="search"]{flex:1;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff}
-.controls select{min-width:240px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff}
+.controls{display:flex;gap:10px;align-items:center;margin:8px 0 18px}
+.input,.select{padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#fff}
+.input{min-width:320px}
+.muted{color:var(--muted)}
 
-/* Notice */
-.notice{margin:8px 0;background:#fff;border:1px dashed var(--chip-bd);border-radius:12px;padding:10px 12px;color:#445}
-
-/* Items list */
-.list{display:flex;flex-direction:column;gap:12px}
+/* Items */
+.items{display:grid;gap:12px;list-style:none;padding:0;margin:0}
 .item{
-  border:1px solid var(--line);background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:14px 16px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:var(--pad);
+  box-shadow:var(--shadow)
 }
-.item .title{margin:2px 0 6px;font-size:16px;font-weight:800;line-height:1.35}
-.item .title a{color:inherit;text-decoration:none}
-.item .title a:hover{text-decoration:underline}
-.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;color:var(--muted);font-size:13px}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.06);border:1px solid var(--line);font-weight:700;font-size:12px}
+.item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.title{font-weight:700;text-decoration:none;color:var(--text)}
+.title:hover{text-decoration:underline}
 
-.footer{color:var(--muted);font-size:13px;margin:18px 0}
+/* Source badge: light gold w/ black edge */
+.badge{
+  background:var(--gold-weak);
+  border:1px solid var(--black-true);
+  color:#111827;border-radius:999px;padding:4px 10px;font-size:.75rem
+}
 
-/* Mobile */
-@media (max-width:740px){
-  .header{padding:14px}
-  .header h1{font-size:19px}
-  .controls{flex-direction:column;align-items:stretch}
-  .controls select{min-width:unset}
+.meta{color:var(--muted);font-size:.87rem;margin-top:6px}
+.desc{margin:.55rem 0 0}
+.empty{padding:18px;border:1px dashed var(--border);border-radius:var(--radius);background:#fff}
+
+/* Updated stamp + notice */
+.stamp{color:var(--muted);font-size:.85rem;margin-top:4px}
+.notice{
+  background:#fffaf0;
+  border:1px solid var(--gold-deep);
+  color:#4a350c;
+  padding:10px 12px;border-radius:12px;margin:8px 0 12px;display:flex;gap:10px;align-items:center
+}
+
+/* Mobile polish */
+@media (max-width: 640px){
+  .container{padding:0 14px}
+  .brand{align-items:flex-start}
+  .logo{max-height:44px}
+  .controls{flex-direction:column;align-items:stretch;gap:8px}
+  .input,.select{width:100%;min-width:0}
+  .quick{gap:6px}
+  .pill{padding:7px 10px}
+  .item{padding:12px;border-radius:12px}
+  .badge{font-size:.7rem;padding:3px 8px}
 }
