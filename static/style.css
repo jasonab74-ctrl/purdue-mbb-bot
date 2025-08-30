@@ -1,11 +1,9 @@
 /* -------------------------------------------------------
-   Purdue MBB — Clean Light Theme
+   Purdue MBB — Clean Light Theme (Performance Tuned)
    VISUAL-ONLY. No JS/Python changes required.
-   Works with your current index.html markup/classes.
    ------------------------------------------------------ */
 
 :root{
-  /* Light UI palette */
   --page: #f4f5f7;          /* page background */
   --card: #ffffff;          /* card background */
   --ink:  #17181a;          /* main text */
@@ -14,12 +12,12 @@
 
   /* Purdue accents */
   --gold:   #cfb87c;        /* old gold */
-  --gold-2: #b89f56;        /* deeper gold for borders/hover */
-  --gold-3: #f4e8c0;        /* pale fill for badges */
+  --gold-2: #b89f56;        /* deeper gold for borders */
+  --gold-3: #fff8dc;        /* pale gold fill */
 
-  --ring: rgba(207,184,124,.55);
-  --shadow-soft: 0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
-  --shadow-card: 0 8px 24px rgba(16,24,40,.06);
+  /* Lighter shadows for better perf */
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-card: 0 2px 8px rgba(0,0,0,.06);
 
   --radius-lg: 16px;
   --radius-md: 12px;
@@ -55,13 +53,12 @@ h1{margin:0 0 4px 0; font-size:22px; letter-spacing:.2px; color: var(--ink)}
 /* Fight Song (single button) */
 .fight-btn{
   appearance:none; border:1px solid var(--gold-2); cursor:pointer;
-  background: linear-gradient(180deg, #f7edd3, #f0e2b7);
+  background: var(--gold-3);
   color:#1b1b1b; font-weight:800;
   padding:8px 12px; border-radius: 999px;
   box-shadow: var(--shadow-soft);
 }
-.fight-btn:hover{ filter: brightness(1.03) }
-.fight-btn:active{ transform: translateY(1px) }
+/* no hover transform to avoid repaints */
 
 /* ---------------- Quick Links (ALL high-contrast, tidy) ---------------- */
 .quick-links{
@@ -71,16 +68,14 @@ h1{margin:0 0 4px 0; font-size:22px; letter-spacing:.2px; color: var(--ink)}
 .quick-links a{
   text-decoration:none;
   color:#1c1c1c;
-  background: #fff8dc; /* pale gold */
+  background: var(--gold-3);     /* solid pale gold (no gradient) */
   border: 1px solid var(--gold-2);
   padding: 8px 12px;
   border-radius: 999px;
   font-size: 13px; font-weight: 800;
   box-shadow: var(--shadow-soft);
   white-space: nowrap;
-  transition: transform .05s ease, box-shadow .15s ease, border-color .12s ease;
 }
-.quick-links a:hover{ transform: translateY(-1px); border-color: var(--gold) }
 
 /* ---------------- Controls ---------------- */
 .controls{
@@ -126,7 +121,7 @@ input[type="search"]::placeholder{ color:#98a2b3 }
 }
 .meta .source{
   color:#111;
-  background: #fff8dc;          /* pale gold badge */
+  background: var(--gold-3);          /* pale gold badge */
   border: 1px solid var(--gold-2);
   padding: 3px 10px;
   border-radius: 999px;
@@ -151,6 +146,11 @@ input[type="search"]::placeholder{ color:#98a2b3 }
 /* Footer */
 footer{ margin: 28px 0 10px; color:#667085; font-size:12px }
 
+/* ---------------- Reduced motion for ultra-low-end devices ---------------- */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+}
+
 /* ---------------- Responsive ---------------- */
 @media (max-width: 780px){
   .container{ padding: 0 14px }
@@ -163,5 +163,5 @@ footer{ margin: 28px 0 10px; color:#667085; font-size:12px }
 
 /* ---------------- Focus ring for a11y ---------------- */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{
-  outline: 2px solid var(--ring); outline-offset: 2px; border-color: var(--gold-2);
+  outline: 2px solid rgba(207,184,124,.55); outline-offset: 2px; border-color: var(--gold-2);
 }
