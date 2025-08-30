@@ -8,7 +8,7 @@ import time
 import subprocess
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from flask import Flask, send_from_directory, render_template, jsonify, make_response
+from flask import Flask, send_from_directory, render_template, jsonify, make_response, request
 
 APP_DIR = Path(__file__).parent.resolve()
 ITEMS_PATH = APP_DIR / "items.json"
@@ -21,6 +21,9 @@ REFRESH_SEC = max(300, REFRESH_MIN * 60)
 
 # If items.json is 0 items OR older than this, /items.json will do a one-shot refresh.
 STALE_MIN = max(5, int(os.environ.get("STALE_MIN", "15")))
+
+# Consider a lock stale after this many seconds (e.g., collector crashed mid-run)
+STALE_LOCK_SEC = int(os.environ.get("STALE_LOCK_SEC", "180"))
 
 app = Flask(
     __name__,
@@ -44,7 +47,6 @@ def _read_last_run() -> dict:
         return {}
 
 def _collect_cmds() -> list[list[str]]:
-    # Try the running interpreter first; then common names.
     exe = sys.executable or "python"
     return [
         [exe, str(APP_DIR / "collect.py")],
@@ -52,9 +54,40 @@ def _collect_cmds() -> list[list[str]]:
         ["python3", str(APP_DIR / "collect.py")],
     ]
 
-def run_collect_once() -> dict:
+def _lock_is_stale() -> bool:
+    try:
+        if not LOCK_PATH.exists():
+            return False
+        mtime = datetime.fromtimestamp(LOCK_PATH.stat().st_mtime, timezone.utc)
+        return (datetime.now(timezone.utc) - mtime) > timedelta(seconds=STALE_LOCK_SEC)
+    except Exception:
+        return True  # if we can't read it, treat as stale so we don't deadlock
+
+def _clear_stale_lock():
+    try:
+        if _lock_is_stale():
+            LOCK_PATH.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+def run_collect_once(force: bool = False) -> dict:
     """Run collect.py safely with a simple file lock. Return a summary dict."""
+    # Clear stale locks up-front
+    _clear_stale_lock()
+
     # Non-blocking lock so two workers don’t overlap
+    if LOCK_PATH.exists():
+        if force and _lock_is_stale():
+            try:
+                LOCK_PATH.unlink(missing_ok=True)
+            except Exception:
+                pass
+        else:
+            payload = {"skipped": True, "reason": "lock_exists", "invoked_at": utc_now_iso()}
+            _write_last_run(payload)
+            return payload
+
+    # Acquire lock
     try:
         LOCK_PATH.touch(exist_ok=False)
     except FileExistsError:
@@ -73,28 +106,24 @@ def run_collect_once() -> dict:
                     text=True,
                     timeout=max(60, REFRESH_SEC // 2),
                 )
-                # If it executed, try to parse JSON from stdout (our collect.py prints a JSON line)
+                # Parse collector JSON summary from stdout
                 try:
                     payload = json.loads((proc.stdout or "").strip() or "{}")
-                    payload["runner"] = " ".join(cmd)
-                    payload["rc"] = proc.returncode
-                    payload["invoked_at"] = utc_now_iso()
-                    _write_last_run(payload)
-                    return payload
                 except Exception:
-                    payload = {
-                        "runner": " ".join(cmd),
-                        "rc": proc.returncode,
-                        "stdout_tail": (proc.stdout or "")[-1200:],
-                        "stderr_tail": (proc.stderr or "")[-1200:],
-                        "invoked_at": utc_now_iso(),
-                    }
-                    _write_last_run(payload)
-                    return payload
+                    payload = {}
+                # Always attach runner & rc & tails for debugging
+                payload.update({
+                    "runner": " ".join(cmd),
+                    "rc": proc.returncode,
+                    "stdout_tail": (proc.stdout or "")[-1200:],
+                    "stderr_tail": (proc.stderr or "")[-1200:],
+                    "invoked_at": utc_now_iso(),
+                })
+                _write_last_run(payload)
+                return payload
             except Exception as e:
                 last_err = str(e)
 
-        # If we got here, even spawning failed
         payload = {"error": "spawn_failed", "detail": last_err, "invoked_at": utc_now_iso()}
         _write_last_run(payload)
         return payload
@@ -112,6 +141,8 @@ def scheduler_loop():
         run_collect_once()
 
 def ensure_scheduler_started():
+    # Clean any stale lock before starting
+    _clear_stale_lock()
     t = threading.Thread(target=scheduler_loop, name="collector-scheduler", daemon=True)
     t.start()
 
@@ -129,7 +160,6 @@ def _is_stale_or_empty(data: dict) -> bool:
         return True
     if len(items) == 0:
         return True
-    # Stale check: if file older than STALE_MIN minutes, let /items.json opportunistically refresh
     try:
         mtime = datetime.fromtimestamp(ITEMS_PATH.stat().st_mtime, timezone.utc)
         return (datetime.now(timezone.utc) - mtime) > timedelta(minutes=STALE_MIN)
@@ -183,7 +213,7 @@ def health():
 
 @app.route("/diag")
 def diag():
-    out = {"now": utc_now_iso(), "refresh_min": REFRESH_MIN, "stale_min": STALE_MIN}
+    out = {"now": utc_now_iso(), "refresh_min": REFRESH_MIN, "stale_min": STALE_MIN, "stale_lock_sec": STALE_LOCK_SEC}
     data = _read_items_file()
     items = data.get("items") or []
     out["items_count"] = len(items) if isinstance(items, list) else 0
@@ -192,8 +222,10 @@ def diag():
         out["items_mtime"] = datetime.fromtimestamp(ITEMS_PATH.stat().st_mtime, timezone.utc).isoformat()
     except Exception:
         out["items_mtime"] = None
+    out["lock_exists"] = LOCK_PATH.exists()
+    out["lock_stale"] = _lock_is_stale() if LOCK_PATH.exists() else False
     out["last_run"] = _read_last_run()
-    # show first few sources for sanity
+    # sample items
     sample = []
     for it in items[:5]:
         sample.append({"title": (it.get("title") or "")[:90], "source": it.get("source"), "date": it.get("date")})
@@ -202,11 +234,13 @@ def diag():
 
 @app.route("/collect-now", methods=["POST", "GET"])
 def collect_now():
-    """Manual trigger to run collector immediately and return its summary."""
-    payload = run_collect_once()
+    """Manual trigger to run collector immediately.
+       Add ?force=1 to break a stale lock (> STALE_LOCK_SEC)."""
+    force = request.args.get("force") in ("1", "true", "yes")
+    payload = run_collect_once(force=force)
     return jsonify(payload)
 
-# Start scheduler under gunicorn/Flask
+# Start scheduler
 ensure_scheduler_started()
 
 if __name__ == "__main__":
