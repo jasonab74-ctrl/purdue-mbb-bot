@@ -1,234 +1,102 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
   <title>Purdue Men’s Basketball — Live Feed</title>
-  <link rel="manifest" href="/static/manifest.webmanifest">
-  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-  <link rel="icon" href="/static/logo.png" type="image/png">
-  <link rel="stylesheet" href="/static/style.css">
-  <meta name="theme-color" content="#111214">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
-  <!-- Single banner/header -->
-  <header class="site-header container">
-    <div class="brand">
-      <img src="/static/logo.png" class="logo" alt="Purdue">
-      <div>
-        <h1>Purdue Men’s Basketball — Live Feed</h1>
-        <div class="subtle">
-          (<span id="itemCount">0</span> dynamic items)
-          • Updated: <span id="updatedAgo">—</span>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
+        <div>
+          <h1>Purdue Men’s Basketball</h1>
+          <div class="sub">
+            <span class="count">{{ items|length }} articles</span> ·
+            <span class="stamp">Updated: {{ meta.generated_at }}</span>
+          </div>
         </div>
       </div>
+      <button class="btn" onclick="toggleFightSong()">▶ Fight Song</button>
+      <audio id="fightSong" src="{{ url_for('static', filename='../fight_song.mp3') }}"></audio>
     </div>
-    <button class="fight-btn" id="fightBtn" aria-pressed="false">▶︎ Fight Song</button>
-    <audio id="fightAudio" preload="none" src="/fight_song.mp3" playsinline></audio>
-  </header>
 
-  <div class="container">
-    <!-- Quick links -->
-    <nav class="quick-links" id="quickLinks"></nav>
+    <!-- Quick Links -->
+    <div class="quick">
+      {% for link in static_links %}
+        <a class="pill" href="{{ link.url }}" target="_blank">{{ link.label }}</a>
+      {% endfor %}
+    </div>
 
     <!-- Controls -->
     <div class="controls">
-      <div class="grow">
-        <input type="search" id="search" placeholder="Filter (e.g., Braden Smith, Matt Painter)" autocomplete="off">
-      </div>
-      <div>
-        <select id="sourceSelect" class="select">
-          <option value="__all__">All sources</option>
-        </select>
-      </div>
-      <div class="count-note"><span id="shownCount">0</span> shown</div>
+      <input type="search" class="input" id="searchBox" placeholder="Search articles…"
+             oninput="filterItems()">
+      <select class="select" id="sourceFilter" onchange="filterItems()">
+        <option value="">All Sources</option>
+        {% for f in feeds %}
+          <option value="{{ f.name }}">{{ f.name }}</option>
+        {% endfor %}
+      </select>
     </div>
 
-    <div class="notice" id="notice" role="status" aria-live="polite">
-      New items available — refresh
+    <!-- Notice -->
+    <div id="notice" class="notice" style="display:none;">
+      New items available — <a href="#" onclick="location.reload()">refresh now</a>.
     </div>
 
-    <!-- Feed list -->
-    <main class="feed" id="feed" aria-live="polite"></main>
+    <!-- Articles -->
+    <ul class="items" id="feedList">
+      {% for it in items %}
+        <li class="item">
+          <div class="item-head">
+            <a class="title" href="{{ it.link }}" target="_blank">{{ it.title }}</a>
+            <span class="badge">{{ it.source }}</span>
+          </div>
+          <div class="meta">{{ it.date }}</div>
+          {% if it.summary %}
+            <div class="desc">{{ it.summary }}</div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
 
-    <footer>Not affiliated with Purdue University.</footer>
+    <div class="footer">Boiler Up! — Purdue Men’s Basketball Live Feed</div>
   </div>
 
   <script>
-  // --------- Config ----------
-  const STATIC_LINKS = [
-    { label: "Purdue – Official MBB Page", url: "https://purduesports.com/sports/mens-basketball" },
-    { label: "Purdue – Schedule",          url: "https://purduesports.com/sports/mens-basketball/schedule" },
-    { label: "Purdue – Roster",            url: "https://purduesports.com/sports/mens-basketball/roster" },
-    { label: "ESPN – Purdue MBB",          url: "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" },
-    { label: "CBS Sports – Purdue",        url: "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" },
-    { label: "Yahoo Sports – Purdue",      url: "https://sports.yahoo.com/ncaab/teams/purdue/" },
-    { label: "Hammer & Rails (SB Nation)", url: "https://www.hammerandrails.com/" },
-    { label: "GoldandBlack (Rivals)",      url: "https://purdue.rivals.com/" },
-    { label: "Barstool – Purdue",          url: "https://www.barstoolsports.com/topics/purdue-boilermakers" },
-    { label: "Reddit – r/Boilermakers",    url: "https://www.reddit.com/r/Boilermakers/" },
-    { label: "YouTube – Field of 68",      url: "https://www.youtube.com/@thefieldof68" },
-    { label: "YouTube – Sleepers Media",   url: "https://www.youtube.com/@SleepersMedia" }
-  ];
-
-  // Fallback list for the dropdown when items.json is temporarily empty
-  const SOURCE_HINTS = [
-    "Google News — Purdue Basketball",
-    "Google News — Matt Painter",
-    "Google News — Mackey Arena",
-    "YouTube Mentions — Purdue Basketball",
-    "YouTube Mentions — Matt Painter",
-    "Hammer & Rails",
-    "Reddit r/Boilermakers",
-    "Reddit r/CollegeBasketball",
-    "Google News — GoldandBlack (Rivals)",
-    "Google News — On3 Purdue",
-    "Google News — 247Sports Purdue",
-    "Google News — IndyStar Purdue",
-    "Google News — PurdueSports.com (MBB)"
-  ];
-
-  const FEED_URL = "/items.json";
-  let cacheSignature = "";
-  let ALL_ITEMS = [];
-
-  // --------- Helpers ----------
-  const $ = sel => document.querySelector(sel);
-  const feedEl = $("#feed");
-  const searchEl = $("#search");
-  const sourceEl = $("#sourceSelect");
-  const shownCountEl = $("#shownCount");
-  const itemCountEl = $("#itemCount");
-  const updatedAgoEl = $("#updatedAgo");
-  const noticeEl = $("#notice");
-  const fightBtn = $("#fightBtn");
-  const fightAudio = $("#fightAudio");
-
-  function fmtDate(d){ try{ return new Date(d).toISOString().slice(0,10); }catch(e){ return ""; } }
-  function timeAgo(d){
-    try{
-      const diff = Date.now() - new Date(d).getTime();
-      const m = Math.floor(diff/60000); if (m < 1) return "just now";
-      if (m < 60) return `${m} min ago`;
-      const h = Math.floor(m/60); if (h < 24) return `${h} hr ago`;
-      return `${Math.floor(h/24)} d ago`;
-    }catch(e){ return "—"; }
+  function toggleFightSong() {
+    const a = document.getElementById("fightSong");
+    if (a.paused) { a.play(); } else { a.pause(); }
   }
-  function signature(items){
-    if(!items || !items.length) return "0-0";
-    const ts = items[0]?.date || items[0]?.published || items[0]?.isoDate || "";
-    return `${ts}-${items.length}`;
-  }
-  function buildQuickLinks(){
-    $("#quickLinks").innerHTML = STATIC_LINKS
-      .map(l => `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`)
-      .join("");
-  }
-  function uniqueSources(items){
-    const set = new Set();
-    for (const it of items){
-      const s = it.source || it.site || it.feed || "";
-      if (s) set.add(s);
-    }
-    return Array.from(set).sort();
-  }
-  function renderSourceOptions(items){
-    let options = uniqueSources(items);
-    if (!options.length) options = SOURCE_HINTS.slice();
-    sourceEl.innerHTML = `<option value="__all__">All sources</option>` +
-      options.map(s => `<option value="${s}">${s}</option>`).join("");
-  }
-  function itemMatches(it,q,src){
-    if (src && src !== "__all__"){
-      const s = it.source || it.site || it.feed || "";
-      if (s !== src) return false;
-    }
-    if (!q) return true;
-    const hay = `${it.title||""} ${it.summary||""} ${it.description||""}`.toLowerCase();
-    return hay.includes(q.toLowerCase());
-  }
-  function renderItems(items){
-    const q = searchEl.value.trim();
-    const src = sourceEl.value;
-    const filtered = items.filter(it => itemMatches(it,q,src));
 
-    shownCountEl.textContent = filtered.length.toString();
-    itemCountEl.textContent = items.length.toString();
-
-    const newest = items[0]?.date || items[0]?.published || items[0]?.isoDate || null;
-    if (newest) updatedAgoEl.textContent = timeAgo(new Date(newest));
-
-    feedEl.innerHTML = filtered.map(it => {
-      const title = (it.title || "Untitled").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      const link  = it.link || it.url || "#";
-      const date  = fmtDate(it.date || it.published || it.isoDate || it.updated);
-      const source= it.source || it.site || it.feed || "Source";
-      const snip  = (it.summary || it.description || "").replace(/\s+/g," ").slice(0,220);
-      return `
-        <article class="card">
-          <h3><a href="${link}" target="_blank" rel="noopener">${title}</a></h3>
-          <div class="meta">
-            <span class="source">${source}</span>
-            <span class="date">${date}</span>
-          </div>
-          ${snip ? `<div class="snippet">${snip}</div>` : ``}
-        </article>`;
-    }).join("") || `<div class="subtle">No items yet. Feeds will populate shortly.</div>`;
-  }
-  async function loadItems(initial=false){
-    const data = await fetch(FEED_URL, { cache: "no-store" }).then(r=>r.json()).catch(()=>({items:[]}));
-    const items = Array.isArray(data) ? data : (data.items || []);
-    items.sort((a,b)=>new Date(b.date||b.published||b.isoDate||0)-new Date(a.date||a.published||a.isoDate||0));
-    const sig = signature(items);
-
-    if (initial){
-      ALL_ITEMS = items;
-      buildQuickLinks();
-      renderSourceOptions(items);
-      renderItems(items);
-      cacheSignature = sig;
-      return;
-    }
-    if (sig !== cacheSignature){
-      noticeEl.style.display = "block";
-      ALL_ITEMS = items;
-      renderSourceOptions(items);
-      renderItems(items);
-      cacheSignature = sig;
-      setTimeout(()=>noticeEl.style.display="none", 4000);
-    }
-  }
-  function startPolling(){ setInterval(()=>loadItems(false), 5*60*1000); }
-  function wireFightSong(){
-    function setBtn(playing){
-      fightBtn.setAttribute("aria-pressed", playing ? "true" : "false");
-      fightBtn.textContent = playing ? "⏸︎ Pause" : "▶︎ Fight Song";
-    }
-    fightBtn.addEventListener("click", async ()=>{
-      try{
-        if (fightAudio.paused){ await fightAudio.play(); setBtn(true); }
-        else { fightAudio.pause(); setBtn(false); }
-      }catch(e){}
-    });
-    fightAudio.addEventListener("ended", ()=> setBtn(false));
-    document.addEventListener("visibilitychange", ()=>{
-      if (document.hidden && !fightAudio.paused){ fightAudio.pause(); setBtn(false); }
+  function filterItems() {
+    let q = document.getElementById("searchBox").value.toLowerCase();
+    let f = document.getElementById("sourceFilter").value;
+    document.querySelectorAll("#feedList .item").forEach(it => {
+      let t = it.innerText.toLowerCase();
+      let s = it.querySelector(".badge").innerText;
+      let show = (!q || t.includes(q)) && (!f || s === f);
+      it.style.display = show ? "" : "none";
     });
   }
 
-  (async function(){
-    try{
-      await loadItems(true);
-      startPolling();
-      $("#search").addEventListener("input", ()=>renderItems(ALL_ITEMS));
-      $("#sourceSelect").addEventListener("change", ()=>renderItems(ALL_ITEMS));
-      wireFightSong();
-    }catch(e){
-      console.error(e);
-      feedEl.innerHTML = `<div class="subtle">Couldn’t load items. Try reloading.</div>`;
-    }
-  })();
+  async function checkUpdates() {
+    try {
+      const res = await fetch("/items.json", {cache:"no-store"});
+      const data = await res.json();
+      const lastRun = data?.meta?.last_run?.ts;
+      const stamp = document.querySelector(".stamp");
+      if (stamp && lastRun) stamp.textContent = "Updated: " + lastRun;
+      const shown = document.querySelectorAll("#feedList .item").length;
+      if (data.items && data.items.length > shown) {
+        document.getElementById("notice").style.display="block";
+      }
+    } catch(e) { console.error("Update check failed", e); }
+  }
+  setInterval(checkUpdates, 300000); // every 5 min
   </script>
 </body>
 </html>
