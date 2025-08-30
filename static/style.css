@@ -1,174 +1,219 @@
 /* ===========================
-   Purdue MBB — Styles (safe)
-   Smoother article list
+   Purdue MBB — Styles with Hero Background (subtle hint)
    =========================== */
 
 :root {
-  --bg:#f6f2ea;
-  --panel:#fffdf8;
-  --text:#1b1b1b;
-  --muted:#6b6b6b;
-  --gold:#c5a559;
-  --gold-2:#b39448;
-  --ring:rgba(197,165,89,.35);
-
-  /* New rhythm + motion vars */
-  --space-1: 6px;
-  --space-2: 10px;
-  --space-3: 12px;
-  --radius: 14px;
+  --bg: #f6f2ea;
+  --panel: #fffdf8;
+  --text: #1b1b1b;
+  --muted: #6b6b6b;
+  --gold: #c5a559;
+  --gold-2: #b39448;
+  --ring: rgba(197,165,89,.35);
   --shadow-1: 0 1px 2px rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.08);
   --shadow-2: 0 2px 4px rgba(0,0,0,.08), 0 10px 26px rgba(0,0,0,.10);
   --ease: cubic-bezier(.2,.65,.25,1);
 }
 
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#0f0f0f;
-    --panel:#141414;
-    --text:#f2f2f2;
-    --muted:#9aa0a6;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0f0f;
+    --panel: #141414;
+    --text: #f2f2f2;
+    --muted: #9aa0a6;
     --shadow-1: 0 1px 2px rgba(0,0,0,.2), 0 10px 24px rgba(0,0,0,.45);
     --shadow-2: 0 2px 6px rgba(0,0,0,.28), 0 14px 32px rgba(0,0,0,.55);
   }
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
+* { box-sizing: border-box }
+html, body { height: 100% }
+body {
+  margin: 0;
   font-family: ui-sans-serif,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-  color:var(--text);
-  background: radial-gradient(1200px 500px at 50% -40%, rgba(197,165,89,.08), transparent), var(--bg);
-  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  color: var(--text);
+
+  /* HERO BACKGROUND (faded hint) */
+  background:
+    linear-gradient(rgba(246, 242, 234, 0.94), rgba(246, 242, 234, 0.94)),
+    url("{{ url_for('static', filename='hero.jpg') }}") center/cover no-repeat fixed;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Page frame */
-.container{ max-width:980px; margin:0 auto; padding:clamp(12px,2.6vw,24px) }
+/* Container */
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: clamp(12px, 2.6vw, 24px);
+}
 
 /* Header */
-.header{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom: var(--space-2) }
-.brand{ display:flex; align-items:center; gap:12px; min-width:260px }
-.logo{ width:clamp(52px,9vw,84px); height:auto; object-fit:contain }
-h1{ margin:0; line-height:1.05; font-size:clamp(28px,5.8vw,48px) }
-.sub{ color:var(--muted); font-size:clamp(12px,2.4vw,14px); margin-top:2px }
-
-/* Fight song */
-.fight-btn{
-  appearance:none; border:0; cursor:pointer;
-  background:linear-gradient(180deg,var(--gold) 0%,var(--gold-2) 100%);
-  color:#221f1f; font-weight:700; font-size:14px;
-  padding:9px 14px; border-radius:999px; box-shadow:var(--shadow-1);
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
-.fight-btn:hover{ filter:saturate(1.05) }
-.fight-btn:active{ transform:translateY(1px) }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 260px; }
+.logo { width: clamp(52px, 9vw, 84px); height: auto; object-fit: contain; }
+h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
+.sub { color: var(--muted); font-size: clamp(12px, 2.4vw, 14px); margin-top: 2px; }
+
+/* Fight song button */
+.fight-btn {
+  appearance: none; border: 0; cursor: pointer;
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-2) 100%);
+  color: #221f1f; font-weight: 700; font-size: 14px;
+  padding: 9px 14px; border-radius: 999px; box-shadow: var(--shadow-1);
+}
+.fight-btn:hover { filter: saturate(1.05); }
+.fight-btn:active { transform: translateY(1px); }
 
 /* Quick links (bubbles) */
-.quick{
-  display:grid; gap:8px;
+.quick {
+  display: grid;
+  gap: 8px;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  margin: 8px 0 var(--space-2) 0;
+  margin: 8px 0 10px 0;
 }
-.pill{
-  display:flex; align-items:center; justify-content:center;
-  padding:7px 10px; border-radius:999px;
-  background:var(--panel);
-  border:1px solid rgba(0,0,0,.08);
-  color:var(--text); text-decoration:none; text-align:center;
-  font-size:13.5px; line-height:1.2; box-shadow:var(--shadow-1);
+.pill {
+  display: flex; align-items: center; justify-content: center;
+  padding: 7px 10px; border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid rgba(0,0,0,.08);
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  font-size: 13.5px; line-height: 1.2; text-align: center;
 }
-.pill:hover{ border-color:var(--ring) }
+.pill:hover { border-color: var(--ring); }
 
 /* Controls */
-.controls{ display:flex; gap:8px; flex-wrap:wrap; margin: var(--space-2) 0 var(--space-1) 0 }
-.input,.select{
-  flex:1 1 260px; padding:9px 12px; font-size:14px;
-  border-radius:10px; border:1px solid rgba(0,0,0,.12);
-  background:var(--panel); color:var(--text); box-shadow:var(--shadow-1);
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 10px 0;
 }
-.input::placeholder{ color:var(--muted) }
-.select{ max-width:220px }
+.input, .select {
+  flex: 1 1 260px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  font-size: 14px;
+}
+.input::placeholder { color: var(--muted); }
+.select { max-width: 220px; }
 
 /* Notice */
-.notice{
-  background:#fff7e0; color:#5b4300;
-  border:1px solid #f0d48a; border-radius:10px;
-  padding:8px 10px; margin: var(--space-1) 0 var(--space-2) 0; font-size:14px;
+.notice {
+  background: #fff7e0;
+  color: #5b4300;
+  border: 1px solid #f0d48a;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 6px 0 10px 0;
+  font-size: 14px;
 }
 
-/* Article list */
-.items{ list-style:none; padding:0; margin:0; display:grid; gap:12px }
-
-/* Smooth, no-jump cards:
-   - remove translateY hover to avoid layout jitter
-   - use shadow/outline only, with GPU hint for smoothness */
-.item{
-  background:var(--panel);
-  border:1px solid rgba(0,0,0,.08);
-  border-radius:var(--radius);
-  padding:12px;
-  box-shadow:var(--shadow-1);
-  will-change: box-shadow, border-color;
+/* Articles */
+.items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.item {
+  background: var(--panel);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: var(--shadow-1);
   transition: box-shadow .18s var(--ease), border-color .18s var(--ease), background-color .18s var(--ease);
 }
-.item:hover{ box-shadow:var(--shadow-2); border-color:var(--ring); }
+.item:hover { box-shadow: var(--shadow-2); border-color: var(--ring); }
 
-/* Title + badge align baseline to feel steadier */
-.item-head{
-  display:flex; align-items:baseline; justify-content:space-between;
-  gap:8px; flex-wrap:wrap;
+.item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 }
-.title{
-  color:var(--text); text-decoration:none;
-  font-weight:700; font-size:clamp(16px,3.2vw,20px); line-height:1.3;
-  flex:1 1 auto; /* soak width and keep badge to the right */
+.title {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: clamp(16px, 3.2vw, 20px);
+  line-height: 1.3;
+  flex: 1;
 }
-.title:hover{ text-decoration:underline }
-.badge{
-  margin-left:auto;
-  font-size:12px; font-weight:600; white-space:nowrap;
-  color:#222; background:#f1e6c8;
-  padding:4px 8px; border-radius:999px; border:1px solid rgba(0,0,0,.08);
+.title:hover { text-decoration: underline; }
+.badge {
+  font-size: 12px; font-weight: 600;
+  color: #222; background: #f1e6c8;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.08);
+  white-space: nowrap;
+  margin-left: auto;
 }
 
-/* Meta + description: consistent rhythm */
-.meta{ color:var(--muted); font-size:12.5px; margin-top:4px }
-.desc{
-  margin:6px 0 0 0; color:#2f2f2f; font-size:14.5px; line-height:1.55;
-  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+.meta {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin-top: 4px;
 }
-
-/* Divider option (subtle hairline between dense cards) */
-.item + .item{ position:relative }
-.item + .item::before{
-  content:""; position:absolute; top:-6px; left:10px; right:10px; height:1px;
-  background:linear-gradient(90deg, transparent, rgba(0,0,0,.06), transparent);
-  pointer-events:none;
+.desc {
+  margin: 6px 0 0 0;
+  color: #333;
+  font-size: 14.5px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Footer */
-.footer{ text-align:center; color:var(--muted); margin:22px 0 8px 0; font-size:13px }
+.footer {
+  text-align: center;
+  color: var(--muted);
+  margin: 22px 0 8px 0;
+  font-size: 13px;
+}
 
-/* Mobile polish */
-@media (max-width:560px){
-  .brand{ gap:10px }
-  .logo{ width:56px }
-  .fight-btn{ width:100% }
-  .quick{ grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:6px }
-  .pill{ padding:7px 9px; font-size:13px }
-  .controls{ gap:6px }
-  .select{ flex:1 1 160px; max-width:none }
-  .item{ border-radius:12px }
+/* Mobile tweaks */
+@media (max-width: 560px) {
+  .brand { gap: 10px; }
+  .logo { width: 56px; }
+  .fight-btn { width: 100%; }
+  .quick {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 6px;
+  }
+  .pill { padding: 7px 9px; font-size: 13px; }
+  .controls { gap: 6px; }
+  .select { flex: 1 1 160px; max-width: none; }
+  .item { border-radius: 12px; }
 }
 
 /* Respect reduced motion */
-@media (prefers-reduced-motion: reduce){
-  .item{ transition:none }
+@media (prefers-reduced-motion: reduce) {
+  .item { transition: none }
 }
 
 /* Focus ring */
 a:focus-visible, .pill:focus-visible, .input:focus-visible,
-.select:focus-visible, .fight-btn:focus-visible{
-  outline:3px solid var(--ring);
-  outline-offset:2px;
+.select:focus-visible, .fight-btn:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
 }
