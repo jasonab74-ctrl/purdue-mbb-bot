@@ -7,12 +7,16 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- Icons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}?v=2">
-<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}?v=2">
+  <!-- iPhone / iPad Home Screen icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}?v=6">
+
+  <!-- Favicons for Safari Bookmarks / Desktop -->
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}?v=6">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}?v=6">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=6">
+
+  <!-- Optional nicety -->
+  <meta name="apple-mobile-web-app-title" content="Purdue MBB">
 </head>
 <body>
   <div class="container">
