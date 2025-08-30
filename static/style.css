@@ -5,45 +5,55 @@
   --border:#e5e7eb;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial}
 a{color:#0b63ff;text-decoration:none}
 a:hover{text-decoration:underline}
 
+/* Layout */
 .container{max-width:980px;margin:0 auto;padding:16px}
-.header{display:flex;flex-direction:column;gap:12px;padding:12px 0 8px;border-bottom:1px solid var(--border)}
+.header{display:grid;grid-template-columns:1fr auto;gap:12px;padding:14px 0 10px;border-bottom:1px solid var(--border)}
 .brand{display:flex;gap:12px;align-items:center}
-.logo{width:56px;height:56px;border-radius:8px;object-fit:contain;object-position:center;background:#fff;border:1px solid var(--border);padding:6px}
+.logo{width:56px;height:56px;border-radius:10px;object-fit:contain;object-position:center;background:#fff;border:1px solid var(--border);padding:6px;box-shadow:0 1px 0 rgba(0,0,0,.04)}
 .brand h1{margin:0;font-size:1.35rem;line-height:1.2}
 .sub{font-size:.9rem;color:var(--muted)}
 .stamp{font-size:.85rem;color:var(--muted)}
-.actions{margin-left:auto}
-.btn{border:1px solid var(--border);background:#f8f9fb;border-radius:10px;padding:8px 12px;font-weight:600;cursor:pointer}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn:hover{filter:brightness(0.97)}
-.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.pill{display:inline-block;background:var(--pill);color:var(--pill-ink);padding:8px 12px;border-radius:999px;font-weight:600}
+.actions{display:flex;align-items:center;gap:8px}
 
+/* Buttons & Pills */
+.btn{border:1px solid var(--border);background:#f8f9fb;border-radius:12px;padding:9px 12px;font-weight:700;cursor:pointer;transition:.15s transform ease}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.quick{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.pill{display:inline-block;background:var(--pill);color:var(--pill-ink);padding:8px 12px;border-radius:999px;font-weight:700}
+
+/* Compact sites dropdown */
+.sites-row{grid-column:1/-1;display:flex;gap:8px;align-items:center}
+.sites-label{font-weight:700}
+.select{border:1px solid var(--border);border-radius:12px;padding:8px 10px;min-height:40px;background:#fff}
+
+/* Controls */
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--border)}
-.input,.select{border:1px solid var(--border);border-radius:10px;padding:8px 10px;min-height:38px}
-.input{flex:1 1 260px}
+.input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;min-height:40px;flex:1 1 260px;background:#fff}
 .select{flex:0 0 220px}
 .muted{color:var(--muted);font-size:.9rem}
 
+/* Items */
 .items{list-style:none;margin:0;padding:0}
 .item{padding:14px 0;border-bottom:1px solid var(--border)}
 .item-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.title{font-weight:700}
-.badge{background:var(--chip);color:var(--chip-ink);border:1px solid var(--border);padding:2px 8px;border-radius:999px;font-size:.8rem}
+.title{font-weight:800}
+.badge{background:var(--chip);color:var(--chip-ink);border:1px solid var(--border);padding:3px 8px;border-radius:999px;font-size:.8rem}
 .meta{color:var(--muted);font-size:.85rem;margin-top:4px}
 .desc{margin:.4rem 0 0}
 
-.notice{margin:12px 0;padding:10px 12px;border:1px dashed var(--accent);background:#fffbeb;border-radius:10px}
-
+.notice{margin:12px 0;padding:10px 12px;border:1px dashed var(--accent);background:#fffbeb;border-radius:12px}
 .empty{padding:24px 0;color:var(--muted);text-align:center}
 
-@media (max-width:640px){
+/* Mobile */
+@media (max-width:680px){
+  .header{grid-template-columns:1fr}
   .brand{align-items:flex-start}
   .logo{width:48px;height:48px;padding:5px}
-  .brand h1{font-size:1.1rem}
+  .brand h1{font-size:1.15rem}
   .select{flex:1 1 180px}
 }
