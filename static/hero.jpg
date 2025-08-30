@@ -1,0 +1,12 @@
+<div class="hero">
+  <div class="hero-inner">
+    <div class="left">
+      <img src="/static/logo.png" alt="Purdue" class="logo">
+      <div>
+        <div class="badge">Purdue MBB — Live Feed</div>
+        <div class="subtle">Updated: just now</div>
+      </div>
+    </div>
+    <button class="fight-btn" id="fightBtn">▶︎ Fight Song</button>
+  </div>
+</div>
