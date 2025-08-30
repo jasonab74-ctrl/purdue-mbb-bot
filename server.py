@@ -7,14 +7,14 @@ import threading
 import time
 from datetime import datetime, timezone
 
-from flask import Flask, render_template, send_file, jsonify, request, abort
+from flask import Flask, render_template, send_file, send_from_directory, jsonify, request, abort
 
 # Our existing modules
 from feeds import FEEDS, STATIC_LINKS
 import collect as collector  # has collect.collect() that writes items.json
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-ITEMS_PATH = os.environ.get("ITEMS_PATH", os.path.join(APP_DIR, "items.json"))
+ITEMS_PATH = os.path.join(APP_DIR, "items.json")
 COLLECT_TOKEN = os.environ.get("COLLECT_TOKEN", "")  # set this in Railway
 ENABLE_AUTO_COLLECT = os.environ.get("ENABLE_AUTO_COLLECT", "1") == "1"
 COLLECT_EVERY_SECONDS = int(os.environ.get("COLLECT_EVERY_SECONDS", "1800"))
@@ -90,6 +90,15 @@ def run_collect():
 @app.route("/healthz")
 def healthz():
     return jsonify({"ok": True})
+
+# ---- Icon routes at ROOT for Safari/Chrome Favorites & Home Screen (safe) ----
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/x-icon")
+
+@app.route("/apple-touch-icon.png")
+def apple_touch_icon():
+    return send_from_directory(app.static_folder, "apple-touch-icon.png", mimetype="image/png")
 
 # ---- App boot hooks ----
 _ensure_first_build()
