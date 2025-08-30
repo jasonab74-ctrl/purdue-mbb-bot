@@ -1,217 +1,171 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Purdue Men’s Basketball — Live Feed</title>
-  <link rel="manifest" href="/static/manifest.webmanifest" />
-  <link rel="icon" href="/static/logo.png" />
-  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" />
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" sizes="any">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <meta name="theme-color" content="#CFB87C">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
 </head>
 <body>
-  <!-- Notice bar: appears when newer items.json is detected -->
-  <div id="notice" class="notice hidden">
-    <span>New items available.</span>
-    <button id="notice-refresh" class="btn small">Refresh</button>
-  </div>
-
-  <!-- Header -->
-  <header class="site-header">
-    <div class="brand">
-      <img src="/static/logo.png" alt="Purdue logo" class="logo" />
-      <div class="titles">
-        <h1>Purdue Men’s Basketball — Live Feed</h1>
-        <div class="sub">
-          <span id="count">0 items</span>
-          <span class="dot">•</span>
-          <span id="updated">Updated: —</span>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Purdue" class="logo" />
+        <div>
+          <h1>Purdue Men’s Basketball — Live Feed</h1>
+          <div class="sub">({{ items|length }} dynamic items)</div>
+          <div class="stamp" id="updatedStamp" data-iso="{{ last_updated_iso or '' }}">
+            {% if last_updated_human %}Updated: {{ last_updated_human }}{% else %}Updated: never{% endif %}
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="actions">
-      <button id="fight" class="btn">▶︎ Fight Song</button>
-      <audio id="audio" preload="none" src="/fight_song.mp3"></audio>
-    </div>
-  </header>
-
-  <!-- Quick links -->
-  <nav id="quick" class="quick-links"></nav>
-
-  <!-- Controls -->
-  <section class="controls">
-    <div class="control">
-      <label for="source">Sources</label>
-      <select id="source">
-        <option value="__all__">All sources</option>
-      </select>
-    </div>
-    <div class="control grow">
-      <label for="q">Search</label>
-      <input id="q" type="search" placeholder="Filter by keyword (e.g., Painter, Zach Edey)" />
-    </div>
-    <div id="shown" class="shown">0 shown</div>
-  </section>
-
-  <!-- Main list -->
-  <main id="list" class="items"></main>
-
-  <template id="item-tpl">
-    <article class="item">
-      <div class="meta-line">
-        <span class="badge source"></span>
-        <span class="date"></span>
+      <div class="actions">
+        <button id="fightBtn" class="btn primary">▶︎ Fight Song</button>
       </div>
-      <a class="title" target="_blank" rel="noopener"></a>
-      <div class="summary"></div>
-    </article>
-  </template>
+      <nav class="quick" aria-label="Quick links">
+        {% for q in quick_links %}
+          <a href="{{ q.url }}" target="_blank" rel="noopener" class="pill">{{ q.label }}</a>
+        {% endfor %}
+      </nav>
+
+      <!-- Compact “Sites” dropdown (mirrors the pills, handy on mobile) -->
+      <div class="sites-row">
+        <label for="sitesSel" class="sites-label">Sites:</label>
+        <select id="sitesSel" class="select sites-select">
+          <option value="">Open a site…</option>
+          {% for q in quick_links %}
+            <option value="{{ q.url }}">{{ q.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </header>
+
+    <div id="notice" class="notice" style="display:none">
+      New items available. <button id="refreshBtn" class="btn">Refresh</button>
+    </div>
+
+    <section class="controls">
+      <input id="search" class="input" placeholder="Filter (e.g., Braden Smith, Matt Painter)" />
+      <select id="sourceFilter" class="select">
+        <option value="__all__">All sources</option>
+        {% for s in sources %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      </select>
+      <span class="muted" id="countNote"></span>
+    </section>
+
+    <main>
+      {% if items and items|length %}
+        <ul class="items" id="itemsList">
+          {% for it in items %}
+            <li class="item" data-source="{{ it.source|e }}">
+              <div class="item-head">
+                {% if it.link %}
+                  <a href="{{ it.link }}" target="_blank" rel="noopener" class="title">{{ it.title }}</a>
+                {% else %}
+                  <span class="title">{{ it.title }}</span>
+                {% endif %}
+                {% if it.source %}<span class="badge">{{ it.source }}</span>{% endif %}
+              </div>
+              <div class="meta">{% if it.date %}{{ it.date }}{% endif %}</div>
+              {% if it.description %}<p class="desc">{{ it.description }}</p>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty">No dynamic items yet. Quick links above are always available.</div>
+      {% endif %}
+    </main>
+  </div>
+
+  <!-- Inline fight song -->
+  <audio id="fightAudio" preload="metadata" playsinline webkit-playsinline>
+    <source src="{{ url_for('fight_song_file') }}" type="audio/mpeg">
+  </audio>
+
+  <div id="toast" style="display:none;position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.2);font-size:.9rem;z-index:9999"></div>
 
   <script>
-    // ----- Data made available by Flask (defensive defaults) -----
-    window.STATIC_LINKS = {{ (static_links or []) | tojson | safe if static_links is defined else '[]' }};
-    window.FEEDS_META   = {{ (feeds_meta or [])   | tojson | safe if feeds_meta   is defined else '[]' }};
-
-    // ----- Elements -----
-    const listEl   = document.getElementById('list');
-    const tpl      = document.getElementById('item-tpl');
-    const countEl  = document.getElementById('count');
-    const updatedEl= document.getElementById('updated');
-    const qEl      = document.getElementById('q');
-    const srcEl    = document.getElementById('source');
-    const shownEl  = document.getElementById('shown');
-    const quickEl  = document.getElementById('quick');
-    const noticeEl = document.getElementById('notice');
-    const noticeBtn= document.getElementById('notice-refresh');
-    const audio    = document.getElementById('audio');
-    const fightBtn = document.getElementById('fight');
-
-    // ----- Fight song -----
-    fightBtn.addEventListener('click', async () => {
-      try {
-        if (audio.paused) {
-          await audio.play();
-          fightBtn.textContent = '⏸︎ Pause';
-        } else {
-          audio.pause();
-          fightBtn.textContent = '▶︎ Fight Song';
-        }
-      } catch (e) {
-        alert('Could not play fight song.');
-      }
-    });
-
-    // ----- Quick links (pills) -----
-    function renderQuickLinks() {
-      if (!Array.isArray(window.STATIC_LINKS) || window.STATIC_LINKS.length === 0) return;
-      quickEl.innerHTML = '';
-      for (const link of window.STATIC_LINKS) {
-        const a = document.createElement('a');
-        a.className = 'pill';
-        a.href = link.url;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.textContent = link.name;
-        quickEl.appendChild(a);
-      }
-    }
-
-    // ----- Source dropdown -----
-    function buildSourceDropdown(items) {
-      const sources = new Set(items.map(i => i.source).filter(Boolean));
-      // also include names from FEEDS_META if present
-      for (const f of (window.FEEDS_META || [])) sources.add(f.name);
-      const existing = new Set(Array.from(srcEl.options).map(o => o.value));
-      for (const s of Array.from(sources).sort()) {
-        if (!existing.has(s)) {
-          const opt = document.createElement('option');
-          opt.value = s;
-          opt.textContent = s;
-          srcEl.appendChild(opt);
-        }
-      }
-    }
-
-    // ----- Rendering -----
-    let ALL = [];
-    function fmtDate(iso) {
-      try { return new Date(iso).toLocaleString(); } catch { return iso; }
-    }
-    function render(items) {
-      listEl.innerHTML = '';
-      const q = qEl.value.trim().toLowerCase();
-      const chosen = srcEl.value;
-
-      const filtered = items.filter(it => {
-        const sOk = (chosen === '__all__' || it.source === chosen);
-        if (!sOk) return false;
-        if (!q) return true;
-        const hay = [it.title, it.summary, it.source].join(' ').toLowerCase();
-        return hay.includes(q);
+  (function(){
+    // Sites dropdown -> open in new tab
+    const sitesSel = document.getElementById('sitesSel');
+    if (sitesSel) {
+      sitesSel.addEventListener('change', () => {
+        const v = sitesSel.value;
+        if (v) window.open(v, '_blank', 'noopener');
+        sitesSel.selectedIndex = 0;
       });
+    }
 
-      for (const it of filtered) {
-        const node = tpl.content.cloneNode(true);
-        const src = node.querySelector('.source');
-        const date = node.querySelector('.date');
-        const a = node.querySelector('.title');
-        const sum = node.querySelector('.summary');
-
-        src.textContent = it.source || '';
-        date.textContent = fmtDate(it.date || '');
-        a.href = it.link;
-        a.textContent = it.title || '(untitled)';
-        sum.textContent = (it.summary || '').replace(/<[^>]+>/g,'').slice(0, 240);
-
-        listEl.appendChild(node);
+    // Filter controls
+    const sel=document.getElementById('sourceFilter');
+    const list=document.getElementById('itemsList');
+    const note=document.getElementById('countNote');
+    const search=document.getElementById('search');
+    function applyFilter(){
+      if(!list)return;
+      const srcVal=sel.value, q=(search.value||"").toLowerCase();
+      let shown=0;
+      for(const li of list.querySelectorAll('.item')){
+        const src=li.getAttribute('data-source')||'';
+        const text=li.textContent.toLowerCase();
+        const on=((srcVal==='__all__')||(src===srcVal)) && (!q || text.includes(q));
+        li.style.display=on?'':'none'; if(on) shown++;
       }
-
-      shownEl.textContent = `${filtered.length} shown`;
-      countEl.textContent = `${items.length} items`;
+      note.textContent = (shown || 0) + " shown";
     }
+    sel&&sel.addEventListener('change',applyFilter);
+    search&&search.addEventListener('input',applyFilter);
+    applyFilter();
 
-    // ----- Fetch + live check -----
-    let lastStamp = null; // from items.json.generated_at
-    async function load() {
-      const res = await fetch('/items.json', { cache: 'no-store' });
-      const data = await res.json();
-      const items = Array.isArray(data.items) ? data.items : [];
-      items.sort((a,b) => (b.date||'').localeCompare(a.date||''));
-
-      ALL = items;
-      renderQuickLinks();
-      buildSourceDropdown(items);
-      render(items);
-
-      lastStamp = data.generated_at || null;
-      updatedEl.textContent = lastStamp ? `Updated: ${fmtDate(lastStamp)}` : 'Updated: just now';
-    }
-
-    async function checkForNew() {
-      try {
-        const res = await fetch('/items.json', { cache: 'no-store' });
-        const data = await res.json();
-        const stamp = data.generated_at || null;
-        if (stamp && lastStamp && stamp !== lastStamp) {
-          noticeEl.classList.remove('hidden');
+    // Fight song
+    const btn=document.getElementById('fightBtn');
+    const audio=document.getElementById('fightAudio');
+    const toastEl=document.getElementById('toast');
+    function toast(msg){ if(!toastEl) return; toastEl.textContent=msg; toastEl.style.display=''; setTimeout(()=>{toastEl.style.display='none'}, 2400); }
+    if(btn&&audio){
+      btn.addEventListener('click', ()=>{
+        if (audio.readyState < 1) { try { audio.load(); } catch(_){} }
+        if(audio.paused){
+          audio.play().then(()=>{ btn.textContent='⏸︎ Pause'; })
+          .catch(()=>{ toast('Could not play fight_song.mp3'); });
+        }else{
+          audio.pause(); btn.textContent='▶︎ Fight Song';
         }
-      } catch {}
+      });
     }
 
-    noticeBtn.addEventListener('click', async () => {
-      noticeEl.classList.add('hidden');
-      await load();
-    });
-
-    // Events
-    qEl.addEventListener('input', () => render(ALL));
-    srcEl.addEventListener('change', () => render(ALL));
-
-    // Boot
-    load();
-    // client check every 5 minutes
-    setInterval(checkForNew, 5 * 60 * 1000);
+    // Updated stamp & new-items notice
+    const stamp = document.getElementById('updatedStamp');
+    function humanize(iso){
+      if(!iso) return "never";
+      const t=new Date(iso), now=new Date(), diff=Math.max(0,(now-t)/1000);
+      const units=[["day",86400],["hour",3600],["minute",60],["second",1]];
+      for(const [n,s] of units){ if(diff>=s){ const v=Math.floor(diff/s); return v+" "+n+(v>1?"s":"")+" ago"; } }
+      return "just now";
+    }
+    if(stamp){
+      const iso=stamp.getAttribute('data-iso');
+      stamp.textContent="Updated: "+humanize(iso);
+      setInterval(()=>{ stamp.textContent="Updated: "+humanize(iso); }, 30000);
+    }
+    const notice=document.getElementById('notice');
+    const refreshBtn=document.getElementById('refreshBtn');
+    let lastIso=stamp?stamp.getAttribute('data-iso'):null;
+    async function checkForNew(){
+      try{
+        const r=await fetch('/items.json',{method:'HEAD',cache:'no-store'});
+        const lm=r.headers.get('Last-Modified');
+        const newIso=lm?new Date(lm).toISOString():null;
+        if(lastIso && newIso && new Date(newIso)>new Date(lastIso)){ notice.style.display=''; }
+      }catch(_){}
+    }
+    refreshBtn&&refreshBtn.addEventListener('click',()=>location.reload());
+    setInterval(checkForNew, 5*60*1000);
+  })();
   </script>
 </body>
 </html>
