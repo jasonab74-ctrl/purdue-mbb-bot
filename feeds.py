@@ -1,4 +1,4 @@
-# feeds.py — Purdue MBB Live Feed (stable sources + Brian Neubert + search mirrors)
+# feeds.py — Purdue MBB Live Feed (stable sources + Brian Neubert + more site scopes)
 
 STATIC_LINKS = [
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
@@ -15,13 +15,13 @@ STATIC_LINKS = [
 ]
 
 def GN(q: str) -> dict:
-    # Fresh + newest-first
     q2 = f"{q} when:60d sort:date"
-    return {"name": f"Google News — {q}", "url": f"https://news.google.com/rss/search?q={q2}&hl=en-US&gl=US&ceid=US:en"}
+    return {"name": f"Google News — {q}",
+            "url": f"https://news.google.com/rss/search?q={q2}&hl=en-US&gl=US&ceid=US:en"}
 
 def BN(q: str) -> dict:
-    # Bing News with date sorting
-    return {"name": f"Bing News — {q}", "url": f"https://www.bing.com/news/search?q={q}&qft=sortbydate&setlang=en&setmkt=en-US&format=rss"}
+    return {"name": f"Bing News — {q}",
+            "url": f"https://www.bing.com/news/search?q={q}&qft=sortbydate&setlang=en&setmkt=en-US&format=rss"}
 
 FEEDS = [
     # --- DIRECT, RELIABLE FEEDS (no search gatekeepers) ---
@@ -40,14 +40,21 @@ FEEDS = [
     GN("Mackey Arena Purdue"),                       BN("Mackey Arena Purdue"),
     GN("Big Ten basketball Purdue"),                 BN("Big Ten basketball Purdue"),
     GN("NCAA Tournament Purdue basketball"),         BN("NCAA Tournament Purdue basketball"),
+
+    # YouTube mentions via search (backup to direct feeds)
     GN("Purdue Basketball site:youtube.com"),        BN("Purdue Basketball site:youtube.com"),
     GN("Matt Painter site:youtube.com"),             BN("Matt Painter site:youtube.com"),
-    GN("site:purdue.rivals.com basketball"),         BN("site:purdue.rivals.com basketball"),
-    GN("site:on3.com/teams/purdue-boilermakers/ basketball"), BN("site:on3.com/teams/purdue-boilermakers/ basketball"),
-    GN("site:247sports.com/college/purdue/ basketball"), BN("site:247sports.com/college/purdue/ basketball"),
+
+    # Site-scoped news (more sources for dropdown & volume)
     GN("site:indystar.com Purdue Basketball"),       BN("site:indystar.com Purdue Basketball"),
-    GN("site:si.com Purdue Basketball"),             BN("site:si.com Purdue Basketball"),
     GN("site:usatoday.com Purdue Basketball"),       BN("site:usatoday.com Purdue Basketball"),
+    GN("site:si.com Purdue Basketball"),             BN("site:si.com Purdue Basketball"),
+    GN("site:journalcourier.com Purdue Basketball"), BN("site:journalcourier.com Purdue Basketball"),
+    GN("site:theathletic.com Purdue Basketball"),    BN("site:theathletic.com Purdue Basketball"),
+    GN("site:247sports.com/college/purdue/ basketball"), BN("site:247sports.com/college/purdue/ basketball"),
+    GN("site:on3.com/teams/purdue-boilermakers/ basketball"), BN("site:on3.com/teams/purdue-boilermakers/ basketball"),
+    GN("site:goldandblack.com Purdue"),              BN("site:goldandblack.com Purdue"),
+    GN("site:purdue.rivals.com basketball"),         BN("site:purdue.rivals.com basketball"),
     GN("site:purduesports.com \"Men's Basketball\""),BN("site:purduesports.com \"Men's Basketball\""),
 
     # Roster 2025–26 emphasis
@@ -60,29 +67,32 @@ FEEDS = [
     GN("\"class of 2026\" Purdue basketball"),       BN("\"class of 2026\" Purdue basketball"),
     GN("\"Purdue\" basketball transfer portal"),     BN("\"Purdue\" basketball transfer portal"),
 
-    # Brian Neubert (writer) — articles & clips via news mirrors + site scopes
+    # Brian Neubert (writer) — articles & clips
     GN("Brian Neubert Purdue basketball"),           BN("Brian Neubert Purdue basketball"),
     GN("site:goldandblack.com Brian Neubert"),       BN("site:goldandblack.com Brian Neubert"),
     GN("site:on3.com Brian Neubert Purdue"),         BN("site:on3.com Brian Neubert Purdue"),
     GN("site:purdue.rivals.com Brian Neubert"),      BN("site:purdue.rivals.com Brian Neubert"),
 ]
 
+# ——— Filters ———
 KEYWORDS_INCLUDE = [
-    "purdue","boilers","boilermakers","boilermaker","boilerball",
+    # Program
+    "purdue","boilers","boilermaker","boilermakers","boilerball",
     "men’s basketball","mens basketball","men's basketball","basketball","college basketball","ncaa",
     "big ten","b1g","mackey arena","matt painter","painter",
     "roster","walk-on","signee","letter of intent","transfer portal",
     "class of 2025","class of 2026","2025-26","2025–26","2025 26",
+    # Players (current / recent)
     "zach edey","braden smith","fletcher loyer","lance jones",
-    "trey kaufman","trey kaufman-renn","mason gillis","caleb furst","myles colvin","camden heide","will berg",
-    # add writer so mentions/syndications hit
+    "trey kaufman","trey kaufman-renn","mason gillis","caleb furst",
+    "myles colvin","camden heide","will berg","jack benter",
+    "daniel jacobsen","levi cook","jermaine o'neal jr","isaiah cervantes",
+    "dyson jefferson","colin mcintyre",  # include walk-ons if they pop up
+    # Writer
     "brian neubert",
-    # widen common nicknames
-    "boilers","boilermakers"
 ]
 
 KEYWORDS_EXCLUDE = [
-    # football terms (strict block), plus other sports
     "football","cfb","gridiron",
     "quarterback","qb","running back","rb","wide receiver","wr","tight end","te",
     "linebacker","lb","cornerback","cb","safety","edge","defensive end","de","nose tackle",
@@ -95,7 +105,7 @@ KEYWORDS_EXCLUDE = [
 ]
 
 # Collection behavior
-MAX_ITEMS_PER_FEED = 200
+MAX_ITEMS_PER_FEED = 220
 ALLOW_DUPLICATE_DOMAINS = True
 DOMAIN_PER_FEED_LIMIT = 999
 
