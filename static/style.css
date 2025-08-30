@@ -1,112 +1,79 @@
-/* ==========================================================================
-   Purdue MBB — LIGHT theme + subtle fixed backdrop
-   SAFE: style-only; no HTML/JS/server changes.
-   If /static/bg_purdue.jpg exists, it renders faintly; otherwise just a gradient.
-   ========================================================================== */
+/* Purdue MBB — Clean light theme (SAFE revert) */
 
 :root{
-  --bg: #f7f6f1;
-  --bg-2: #f2efe7;
+  --bg: #f6f5f1;
   --card: #ffffff;
   --text: #111;
-  --muted: #666;
+  --muted: #5b5b5b;
   --line: rgba(0,0,0,.08);
-  --shadow: 0 6px 24px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
+  --shadow: 0 6px 22px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.06);
   --radius: 14px;
   --gold: #d7c38a;
-  --gold-2: #b89a54;
-  --chip-bg: rgba(215,195,138,.12);
-  --chip-border: rgba(184,154,84,.45);
+  --gold-2:#b89a54;
+  --chip-bg: rgba(215,195,138,.14);
+  --chip-bd: rgba(184,154,84,.45);
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;
+  margin:0; background:linear-gradient(180deg,#faf9f6,var(--bg));
   color:var(--text);
-  background: linear-gradient(180deg,var(--bg),var(--bg-2));
   font: 16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial;
-  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
 }
 
-/* Subtle fixed watermark (doesn't overpower, doesn't reflow) */
-body::after{
-  content:"";
-  position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:
-    linear-gradient(180deg,var(--bg),var(--bg-2));
-}
-body.has-bg::after{
-  background:
-    linear-gradient(180deg,var(--bg),var(--bg-2)),
-    url("/static/bg_purdue.jpg") no-repeat 5% 0 / 820px auto;
-  opacity:.04;                /* very faint */
-  filter:saturate(.85) contrast(1.03);
-  background-attachment: fixed, fixed;
-}
-
-/* Ensure app content sits above backdrop */
-#app, main, header, .container{position:relative; z-index:1}
-
+/* Container */
 .container{max-width:1050px;margin:28px auto;padding:0 16px}
 
-/* Header */
+/* Header card */
 .header{
-  background: #fff;
-  border:1px solid var(--line);
-  box-shadow: var(--shadow);
-  border-radius: var(--radius);
-  padding:18px;
-  display:flex; align-items:center; gap:14px;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:16px; display:flex;align-items:center;gap:14px;
 }
-.header .logo{width:44px;height:44px;object-fit:contain;flex:0 0 44px}
-.header h1{font-size:22px;margin:0 0 2px 0}
+.header .logo{width:44px;height:44px;object-fit:contain}
+.header h1{margin:0 0 2px;font-size:22px}
 .header .meta{color:var(--muted);font-size:13px}
 
-/* Fight Song */
-.btn,.fight-btn{
-  appearance:none; cursor:pointer;
+/* Fight Song button */
+.fight-btn{
+  margin-left:auto; appearance:none; cursor:pointer;
   background: linear-gradient(180deg,var(--gold),var(--gold-2));
-  border:1px solid var(--gold-2); color:#2a210b; font-weight:600;
+  border:1px solid var(--gold-2); color:#2a210b; font-weight:700;
   padding:8px 12px;border-radius:999px;
   box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 2px 8px rgba(0,0,0,.08);
 }
 
-/* Quick links (chips) */
+/* Link chips row */
 .pills{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 12px}
 .pills a, a.pill{
-  display:inline-flex;align-items:center;gap:7px;
+  display:inline-flex;align-items:center;gap:8px;
   padding:10px 14px;border-radius:999px;text-decoration:none;
-  color:#222;font-weight:600;font-size:14px;
-  background:var(--chip-bg);border:1px solid var(--chip-border);
+  color:#1d1d1d;font-weight:600;font-size:14px;
+  background:var(--chip-bg); border:1px solid var(--chip-bd);
   box-shadow:0 1px 0 rgba(255,255,255,.35) inset;
-  transition:transform .06s ease, background .15s ease, border-color .15s ease;
 }
-.pills a:hover, a.pill:hover{transform:translateY(-1px)}
+.pills a:hover{transform:translateY(-1px)}
 
 /* Controls */
 .controls{display:flex;gap:10px;align-items:center;margin:6px 0 12px}
-.controls input[type="search"], .controls input[type="text"]{
-  flex:1;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;
-  box-shadow:0 1px 0 rgba(255,255,255,.6) inset; outline:none;
-}
+.controls input[type="search"]{flex:1;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff}
 .controls select{min-width:240px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff}
 
 /* Notice */
-.notice{margin:8px 0;background:#fff;border:1px dashed var(--chip-border);border-radius:12px;padding:10px 12px;color:#445}
+.notice{margin:8px 0;background:#fff;border:1px dashed var(--chip-bd);border-radius:12px;padding:10px 12px;color:#445}
 
-/* List */
+/* Items list */
 .list{display:flex;flex-direction:column;gap:12px}
 .item{
   border:1px solid var(--line);background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:14px 16px;
 }
-.item .title{margin:2px 0 6px;font-size:16px;font-weight:700;line-height:1.35}
+.item .title{margin:2px 0 6px;font-size:16px;font-weight:800;line-height:1.35}
 .item .title a{color:inherit;text-decoration:none}
 .item .title a:hover{text-decoration:underline}
 .meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;color:var(--muted);font-size:13px}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.06);border:1px solid var(--line);font-weight:600;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.06);border:1px solid var(--line);font-weight:700;font-size:12px}
 
-/* Footer */
 .footer{color:var(--muted);font-size:13px;margin:18px 0}
 
 /* Mobile */
