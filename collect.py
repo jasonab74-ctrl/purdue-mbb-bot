@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Purdue MBB — fail-safe collector with host-aware headers + YouTube guard + debug titles
+Purdue MBB — collector with host-aware headers, smarter football exclusion,
+YouTube guard, and fail-safe lenient pass.
 
-What you get:
-- Chrome-like UA + proper Referer for Google/Bing (prevents empty RSS bodies)
-- Stricter YouTube filter (only PurdueSports channel + Purdue MBB playlist always pass;
-  other YouTube must still mention Purdue/Boilermakers/players/coach)
-- Pass 1: topic/roster/player/writer matching (football excluded)
-- If < 40 items, Pass 2: LENIENT (accept any non-football from your feeds)
-- Freshness window 365d by default (env FRESH_DAYS to change)
-- Atomic write to items.json + rich diagnostics in last_run
+- Chrome-like UA + referer for Google/Bing (prevents empty RSS bodies)
+- Smarter exclusion: only blocks football if NO basketball signal is present
+- Stricter YouTube: always allow PurdueSports channel + Purdue MBB playlist;
+  other YouTube needs Purdue/Boilermakers/players/coach context
+- Pass 1 = normal filters; if < 40 items, Pass 2 = lenient (non-football only)
+- Freshness window 365d (override with env FRESH_DAYS)
+- Atomic write to items.json + rich diagnostics
 """
 
 import json, os, re, time, traceback
@@ -32,7 +32,7 @@ try:
 except Exception:
     FEEDS = []
     STATIC_LINKS = []
-    KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster"]
+    KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster","brian neubert"]
     KEYWORDS_EXCLUDE = ["football","qb","nfl"]
     MAX_ITEMS_PER_FEED = 200
     ALLOW_DUPLICATE_DOMAINS = True
@@ -40,19 +40,16 @@ except Exception:
     SOURCE_ALIASES = {}
 
 # -----------------------------------------------------------------------------
-# Player keywords (extended list; add more with PLAYER_EXTRA env, comma-separated)
+# Player keywords (you can extend via env PLAYER_EXTRA="name1,name2")
 PLAYER_KEYWORDS_DEFAULT = [
-    # Core guards/wings/bigs
     "braden smith","fletcher loyer","trey kaufman","trey kaufman-renn","mason gillis","caleb furst",
     "myles colvin","camden heide","will berg","jack benter","daniel jacobsen","levi cook",
-    # coach + notable alum
-    "matt painter","zach edey",
+    "matt painter","zach edey"
 ]
 EXTRA = os.environ.get("PLAYER_EXTRA", "").strip()
-if EXTRA:
-    PLAYER_KEYWORDS = PLAYER_KEYWORDS_DEFAULT + [s.strip().lower() for s in EXTRA.split(",") if s.strip()]
-else:
-    PLAYER_KEYWORDS = PLAYER_KEYWORDS_DEFAULT
+PLAYER_KEYWORDS = PLAYER_KEYWORDS_DEFAULT + (
+    [s.strip().lower() for s in EXTRA.split(",") if s.strip()] if EXTRA else []
+)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 ITEMS_PATH = os.path.join(ROOT, "items.json")
@@ -77,6 +74,10 @@ FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "365"))
 
 # Regexes
 INCLUDE_TERMS = (KEYWORDS_INCLUDE or []) + PLAYER_KEYWORDS
+BASKETBALL_RE = re.compile(
+    r"\b(basketball|men['’]s basketball|boilers?|boilermakers?|boilerball|purdue|painter|mackey|roster)\b",
+    re.IGNORECASE,
+)
 CORE_INCLUDE_RE = re.compile(
     r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey|roster|brian neubert)\b"
     r"|2025[\-—–]26|class of 2025|class of 2026",
@@ -86,11 +87,7 @@ INCLUDE_RE = re.compile("|".join([re.escape(k) for k in INCLUDE_TERMS]), re.IGNO
 EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in (KEYWORDS_EXCLUDE or [])]), re.IGNORECASE)
 
 YOUTUBE_HOSTS = ("youtube.com","youtu.be")
-# IDs we always allow (official Purdue sources)
-YT_ALWAYS_ALLOW = {
-    "UC2vqJwR4Z1tcHTfb3e8Dq9g",  # example placeholder; not required if 'user=purduesports'
-}
-# playlist we always allow
+# Always-allow playlist (official)
 YT_PLAYLIST_ALLOW = {"PLCIT1wYGMWN80GZO_ybcH6vuHeObcOcmh"}
 
 TARGETED_FEED_HINTS = (
@@ -114,7 +111,6 @@ def normalize_link(url: str) -> str:
         u = urlparse(url)
         q = dict(parse_qsl(u.query, keep_blank_values=True))
         if any(h in u.netloc for h in YOUTUBE_HOSTS):
-            # keep timestamp if present
             q = {k: v for k, v in q.items() if k in ("t","time_continue","v","list","channel_id","ab_channel")}
         else:
             q = {}
@@ -158,32 +154,39 @@ def is_youtube_link(url: str) -> bool:
     return any(h in (url or "") for h in YOUTUBE_HOSTS)
 
 def youtube_allowed(entry: Dict[str, Any], txt: str) -> bool:
-    """Allow official Purdue sources unconditionally; otherwise require Purdue/Boilermakers or player/coach mentions."""
+    """Allow official Purdue sources unconditionally; otherwise require Purdue context."""
     link = (entry.get("link") or entry.get("id") or "")
     if not is_youtube_link(link):
         return True
-    # always allow official playlist
     if "list=PLCIT1wYGMWN80GZO_ybcH6vuHeObcOcmh" in link:
-        return True
-    # allow PurdueSports channel if detectable
+        return True  # official playlist
     if "ab_channel=PurdueSports" in link or "user=purduesports" in link:
-        return True
-    # otherwise, require Purdue context
-    if CORE_INCLUDE_RE.search(txt) or INCLUDE_RE.search(txt):
+        return True  # PurdueSports channel
+    # otherwise require Purdue/basketball signals
+    if CORE_INCLUDE_RE.search(txt) or INCLUDE_RE.search(txt) or BASKETBALL_RE.search(txt):
         return True
     return False
 
 def passes_filters(entry: Dict[str, Any], source_name: str, *, lenient: bool) -> bool:
     txt = text_of(entry)
-    if EXCLUDE_RE.search(txt):
+
+    # Smart exclusion: only block if football appears AND no basketball context present
+    has_football = bool(EXCLUDE_RE.search(txt))
+    has_hoops    = bool(BASKETBALL_RE.search(txt) or INCLUDE_RE.search(txt) or CORE_INCLUDE_RE.search(txt))
+    if has_football and not has_hoops:
         return False
+
     if not youtube_allowed(entry, txt):
         return False
+
     if lenient:
+        # In lenient pass, any non-football (or mixed but with hoops) gets through
         return True
+
     if feed_is_targeted(source_name): return True
     if CORE_INCLUDE_RE.search(txt):  return True
     if INCLUDE_RE.search(txt):       return True
+    if BASKETBALL_RE.search(txt):    return True
     return False
 
 def entry_to_item(entry: Dict[str, Any], source_name: str) -> Dict[str, Any]:
