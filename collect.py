@@ -1,212 +1,193 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# collect.py — Purdue Men’s Basketball collector (strict)
 
-import os, re, json, html, hashlib
-from datetime import datetime, timezone
-from urllib.request import Request, urlopen
+from pathlib import Path
+import time, json, re
+from html import unescape
+from typing import List, Dict, Tuple
+import requests, feedparser
+from feeds import FEEDS_META, KEYWORDS_EXCLUDE
 
-import feedparser  # robust RSS/Atom parser
+OUT_FILE = Path("items.json")
+MAX_PER_FEED          = 60
+TOTAL_MAX             = 500
+TIMEOUT               = 15
+UA                    = "Mozilla/5.0 (X11; Linux x86_64) PurdueMBBFeed/1.1 (+https://example.local)"
+YT_PEEK_TIMEOUT       = 4
+YT_PEEK_MAX_PER_FEED  = 6
 
-ITEMS_PATH = os.environ.get("ITEMS_PATH", "items.json")
-MAX_ITEMS  = int(os.environ.get("MAX_ITEMS", "400"))
+# Purdue basketball language (positive signals)
+PURDUE_CORE = [
+    "purdue","boilermakers","boilers","mackey","painter","big ten","march madness","ncaa tournament",
+    "basketball","mbb","men’s basketball","men's basketball",
+    # roster names (2025–26)
+    "c.j. cox","antione west jr.","fletcher loyer","braden smith","aaron fine","jack lusk",
+    "jack benter","omer mayer","gicarri harris","jace rayl","trey kaufman-renn","liam murphy",
+    "sam king","raleigh burgess","daniel jacobsen","oscar cluff",
+]
+PURDUE_CORE = [t.lower() for t in PURDUE_CORE]
 
-# Use your existing feeds file as-is
-from feeds import FEEDS
-
-# -------------------- helpers --------------------
-
-UA = "Mozilla/5.0 (compatible; MBB-Lite/1.0; +https://example)"
-
-def now_iso():
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
-
-def http_get(url, headers=None, timeout=20):
-    req = Request(url, headers=headers or {"User-Agent": UA})
-    with urlopen(req, timeout=timeout) as r:
-        return r.read()
-
-def to_text(x):
-    if x is None:
-        return ""
-    if isinstance(x, bytes):
-        return x.decode("utf-8", "ignore")
-    return str(x)
-
-def parse_any(xml_bytes):
-    d = feedparser.parse(xml_bytes)
-    out = []
-    for e in d.entries:
-        title = to_text(getattr(e, "title", "")).strip()
-        link  = to_text(getattr(e, "link", "")).strip()
-
-        # Prefer content/summary/detail in that order
-        summary = ""
-        if "content" in e and e.content:
-            summary = to_text(e.content[0].value)
-        elif "summary" in e:
-            summary = to_text(e.summary)
-        elif "description" in e:
-            summary = to_text(e.description)
-
-        # Dates: published -> updated -> None
-        date = (
-            to_text(getattr(e, "published", ""))
-            or to_text(getattr(e, "updated", ""))
-        )
-
-        out.append({
-            "title": html.unescape(title),
-            "link": link,
-            "summary": html.unescape(summary or ""),
-            "date": date,
-        })
-    return out
-
-def fetch_google(feed): return parse_any(http_get(feed["url"]))
-def fetch_bing(feed):   return parse_any(http_get(feed["url"]))
-def fetch_rss(feed):    return parse_any(http_get(feed["url"]))
-
-def fetch_reddit(feed):
-    # Reddit JSON API (already in your FEEDS)
-    j = json.loads(to_text(http_get(feed["url"], headers={"User-Agent": "mmblite/1.0"})))
-    out = []
-    for c in j.get("data", {}).get("children", []):
-        p = c.get("data", {})
-        out.append({
-            "title": p.get("title", ""),
-            "link":  p.get("url", "") or ("https://reddit.com" + p.get("permalink", "")),
-            "summary": p.get("selftext", ""),
-            "date": datetime.fromtimestamp(p.get("created_utc", 0), tz=timezone.utc).isoformat(),
-        })
-    return out
-
-FETCHERS = {
-    "google": fetch_google,
-    "bing":   fetch_bing,
-    "rss":    fetch_rss,
-    "reddit": fetch_reddit,
-}
-
-def hash_id(link, title):
-    h = hashlib.sha1()
-    h.update(to_text(link).encode("utf-8"))
-    h.update(to_text(title).encode("utf-8"))
-    return h.hexdigest()[:16]
-
-# -------------------- FILTER: Men’s MBB (lenient, safe) --------------------
-
-# Names we treat as strong MBB signals
-PLAYERS = [
-    "braden smith","fletcher loyer","trey kaufman","trey kaufman-renn","mason gillis",
-    "caleb furst","myles colvin","camden heide","will berg","jack benter",
-    "daniel jacobsen","levi cook","matt painter","zach edey","omer mayer","omas mayer"
+EXC = [k.lower() for k in KEYWORDS_EXCLUDE] + [
+    # ban non-basketball sports explicitly
+    "football","wbb","women","volleyball","wrestling","baseball","softball",
+    "soccer","hockey","golf","track","cross country","tennis","swimming","lacrosse",
+    # betting spam
+    "odds","parlay","props","fanduel","draftkings","promo code",
 ]
 
-RE_PU      = re.compile(r"\bpurdue\b|\bboilermakers?\b|\bboilers?\b", re.I)
-RE_BBALL   = re.compile(r"\bbasketball\b|\bmbb\b", re.I)
-RE_MEN     = re.compile(r"\bmen'?s\b|\bmbb\b|\bmen'?s\s+basketball\b", re.I)
-RE_WOMEN   = re.compile(r"\bwomen'?s\b|\bwbb\b|\bwbk\b|\blady\b", re.I)
-RE_PLAYER  = re.compile("|".join(re.escape(n) for n in PLAYERS), re.I)
-RE_OTHERS  = re.compile(r"\bfootball\b|\bvolleyball\b|\bbaseball\b|\bsoccer\b|\bwrestling\b|\bsoftball\b|\btrack\b|\bgolf\b|\bswim", re.I)
+def _contains_any(text: str, tokens) -> bool:
+    t = text.lower()
+    return any(tok in t for tok in tokens)
 
-def allow_item(title, summary, feed):
-    """
-    Strategy:
-      1) If it explicitly says *women’s* and not men’s -> drop.
-      2) Require Purdue-ish context OR a trusted feed name.
-      3) Require hoops-ish context (basketball/mbb/player/Matt Painter).
-      4) If it clearly mentions another sport and has no hoops signal -> drop.
-    """
-    blob = f"{to_text(title)}\n{to_text(summary)}"
-    name = to_text(feed.get("name", ""))
+def passes_core_blob(text: str) -> bool:
+    t = text.lower()
+    if any(x in t for x in EXC):    # hard negatives
+        return False
+    return ("purdue" in t or "boilermakers" in t or "mackey" in t) and (
+        "basketball" in t or "mbb" in t or any(k in t for k in PURDUE_CORE)
+    )
 
-    # 1) hard block explicit WBB when no men's signal
-    if RE_WOMEN.search(blob) and not RE_MEN.search(blob):
+def passes_core_title(title: str) -> bool:
+    t = (title or "").lower()
+    if any(x in t for x in EXC): return False
+    return ("purdue" in t or "boilermakers" in t) and (
+        "basketball" in t or "mbb" in t or any(k in t for k in PURDUE_CORE)
+    )
+
+def norm_date(e) -> str:
+    if getattr(e, "published_parsed", None):
+        tm = e.published_parsed
+        return f"{tm.tm_year:04d}-{tm.tm_mon:02d}-{tm.tm_mday:02d}"
+    if getattr(e, "updated", None):
+        return (e.updated or "").split("T")[0][:10]
+    return ""
+
+def clean_html(s: str) -> str:
+    return unescape(re.sub("<[^>]+>", " ", s or "").strip())
+
+def parse_feed(url: str):
+    try:
+        r = requests.get(url, headers={"User-Agent": UA}, timeout=TIMEOUT)
+        r.raise_for_status()
+        return feedparser.parse(r.content)
+    except Exception:
+        return feedparser.parse(url)
+
+def yt_watch_link(entry) -> str:
+    vid = None
+    if isinstance(entry, dict):
+        vid = entry.get("yt_videoid")
+        if not vid:
+            mg = entry.get("media_group") or {}
+            if isinstance(mg, dict):
+                vid = mg.get("yt_videoid")
+    link = (getattr(entry, "link", "") or "").strip()
+    return f"https://www.youtube.com/watch?v={vid}" if vid else link
+
+def harvest_text_fields(e, source_name: str) -> str:
+    parts = [
+        getattr(e, "title", ""),
+        getattr(e, "summary", "") or getattr(e, "description", "")
+    ]
+    if isinstance(e, dict):
+        for key in ("media_description", "media_title"):
+            v = e.get(key);  parts.append(v or "")
+        content = e.get("content")
+        if isinstance(content, list):
+            for c in content:
+                parts.append((c or {}).get("value") or "")
+        if "youtube" in source_name.lower():
+            for tag in (e.get("tags") or []):
+                term = tag.get("term") if isinstance(tag, dict) else getattr(tag, "term", "")
+                parts.append(term or "")
+    return " ".join([clean_html(p) for p in parts if p])
+
+def score_item(title: str, desc: str, source: str) -> int:
+    t = (title or "").lower(); d = (desc or "").lower(); s = 0
+    if "purdue" in t or "boilermakers" in t: s += 5
+    if "basketball" in t or "mbb" in t: s += 3
+    s += sum(2 for k in PURDUE_CORE if k in t)
+    s += sum(1 for k in PURDUE_CORE if k in d)
+    if "purdue" in source.lower(): s += 2
+    if "reddit" in source.lower(): s -= 1
+    return s
+
+def youtube_peek_has_purdue(link: str) -> bool:
+    try:
+        r = requests.get(link, headers={"User-Agent": UA}, timeout=YT_PEEK_TIMEOUT)
+        if r.status_code != 200: return False
+        html = r.text.lower()
+        return passes_core_blob(html)
+    except Exception:
         return False
 
-    purdueish = RE_PU.search(blob) or RE_PLAYER.search(blob) or ("purdue" in name.lower()) or bool(feed.get("trust"))
-    hoopsish  = RE_BBALL.search(blob) or RE_PLAYER.search(blob) or re.search(r"\bmatt\s+painter\b", blob, re.I)
+def collect() -> List[Dict]:
+    ranked: List[Tuple[Dict, int]] = []
+    seen_link, seen_title = set(), set()
 
-    if not purdueish or not hoopsish:
-        return False
+    for f in FEEDS_META:
+        name, url = f["name"], f["url"]
+        parsed = parse_feed(url)
+        pulled = 0
+        yt_peeks = 0
+        lname = name.lower()
 
-    if RE_OTHERS.search(blob) and not (RE_BBALL.search(blob) or RE_PLAYER.search(blob)):
-        return False
+        for e in parsed.entries:
+            title = (getattr(e, "title", "") or "").strip()
+            if not title: continue
 
-    return True
+            link = (getattr(e, "link", "") or "").strip()
+            if "youtube" in lname:
+                link = yt_watch_link(e) or link
+            if not link: continue
 
-# -------------------- main collect --------------------
+            desc = clean_html(getattr(e, "summary", "") or getattr(e, "description", ""))
+            blob = harvest_text_fields(e, name)
+            fulltext = f"{title} {blob}"
 
-def collect():
-    seen, out = set(), []
-    per = {}
+            passes = passes_core_blob(fulltext)
+            if "reddit – r/cbb" in lname:
+                passes = passes_core_title(title)
 
-    for feed in FEEDS:
-        name = to_text(feed.get("name", "Feed"))
-        per[name] = 0
-        try:
-            fetcher = FETCHERS.get(feed.get("type", "rss"), fetch_rss)
-            items = fetcher(feed)
-        except Exception:
-            # network/parse hiccup: skip this feed
-            continue
+            if not passes and "youtube" in lname and yt_peeks < YT_PEEK_MAX_PER_FEED:
+                yt_peeks += 1
+                if youtube_peek_has_purdue(link):
+                    passes = True
 
-        for it in items:
-            title = to_text(it.get("title", "")).strip()
-            link  = to_text(it.get("link", "")).strip()
-            if not title or not link:
-                continue
-            summary = to_text(it.get("summary", ""))
+            if not passes: continue
 
-            if not allow_item(title, summary, feed):
-                continue
+            key_title = re.sub(r"\s+", " ", title.lower())
+            if link in seen_link or key_title in seen_title: continue
 
-            uid = hash_id(link, title)
-            if uid in seen:
-                continue
-            seen.add(uid)
-            per[name] += 1
-            out.append({
-                "id": uid,
+            item = {
                 "title": title,
                 "link": link,
-                "summary": summary,
                 "source": name,
-                "date": to_text(it.get("date", "")),
-            })
+                "date": norm_date(e),
+                "description": (desc[:280] + ("…" if len(desc) > 280 else "")) if desc else ""
+            }
+            score = score_item(title, desc, name)
+            ranked.append((item, score))
+            seen_link.add(link)
+            seen_title.add(key_title)
+            pulled += 1
+            if pulled >= MAX_PER_FEED: break
 
-    # Sort newest first (best-effort; feedparser already normalizes many)
-    def when(x):
-        d = to_text(x.get("date", ""))
-        # Normalize common ISO 'Z'
-        d = d.replace("Z", "+00:00")
-        try:
-            return datetime.fromisoformat(d)
-        except Exception:
-            # Last resort: push undated items to the bottom
-            return datetime(1970, 1, 1, tzinfo=timezone.utc)
+        print(f"[collector] {name}: {pulled} items (YT peeks: {yt_peeks})")
+        time.sleep(0.2)
 
-    out.sort(key=when, reverse=True)
-    out = out[:MAX_ITEMS]
+    def date_key(it: Dict) -> str:
+        return it.get("date") or "0000-00-00"
+    ranked.sort(key=lambda p: (date_key(p[0]), p[1]), reverse=True)
+    return [it for it, _ in ranked][:TOTAL_MAX]
 
-    meta = {
-        "generated_at": now_iso(),
-        "items_count": len(out),
-        "items_mtime": now_iso(),
-        "last_run": {
-            "ok": True,
-            "rc": 0,
-            "final_count": len(out),
-            "per_feed_counts": per,
-            "ts": now_iso(),
-        },
-    }
-
-    with open(ITEMS_PATH, "w", encoding="utf-8") as f:
-        json.dump({"items": out, "meta": meta}, f, ensure_ascii=False)
-
-    return len(out)
+def main():
+    try:
+        items = collect()
+    except Exception as e:
+        print(f"[collector] ERROR: {e}")
+        items = []
+    OUT_FILE.write_text(json.dumps({"items": items}, indent=2), encoding="utf-8")
+    print(f"[collector] Wrote {len(items)} items to {OUT_FILE}")
 
 if __name__ == "__main__":
-    n = collect()
-    print(json.dumps({"ok": True, "count": n, "ts": now_iso()}))
+    main()
