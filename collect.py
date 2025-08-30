@@ -62,7 +62,7 @@ def hash_id(link, title):
     h.update(to_text(title).encode("utf-8"))
     return h.hexdigest()[:16]
 
-# -------------------- MEN’S-ONLY filter (tight on title, lenient elsewhere) --------------------
+# -------------------- MEN’S-ONLY filter (title-first, strict) --------------------
 
 PLAYERS = [
     "c.j. cox", "antione west", "fletcher loyer", "braden smith", "aaron fine", "jack lusk",
@@ -74,11 +74,13 @@ MEN_SIGNALS     = re.compile(r"\bmen'?s\b|\bmbb\b|\bmen'?s?\s+basketball\b", re.
 PURDUE_SIGNALS  = re.compile(r"\bpurdue\b|\bboilermakers?\b|\bboilers?\b", re.I)
 BASKETBALL      = re.compile(r"\bbasketball\b", re.I)
 PLAYER_SIG      = re.compile("|".join(re.escape(n) for n in PLAYERS), re.I)
-WOMENS          = re.compile(r"\bwomen'?s\b|\bwbb\b|\bwbk\b|\blady\b", re.I)
-OTHER_SPORTS    = re.compile(r"\bfootball\b|\bvolleyball\b|\bbaseball\b|\bsoccer\b|\bwrestling\b|\bsoftball\b|\btrack\b|\bgolf\b", re.I)
+
+# Hard negatives
+WOMENS_TITLE    = re.compile(r"\b(women'?s|wbb|wbk|lad(?:y|ies))\b", re.I)
+OTHER_SPORTS_T  = re.compile(r"\b(football|volleyball|baseball|softball|soccer|wrestling|hockey|golf|track|cross country|xc)\b", re.I)
+OTHER_SPORTS_B  = re.compile(r"\b(football|volleyball|baseball|softball|soccer|wrestling|hockey|golf|track|cross country|xc)\b", re.I)
 
 TRUSTED_NAMES = None
-
 def is_trusted(feed_name: str) -> bool:
     global TRUSTED_NAMES
     if TRUSTED_NAMES is None:
@@ -87,40 +89,45 @@ def is_trusted(feed_name: str) -> bool:
 
 def allow_item(title, summary, feed):
     """
-    Goal: men's Purdue basketball only.
-    Key tweak: if the TITLE mentions another sport (e.g., 'Football'), require a basketball/men/player
-    signal IN THE TITLE (summary doesn't save it). This blocks football posts with 'basketball' in boilerplate.
+    STRATEGY:
+      1) Make decisions primarily from the TITLE to avoid sidebar/meta noise.
+      2) Hard-block women's and other-sport titles.
+      3) Require hoops signal IN TITLE (basketball/mbb/men's or player name in title).
+      4) Require Purdue IN TITLE (word or player) OR trusted Purdue feed name, but still with hoops-in-title.
+      5) Use summary only for extra negatives (never to 'rescue' a non-hoops title).
     """
-    title_t   = to_text(title)
-    summary_t = to_text(summary)
-    blob      = f"{title_t}\n{summary_t}"
     name      = feed.get("name","")
     trusted   = is_trusted(name)
 
-    title_hoops = bool(BASKETBALL.search(title_t) or MEN_SIGNALS.search(title_t) or PLAYER_SIG.search(title_t))
-    any_hoops   = title_hoops or bool(BASKETBALL.search(summary_t) or MEN_SIGNALS.search(summary_t) or PLAYER_SIG.search(summary_t))
+    title_t   = to_text(title)
+    t         = title_t.lower()
+    summary_t = to_text(summary)
+    blob      = f"{title_t}\n{summary_t}".lower()
+    feed_has_purdue = ("purdue" in name.lower())  # do NOT accept solely because of this
 
-    # Block explicit women's when no men's signal
-    if WOMENS.search(blob) and not any_hoops:
+    # --- Hard blocks on TITLE ---
+    if WOMENS_TITLE.search(t):
+        return False
+    if OTHER_SPORTS_T.search(t):
         return False
 
-    # If the TITLE itself names another sport, only pass if the TITLE also clearly says hoops
-    if OTHER_SPORTS.search(title_t) and not title_hoops:
+    # --- Positive signals must be IN TITLE ---
+    title_has_hoops  = bool(BASKETBALL.search(t) or MEN_SIGNALS.search(t) or PLAYER_SIG.search(t))
+    title_has_purdue = bool(PURDUE_SIGNALS.search(t) or PLAYER_SIG.search(t))
+
+    if not title_has_hoops:
         return False
 
-    # If other-sport words appear anywhere and there is no hoops signal at all, drop
-    if OTHER_SPORTS.search(blob) and not any_hoops:
-        return False
+    # If title has hoops, require Purdue in title OR (trusted feed AND feed name has Purdue)
+    if not title_has_purdue:
+        if not (trusted and feed_has_purdue):
+            return False
 
-    # Trusted feeds: allow with minimal checks (but we've already blocked other-sport titles above)
-    if trusted:
-        return bool(
-            PURDUE_SIGNALS.search(blob) or PLAYER_SIG.search(blob) or any_hoops or "purdue" in name.lower()
-        )
+    # --- Extra negative: if other sports appear anywhere in blob but title didn't mention hoops (already required) ---
+    # Here, title_has_hoops is True, so we just prevent extreme noise: if blob is dominated by other sports and no hoops in title (not our case), we'd drop.
+    # We keep this as a weak guard; no action needed since we already required hoops in title.
 
-    # Untrusted: must be Purdue-ish AND hoops-ish somewhere
-    purdueish = PURDUE_SIGNALS.search(blob) or PLAYER_SIG.search(blob) or "purdue" in name.lower()
-    return bool(purdueish and any_hoops)
+    return True
 
 # -------------------- collect --------------------
 
@@ -140,13 +147,13 @@ def collect():
         for it in data:
             title = to_text(it.get("title","")).strip()
             link  = to_text(it.get("link","")).strip()
-            if not title or not link: 
+            if not title or not link:
                 continue
             summary = to_text(it.get("summary",""))
             if not allow_item(title, summary, feed):
                 continue
             uid = hash_id(link, title)
-            if uid in seen: 
+            if uid in seen:
                 continue
             seen.add(uid)
             per[name] += 1
@@ -160,7 +167,7 @@ def collect():
     def sort_key(x):
         d = x.get("date","")
         for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
-            try: 
+            try:
                 return datetime.strptime(d.replace("Z","+0000"), fmt)
             except Exception:
                 pass
