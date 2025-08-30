@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Purdue MBB — resilient collector (SMART FILTERS + roster 2025–26 emphasis)
-- Pulls feeds from feeds.py (GN + Bing mirrors + community)
+Purdue MBB — collector with robust fetching & diagnostics (FULL FILE)
+- Chrome-like headers to avoid bot-empty RSS responses
 - Retries with backoff
-- Smarter include logic so Purdue-targeted feeds don't get over-filtered
-- Strict football + other-sport excludes
-- Cleans HTML, de-dupes by link, caps per domain
-- Sorts newest->oldest and writes items.json atomically
-- Guardrails: never clobber previous with 0/low results
-- ALWAYS prints JSON summary for /collect-now and /diag
+- Smart include logic (Purdue-targeted feeds auto-allow unless excluded)
+- Strict football/other-sport excludes
+- De-dupe, per-domain caps, newest-first
+- Writes items.json atomically
+- NEVER clobbers with empty/low pass (merge guards)
+- ALWAYS prints a JSON summary including per-feed HTTP status/bytes/errors
 """
 
 import json, os, re, time, traceback
@@ -43,15 +43,24 @@ except Exception:
 ROOT = os.path.dirname(os.path.abspath(__file__))
 ITEMS_PATH = os.path.join(ROOT, "items.json")
 
+# Use a realistic Chrome UA & headers so Google/Bing/major sites don’t hand us empty bodies
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (PurdueMBBFeed/1.7) Python/requests",
-    "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/125.0 Safari/537.36"
+    ),
+    "Accept": "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.7",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
+    "Connection": "close",
 }
 TIMEOUT = 25
 RETRIES = 3
-BACKOFF_BASE = 1.6
+BACKOFF_BASE = 1.7
 
-# Core cues — include roster + season marks; permit multiple dash types
+# Include cues — roster/year variants included
 CORE_INCLUDE_RE = re.compile(
     r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey|roster)\b"
     r"|2025[\-—–]26|class of 2025|class of 2026",
@@ -61,20 +70,20 @@ INCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_INCLUDE]), re.I
 EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_EXCLUDE]), re.IGNORECASE)
 YOUTUBE_HOSTS = ("youtube.com","youtu.be")
 
-# Feeds we consider Purdue-targeted by name and thus safe to auto-include
+# Purdue-targeted feeds are safe to auto-include unless excluded
 TARGETED_FEED_HINTS = (
-    "purdue", "boiler", "mackey", "matt painter", "youtube mentions", "r/boilermakers", "bing news", "google news"
+    "purdue", "boiler", "mackey", "matt painter", "youtube mentions",
+    "r/boilermakers", "bing news", "google news"
 )
 
 def now_iso() -> str: return datetime.now(timezone.utc).isoformat()
 
-def to_iso(dt_struct) -> str:
+def domain_of(url: str) -> str:
     try:
-        if not dt_struct: return now_iso()
-        ts = time.mktime(dt_struct)
-        return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+        from urllib.parse import urlparse
+        return urlparse(url).netloc.lower()
     except Exception:
-        return now_iso()
+        return ""
 
 def normalize_link(url: str) -> str:
     if not url: return ""
@@ -90,12 +99,13 @@ def normalize_link(url: str) -> str:
     except Exception:
         return url
 
-def domain_of(url: str) -> str:
+def to_iso(dt_struct) -> str:
     try:
-        from urllib.parse import urlparse
-        return urlparse(url).netloc.lower()
+        if not dt_struct: return now_iso()
+        ts = time.mktime(dt_struct)
+        return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
     except Exception:
-        return ""
+        return now_iso()
 
 def clean_html(s: str) -> str:
     if not s: return ""
@@ -116,65 +126,88 @@ def feed_is_targeted(feed_name: str) -> bool:
 
 def passes_filters(entry: Dict[str, Any], source_name: str) -> bool:
     txt = text_of(entry)
-    # Hard exclude first
-    if EXCLUDE_RE.search(txt):
-        return False
-    # If the feed itself is Purdue-targeted by name, accept unless excluded
-    if feed_is_targeted(source_name):
-        return True
-    # Otherwise, require at least a core cue OR any extended include
-    if CORE_INCLUDE_RE.search(txt):
-        return True
-    if INCLUDE_RE.search(txt):
-        return True
+    if EXCLUDE_RE.search(txt): return False
+    if feed_is_targeted(source_name): return True
+    if CORE_INCLUDE_RE.search(txt): return True
+    if INCLUDE_RE.search(txt): return True
     return False
 
 def entry_to_item(entry: Dict[str, Any], source_name: str) -> Dict[str, Any]:
     title = entry.get("title") or "Untitled"
-    link = normalize_link(entry.get("link") or entry.get("id") or "")
-    iso = to_iso(entry.get("published_parsed") or entry.get("updated_parsed"))
-    source = SOURCE_ALIASES.get(source_name, source_name)
+    link  = normalize_link(entry.get("link") or entry.get("id") or "")
+    iso   = to_iso(entry.get("published_parsed") or entry.get("updated_parsed"))
+    source= SOURCE_ALIASES.get(source_name, source_name)
     summary = clean_html(entry.get("summary") or entry.get("description") or "")
     host = domain_of(link)
     if any(h in host for h in YOUTUBE_HOSTS) and "YouTube" not in source:
         source = f"YouTube — {source}"
     return {"title": title, "link": link, "date": iso, "source": source, "summary": summary[:600]}
 
-def fetch_bytes_with_retries(url: str) -> bytes:
-    last = None
+# ---------- Robust fetch with diagnostics ----------
+def fetch_bytes_with_retries(url: str) -> Tuple[bytes, int]:
+    last_exc = None
     for i in range(RETRIES):
         try:
             resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-            resp.raise_for_status()
-            return resp.content
+            code = resp.status_code
+            if code >= 200 and code < 300:
+                return resp.content or b"", code
+            # retry on non-2xx
+            last_exc = RuntimeError(f"http {code}")
         except Exception as e:
-            last = e
-            time.sleep(BACKOFF_BASE ** i)
-    if last: raise last
-    return b""
+            last_exc = e
+        time.sleep(BACKOFF_BASE ** i)
+    if last_exc:
+        raise last_exc
+    return b"", 0
 
-def fetch_feed(url: str):
+def fetch_feed_with_meta(url: str) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    meta = {"http": None, "bytes": 0, "error": None}
+    # Prefer requests->feedparser(data); fall back to feedparser(url)
     try:
-        data = fetch_bytes_with_retries(url)
-        if data: return feedparser.parse(data)
-    except Exception:
-        pass
-    return feedparser.parse(url)
+        data, code = fetch_bytes_with_retries(url)
+        meta["http"]  = int(code)
+        meta["bytes"] = len(data)
+        if data:
+            parsed = feedparser.parse(data)
+        else:
+            parsed = feedparser.parse(url)
+        entries = parsed.entries or []
+        return entries, meta
+    except Exception as e:
+        meta["error"] = str(e)
+        try:
+            parsed = feedparser.parse(url)
+            entries = parsed.entries or []
+            return entries, meta
+        except Exception as e2:
+            meta["error"] = f"{meta['error']} | fp: {e2}"
+            return [], meta
 
+# ---------- Persistence ----------
 def load_previous() -> Dict[str, Any]:
     if not os.path.exists(ITEMS_PATH):
         return {"items": [], "generated_at": now_iso()}
     try:
-        with open(ITEMS_PATH,"r",encoding="utf-8") as f:
+        with open(ITEMS_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {"items": [], "generated_at": now_iso()}
 
-def collect_once() -> Tuple[List[Dict[str, Any]], List[str], Dict[str,int], Dict[str,int]]:
+def write_items_safely(items: List[Dict[str, Any]]):
+    payload = {"items": items, "generated_at": now_iso()}
+    tmp = ITEMS_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, ITEMS_PATH)
+
+# ---------- Collection ----------
+def collect_once() -> Tuple[List[Dict[str, Any]], List[str], Dict[str,int], Dict[str,int], Dict[str,Dict[str,Any]]]:
     items: List[Dict[str, Any]] = []
     errors: List[str] = []
     per_feed_kept: Dict[str,int] = {}
     per_feed_seen: Dict[str,int] = {}
+    per_feed_meta: Dict[str, Dict[str, Any]] = {}
 
     seen_links = set()
     domain_counts: Dict[Tuple[str,str], int] = {}
@@ -187,8 +220,8 @@ def collect_once() -> Tuple[List[Dict[str, Any]], List[str], Dict[str,int], Dict
         url  = f.get("url")
         if not url: continue
         try:
-            parsed = fetch_feed(url)
-            entries = parsed.entries or []
+            entries, meta = fetch_feed_with_meta(url)
+            per_feed_meta[name] = meta
             per_feed_seen[name] = len(entries)
             added = 0
             for e in entries:
@@ -215,11 +248,12 @@ def collect_once() -> Tuple[List[Dict[str, Any]], List[str], Dict[str,int], Dict
             errors.append(f"{name}: {ex}")
             per_feed_seen[name] = per_feed_seen.get(name, 0)
             per_feed_kept[name] = per_feed_kept.get(name, 0)
+            per_feed_meta[name] = {"http": None, "bytes": 0, "error": str(ex)}
             traceback.print_exc()
 
     items.sort(key=lambda x: x.get("date") or "", reverse=True)
     items = items[:700]
-    return items, errors, per_feed_kept, per_feed_seen
+    return items, errors, per_feed_kept, per_feed_seen, per_feed_meta
 
 def merge_items(new_items: List[Dict[str, Any]], prev_items: List[Dict[str, Any]], keep: int = 550) -> List[Dict[str, Any]]:
     by_link: Dict[str, Dict[str, Any]] = {}
@@ -234,22 +268,15 @@ def merge_items(new_items: List[Dict[str, Any]], prev_items: List[Dict[str, Any]
     merged.sort(key=lambda x: x.get("date") or "", reverse=True)
     return merged[:keep]
 
-def write_items_safely(items: List[Dict[str, Any]]):
-    payload = {"items": items, "generated_at": now_iso()}
-    tmp = ITEMS_PATH + ".tmp"
-    with open(tmp,"w",encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, ITEMS_PATH)
-
 def main():
     prev = load_previous()
     prev_items = prev.get("items", [])
     prev_n = len(prev_items)
 
-    new_items, errors, per_feed_kept, per_feed_seen = collect_once()
+    new_items, errors, per_feed_kept, per_feed_seen, per_feed_meta = collect_once()
     new_n = len(new_items)
 
-    # Guard rails
+    # Guard rails (avoid clobber with tiny/zero pass)
     MIN_ABSOLUTE = 80
     REL_DROP = 0.6
 
@@ -270,8 +297,9 @@ def main():
         "new_count": new_n,
         "prev_count": prev_n,
         "final_count": len(final_items),
-        "per_feed_counts": per_feed_kept,
-        "per_feed_seen": per_feed_seen,
+        "per_feed_counts": per_feed_kept,   # kept after filters
+        "per_feed_seen": per_feed_seen,     # raw entries seen
+        "per_feed_meta": per_feed_meta,     # http status/bytes/error
         "errors": errors,
         "ts": now_iso()
     }
