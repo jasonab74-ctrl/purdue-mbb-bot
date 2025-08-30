@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Purdue MBB — resilient collector (SMART FILTERS)
-- Pulls feeds from feeds.py
+Purdue MBB — resilient collector (SMART FILTERS + roster 2025–26 emphasis)
+- Pulls feeds from feeds.py (GN + Bing mirrors + community)
 - Retries with backoff
 - Smarter include logic so Purdue-targeted feeds don't get over-filtered
 - Strict football + other-sport excludes
@@ -31,20 +31,8 @@ try:
 except Exception:
     FEEDS = []
     STATIC_LINKS = []
-    KEYWORDS_INCLUDE = [
-        "purdue","boilers","boilermakers","boilermaker","boilerball",
-        "men’s basketball","mens basketball","men's basketball","basketball","college basketball","ncaa",
-        "big ten","b1g","mackey arena","matt painter","painter",
-        "zach edey","braden smith","fletcher loyer","lance jones","trey kaufman","mason gillis","caleb first","myles colvin",
-    ]
-    KEYWORDS_EXCLUDE = [
-        "football","cfb","gridiron","quarterback","qb","running back","rb","wide receiver","wr","tight end","te",
-        "linebacker","lb","cornerback","cb","safety","edge","defensive end","de","nose tackle",
-        "offensive line","defensive line","kickoff","punt","field goal","touchdown","two-point conversion","extra point",
-        "rushing yards","passing yards","sack","spring game","fall camp","depth chart","nfl","combine","pro day",
-        "baseball","softball","volleyball","soccer","wrestling","track and field","cross country","golf","tennis","swimming",
-        "women’s basketball","womens basketball","women's basketball",
-    ]
+    KEYWORDS_INCLUDE = ["purdue","boilers","boilermakers","basketball","ncaa","painter","mackey","roster","2025-26","2025–26","class of 2025","class of 2026"]
+    KEYWORDS_EXCLUDE = ["football","qb","nfl"]
     MAX_ITEMS_PER_FEED = 120
     ALLOW_DUPLICATE_DOMAINS = False
     DOMAIN_PER_FEED_LIMIT = 4
@@ -56,31 +44,33 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 ITEMS_PATH = os.path.join(ROOT, "items.json")
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (PurdueMBBFeed/1.5) Python/requests",
+    "User-Agent": "Mozilla/5.0 (PurdueMBBFeed/1.7) Python/requests",
     "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8",
 }
 TIMEOUT = 25
 RETRIES = 3
 BACKOFF_BASE = 1.6
 
-# Core cue regexes (word boundaries, case-insensitive)
-CORE_INCLUDE_RE = re.compile(r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey)\b", re.IGNORECASE)
+# Core cues — include roster + season marks; permit multiple dash types
+CORE_INCLUDE_RE = re.compile(
+    r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey|roster)\b"
+    r"|2025[\-—–]26|class of 2025|class of 2026",
+    re.IGNORECASE,
+)
 INCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_INCLUDE]), re.IGNORECASE)
 EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_EXCLUDE]), re.IGNORECASE)
-YOUTUBE_HOSTS = ("youtube.com", "youtu.be")
+YOUTUBE_HOSTS = ("youtube.com","youtu.be")
 
 # Feeds we consider Purdue-targeted by name and thus safe to auto-include
 TARGETED_FEED_HINTS = (
-    "purdue", "boiler", "mackey", "matt painter", "youTube mentions", "r/boilermakers"
+    "purdue", "boiler", "mackey", "matt painter", "youtube mentions", "r/boilermakers", "bing news", "google news"
 )
 
-def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+def now_iso() -> str: return datetime.now(timezone.utc).isoformat()
 
 def to_iso(dt_struct) -> str:
     try:
-        if not dt_struct:
-            return now_iso()
+        if not dt_struct: return now_iso()
         ts = time.mktime(dt_struct)
         return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
     except Exception:
@@ -93,7 +83,7 @@ def normalize_link(url: str) -> str:
         u = urlparse(url)
         q = dict(parse_qsl(u.query, keep_blank_values=True))
         if any(h in u.netloc for h in YOUTUBE_HOSTS):
-            q = {k: v for k, v in q.items() if k in ("t","time_continue")}
+            q = {k:v for k,v in q.items() if k in ("t","time_continue")}
         else:
             q = {}
         return urlunparse((u.scheme,u.netloc,u.path,u.params, urlencode(q), "")) or url
@@ -141,9 +131,9 @@ def passes_filters(entry: Dict[str, Any], source_name: str) -> bool:
 
 def entry_to_item(entry: Dict[str, Any], source_name: str) -> Dict[str, Any]:
     title = entry.get("title") or "Untitled"
-    link  = normalize_link(entry.get("link") or entry.get("id") or "")
-    iso   = to_iso(entry.get("published_parsed") or entry.get("updated_parsed"))
-    source= SOURCE_ALIASES.get(source_name, source_name)
+    link = normalize_link(entry.get("link") or entry.get("id") or "")
+    iso = to_iso(entry.get("published_parsed") or entry.get("updated_parsed"))
+    source = SOURCE_ALIASES.get(source_name, source_name)
     summary = clean_html(entry.get("summary") or entry.get("description") or "")
     host = domain_of(link)
     if any(h in host for h in YOUTUBE_HOSTS) and "YouTube" not in source:
@@ -175,7 +165,7 @@ def load_previous() -> Dict[str, Any]:
     if not os.path.exists(ITEMS_PATH):
         return {"items": [], "generated_at": now_iso()}
     try:
-        with open(ITEMS_PATH, "r", encoding="utf-8") as f:
+        with open(ITEMS_PATH,"r",encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {"items": [], "generated_at": now_iso()}
@@ -247,7 +237,7 @@ def merge_items(new_items: List[Dict[str, Any]], prev_items: List[Dict[str, Any]
 def write_items_safely(items: List[Dict[str, Any]]):
     payload = {"items": items, "generated_at": now_iso()}
     tmp = ITEMS_PATH + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(tmp,"w",encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
     os.replace(tmp, ITEMS_PATH)
 
