@@ -1,4 +1,4 @@
-# feeds.py — Purdue MBB Live Feed (freshness + roster ’25–’26 emphasis)
+# feeds.py — Purdue MBB Live Feed (stable sources + search mirrors)
 
 STATIC_LINKS = [
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
@@ -8,11 +8,10 @@ STATIC_LINKS = [
     {"label": "CBS Sports – Purdue",        "url": "https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"},
     {"label": "Yahoo Sports – Purdue",      "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
     {"label": "Hammer & Rails (SB Nation)", "url": "https://www.hammerandrails.com/"},
-    {"label": "GoldandBlack (Rivals)",      "url": "https://purdue.rivals.com/"},
-    {"label": "Barstool – Purdue",          "url": "https://www.barstoolsports.com/topics/purdue-boilermakers"},
+    {"label": "GoldandBlack (On3)",         "url": "https://www.on3.com/teams/purdue-boilermakers/"},
     {"label": "Reddit – r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/"},
-    {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@thefieldof68"},
-    {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@SleepersMedia"},
+    {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@TheFieldOf68"},
+    {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@sleepersmedia"},
 ]
 
 def GN(q: str) -> dict:
@@ -20,9 +19,18 @@ def GN(q: str) -> dict:
     return {"name": f"Google News — {q}", "url": f"https://news.google.com/rss/search?q={q2}&hl=en-US&gl=US&ceid=US:en"}
 
 def BN(q: str) -> dict:
-    return {"name": f"Bing News — {q}", "url": f"https://www.bing.com/news/search?q={q}&qft=sortbydate&format=rss"}
+    return {"name": f"Bing News — {q}", "url": f"https://www.bing.com/news/search?q={q}&qft=sortbydate&setlang=en&setmkt=en-US&format=rss"}
 
 FEEDS = [
+    # --- DIRECT, RELIABLE FEEDS (no search gatekeepers) ---
+    {"name": "YouTube — Sleepers Media (channel)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCaqPH-Ckzu_pSoO3AKcatNw"},
+    {"name": "YouTube — PurdueSports (channel)",   "url": "https://www.youtube.com/feeds/videos.xml?user=purduesports"},
+    {"name": "YouTube — Purdue MBB Playlist",      "url": "https://www.youtube.com/feeds/videos.xml?playlist_id=PLCIT1wYGMWN80GZO_ybcH6vuHeObcOcmh"},
+    {"name": "Hammer & Rails (SB Nation)",         "url": "https://www.hammerandrails.com/rss/index.xml"},
+    {"name": "Reddit — r/Boilermakers",            "url": "https://www.reddit.com/r/Boilermakers/.rss"},
+    {"name": "Reddit — r/CollegeBasketball",       "url": "https://www.reddit.com/r/CollegeBasketball/.rss"},
+
+    # --- Search mirrors (still useful; collector sets proper headers) ---
     GN("Purdue Basketball"),                         BN("Purdue Basketball"),
     GN("Boilers Purdue basketball"),                 BN("Boilers Purdue basketball"),
     GN("Purdue Boilermakers men's basketball"),      BN("Purdue Boilermakers men's basketball"),
@@ -30,10 +38,8 @@ FEEDS = [
     GN("Mackey Arena Purdue"),                       BN("Mackey Arena Purdue"),
     GN("Big Ten basketball Purdue"),                 BN("Big Ten basketball Purdue"),
     GN("NCAA Tournament Purdue basketball"),         BN("NCAA Tournament Purdue basketball"),
-
     GN("Purdue Basketball site:youtube.com"),        BN("Purdue Basketball site:youtube.com"),
     GN("Matt Painter site:youtube.com"),             BN("Matt Painter site:youtube.com"),
-
     GN("site:purdue.rivals.com basketball"),         BN("site:purdue.rivals.com basketball"),
     GN("site:on3.com/teams/purdue-boilermakers/ basketball"), BN("site:on3.com/teams/purdue-boilermakers/ basketball"),
     GN("site:247sports.com/college/purdue/ basketball"), BN("site:247sports.com/college/purdue/ basketball"),
@@ -51,14 +57,6 @@ FEEDS = [
     GN("\"class of 2025\" Purdue basketball"),       BN("\"class of 2025\" Purdue basketball"),
     GN("\"class of 2026\" Purdue basketball"),       BN("\"class of 2026\" Purdue basketball"),
     GN("\"Purdue\" basketball transfer portal"),     BN("\"Purdue\" basketball transfer portal"),
-
-    {"name": "Hammer & Rails (SB Nation)", "url": "https://www.hammerandrails.com/rss/index.xml"},
-    {"name": "Reddit — r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/.rss"},
-    {"name": "Reddit — r/CollegeBasketball","url": "https://www.reddit.com/r/CollegeBasketball/.rss"},
-
-    # Two lightweight mirrors to ensure volume
-    {"name": "On3 Purdue – Site Feed",     "url": "https://rss.app/feeds/tIPyQeIh5h9x0pO2.xml"},
-    {"name": "247Sports Purdue – Site Feed","url": "https://rss.app/feeds/Wv2kq0xwqj1a8y9S.xml"},
 ]
 
 KEYWORDS_INCLUDE = [
@@ -72,6 +70,7 @@ KEYWORDS_INCLUDE = [
 ]
 
 KEYWORDS_EXCLUDE = [
+    # football terms (strict block), plus other sports
     "football","cfb","gridiron",
     "quarterback","qb","running back","rb","wide receiver","wr","tight end","te",
     "linebacker","lb","cornerback","cb","safety","edge","defensive end","de","nose tackle",
@@ -83,7 +82,8 @@ KEYWORDS_EXCLUDE = [
     "women’s basketball","womens basketball","women's basketball",
 ]
 
-MAX_ITEMS_PER_FEED = 120
+# Collection behavior
+MAX_ITEMS_PER_FEED = 200
 ALLOW_DUPLICATE_DOMAINS = True
 DOMAIN_PER_FEED_LIMIT = 999
 
@@ -91,6 +91,4 @@ SOURCE_ALIASES = {
     "Hammer & Rails (SB Nation)": "Hammer & Rails",
     "Reddit — r/Boilermakers": "Reddit r/Boilermakers",
     "Reddit — r/CollegeBasketball": "Reddit r/CollegeBasketball",
-    "On3 Purdue – Site Feed": "On3 — Purdue",
-    "247Sports Purdue – Site Feed": "247Sports — Purdue",
 }
