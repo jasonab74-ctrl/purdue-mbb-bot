@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Purdue MBB — robust collector (freshness + diagnostics, FIXED SYNTAX)
+Purdue MBB — robust collector (freshness + diagnostics + player-name matching)
+- Realistic Chrome UA (prevents empty bodies from some hosts)
+- Smart include logic (Purdue-targeted feeds auto-include)
+- Strict football/other-sport excludes
+- Freshness window (default 120 days) to keep results current
+- De-dupe, per-domain caps, newest-first
+- Atomic write to items.json
+- Guardrails: never clobber a good file with an empty pass
+- Always prints JSON summary with per-feed http/bytes/seen/kept
+- NEW: PLAYER_KEYWORDS merged into include matching (this-year roster names)
 """
 
 import json, os, re, time, traceback
@@ -31,10 +40,35 @@ except Exception:
     SOURCE_ALIASES = {}
 
 # -----------------------------------------------------------------------------
+# Player keywords (this-year roster + common recent names/variants).
+# You can extend via env var PLAYER_EXTRA (comma-separated names).
+# -----------------------------------------------------------------------------
+PLAYER_KEYWORDS_DEFAULT = [
+    # Core returners / recent main rotation
+    "braden smith",
+    "fletcher loyer",
+    "trey kaufman", "trey kaufman-renn",
+    "mason gillis",
+    "caleb furst",
+    "myles colvin",
+    "camden heide",
+    "will berg",
+    # Coach / notable recent star references still relevant in news context
+    "matt painter",
+    "zach edey",
+]
+EXTRA = os.environ.get("PLAYER_EXTRA", "").strip()
+if EXTRA:
+    PLAYER_KEYWORDS = PLAYER_KEYWORDS_DEFAULT + [s.strip().lower() for s in EXTRA.split(",") if s.strip()]
+else:
+    PLAYER_KEYWORDS = PLAYER_KEYWORDS_DEFAULT
+
+# -----------------------------------------------------------------------------
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 ITEMS_PATH = os.path.join(ROOT, "items.json")
 
+# Realistic browser headers
 HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                    "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -48,15 +82,19 @@ HEADERS = {
 TIMEOUT = 25
 RETRIES = 3
 BACKOFF_BASE = 1.7
+
+# Freshness window (days). Items older than this are dropped.
 FRESH_DAYS = int(os.environ.get("FRESH_DAYS", "120"))
 
+# Build include/exclude regexes (merge player names into include)
+INCLUDE_TERMS = (KEYWORDS_INCLUDE or []) + PLAYER_KEYWORDS
 CORE_INCLUDE_RE = re.compile(
     r"\b(purdue|boilers?|boilermakers?|boilerball|basketball|ncaa|painter|mackey|roster)\b"
     r"|2025[\-—–]26|class of 2025|class of 2026",
     re.IGNORECASE,
 )
-INCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_INCLUDE]), re.IGNORECASE)
-EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in KEYWORDS_EXCLUDE]), re.IGNORECASE)
+INCLUDE_RE = re.compile("|".join([re.escape(k) for k in INCLUDE_TERMS]), re.IGNORECASE)
+EXCLUDE_RE = re.compile("|".join([re.escape(k) for k in (KEYWORDS_EXCLUDE or [])]), re.IGNORECASE)
 YOUTUBE_HOSTS = ("youtube.com","youtu.be")
 
 TARGETED_FEED_HINTS = (
@@ -293,6 +331,7 @@ def main():
         "per_feed_seen": per_feed_seen,
         "per_feed_meta": per_feed_meta,
         "fresh_days": FRESH_DAYS,
+        "player_keywords": PLAYER_KEYWORDS,
         "errors": errors,
         "ts": now_iso()
     }
