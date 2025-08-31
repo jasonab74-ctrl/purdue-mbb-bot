@@ -1,5 +1,6 @@
-
 # feeds.py — Purdue Men's Basketball sources (used by collect.py)
+# FEEDS drives the Sources dropdown. STATIC_LINKS drives the top buttons.
+# NOTE: We leave "type" unspecified for most; collect.py defaults to "rss".
 
 FEEDS = [
     # ===== Broad Purdue MBB aggregators
@@ -35,16 +36,14 @@ FEEDS = [
      "url": "https://www.bing.com/news/search?q=site:goldandblack.com+Purdue+Basketball&format=RSS"},
 
     # ===== Blogs / fan
-    {"name": "Hammer & Rails (SB Nation)",
-     "url": "https://www.hammerandrails.com/rss/index.xml"},
+    {"name": "Hammer & Rails (SB Nation)", "url": "https://www.hammerandrails.com/rss/index.xml"},
 
     # ===== Official (no native MBB RSS; use site search)
     {"name": "PurdueSports.com — “Men’s Basketball”",
      "url": "https://www.bing.com/news/search?q=site:purduesports.com+%22Men%27s+Basketball%22&format=RSS"},
 
-    # ===== Reddit (stay on RSS so the collector treats all uniformly)
-    {"name": "Reddit — r/Boilermakers",
-     "url": "https://www.reddit.com/r/Boilermakers/.rss"},
+    # ===== Reddit
+    {"name": "Reddit — r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/.rss"},
     {"name": "Reddit — r/CollegeBasketball (Purdue search)",
      "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue%20basketball&restrict_sr=on&sort=new"},
 
@@ -66,7 +65,8 @@ FEEDS = [
      )},
 ]
 
-# Quick links (for your top pills; not used by the collector)
+# Quick links (top buttons). Order = display order.
+# YouTube buttons are grouped at the end. Added DraftKings and “YouTube – Brian Neubert”.
 STATIC_LINKS = [
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Purdue – Schedule",          "url": "https://purduesports.com/sports/mens-basketball/schedule"},
@@ -78,8 +78,12 @@ STATIC_LINKS = [
     {"label": "GoldandBlack (Rivals)",      "url": "https://goldandblack.com/"},
     {"label": "Barstool – Purdue",          "url": "https://www.barstoolsports.com/tag/purdue"},
     {"label": "Reddit – r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/"},
-    {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@Fieldof68"},
-    {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@SleepersMedia"},
     {"label": "Journal & Courier",          "url": "https://www.jconline.com/sports/boilermakers/"},
     {"label": "Purdue Exponent (MBB)",      "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
+    {"label": "DraftKings – Purdue (search)","url":"https://sportsbook.draftkings.com/search?query=Purdue"},
+
+    # YouTube — grouped last
+    {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@Fieldof68"},
+    {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@SleepersMedia"},
+    {"label": "YouTube – Brian Neubert",    "url": "https://www.youtube.com/@Goldandblackcom"}
 ]
