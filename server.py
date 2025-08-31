@@ -1,111 +1,133 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# server.py
+# Flask app for Purdue MBB feed (safe, game-day pill support)
 
 import os
 import json
-import threading
-import time
-from datetime import datetime, timezone
+from datetime import datetime
+from flask import Flask, render_template, send_from_directory, jsonify
 
-from flask import Flask, render_template, send_file, send_from_directory, jsonify, request, abort
-
-# Our existing modules
-from feeds import FEEDS, STATIC_LINKS
-import collect as collector  # has collect.collect() that writes items.json
-
+# ---- config / paths
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-ITEMS_PATH = os.path.join(APP_DIR, "items.json")
-COLLECT_TOKEN = os.environ.get("COLLECT_TOKEN", "")  # set this in Railway
-ENABLE_AUTO_COLLECT = os.environ.get("ENABLE_AUTO_COLLECT", "1") == "1"
-COLLECT_EVERY_SECONDS = int(os.environ.get("COLLECT_EVERY_SECONDS", "1800"))
+STATIC_DIR = os.path.join(APP_DIR, "static")
+ITEMS_PATH = os.environ.get("ITEMS_PATH", os.path.join(APP_DIR, "items.json"))
+
+# ---- imports from your feeds.py
+from feeds import FEEDS, STATIC_LINKS
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-def _load_items():
-    if not os.path.exists(ITEMS_PATH):
-        return {"items": [], "meta": {"generated_at": None}}
+
+# ---------- helpers
+
+def load_items_payload():
+    """
+    Load items.json once per request. If missing/corrupt, return empty structure.
+    """
     try:
         with open(ITEMS_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
+            payload = json.load(f)
+            # normalize minimal structure
+            if "items" not in payload:
+                payload["items"] = []
+            if "meta" not in payload:
+                payload["meta"] = {"generated_at": datetime.utcnow().isoformat(timespec="seconds") + "Z"}
+            return payload
     except Exception:
-        return {"items": [], "meta": {"generated_at": None}}
+        # fallback empty payload
+        return {
+            "items": [],
+            "meta": {"generated_at": datetime.utcnow().isoformat(timespec="seconds") + "Z"}
+        }
 
-def _ensure_first_build():
-    """Build items.json once on boot if missing, without killing the app if it fails."""
-    if not os.path.exists(ITEMS_PATH):
-        try:
-            count = collector.collect()
-            print(f"[boot] collected {count} items", flush=True)
-        except Exception as e:
-            print(f"[boot] collect failed: {e}", flush=True)
 
-def _auto_collect_loop():
-    """Background refresher."""
-    while True:
-        try:
-            count = collector.collect()
-            ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
-            print(f"[auto] collected {count} items @ {ts}", flush=True)
-        except Exception as e:
-            print(f"[auto] collect failed: {e}", flush=True)
-        time.sleep(COLLECT_EVERY_SECONDS)
+def build_links_with_gameday(meta):
+    """
+    Start with STATIC_LINKS, and if collect.py marked a Game Day,
+    prepend the special DraftKings pill.
+    """
+    links = list(STATIC_LINKS)  # copy so we never mutate the import
+
+    gd = (meta or {}).get("gameday")
+    if gd and gd.get("active") and gd.get("label") and gd.get("url"):
+        # put the Game Day pill FIRST
+        links.insert(0, {"label": gd["label"], "url": gd["url"]})
+
+    return links
+
+
+# ---------- routes
 
 @app.route("/")
 def index():
-    data = _load_items()
-    items = data.get("items", [])
-    meta = data.get("meta", {})
+    payload = load_items_payload()
+    items = payload.get("items", [])
+    meta = payload.get("meta", {})
+    updated = meta.get("generated_at")
+
+    # Build quick links (with optional Game Day pill)
+    links = build_links_with_gameday(meta)
+
     return render_template(
         "index.html",
         items=items,
-        meta=meta,
         feeds=FEEDS,
-        static_links=STATIC_LINKS
+        static_links=links,
+        meta=meta,
+        updated=updated,
+        now=datetime.utcnow(),
     )
+
 
 @app.route("/items.json")
 def items_json():
-    if not os.path.exists(ITEMS_PATH):
-        # Return an empty-but-valid JSON so the UI doesn't break
-        return jsonify({"items": [], "meta": {"generated_at": None}})
-    return send_file(ITEMS_PATH, mimetype="application/json", conditional=True)
-
-@app.route("/collect")
-def run_collect():
     """
-    Safe, token-protected trigger for the fetcher.
-    Call with /collect?token=SECRET  (COLLECT_TOKEN env var)
+    Serve the current items.json so the client can auto-check for updates.
     """
-    token = request.args.get("token", "")
-    if not COLLECT_TOKEN or token != COLLECT_TOKEN:
-        abort(404)
-
     try:
-        count = collector.collect()
-        ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        return jsonify({"ok": True, "count": count, "ts": ts})
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        with open(ITEMS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception:
+        return jsonify({"items": [], "meta": {"error": "items.json not available"}}), 200
 
-@app.route("/healthz")
-def healthz():
-    return jsonify({"ok": True})
 
-# ---- Icon routes at ROOT for Safari/Chrome Favorites & Home Screen (safe) ----
-@app.route("/favicon.ico")
-def favicon():
-    return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/x-icon")
+# ---- root-level icon routes for Safari / iOS quirks (non-breaking)
 
 @app.route("/apple-touch-icon.png")
 def apple_touch_icon():
-    return send_from_directory(app.static_folder, "apple-touch-icon.png", mimetype="image/png")
+    # If you’ve put apple-touch-icon.png in /static, this serves it at the root path
+    return send_from_directory(STATIC_DIR, "apple-touch-icon.png")
 
-# ---- App boot hooks ----
-_ensure_first_build()
-if ENABLE_AUTO_COLLECT:
-    t = threading.Thread(target=_auto_collect_loop, daemon=True)
-    t.start()
 
+@app.route("/favicon.ico")
+def favicon_ico():
+    """
+    Serve a favicon at the root level. If you only have PNGs, this falls back to 32x32.
+    """
+    ico_path = os.path.join(STATIC_DIR, "favicon.ico")
+    if os.path.exists(ico_path):
+        return send_from_directory(STATIC_DIR, "favicon.ico")
+    return send_from_directory(STATIC_DIR, "favicon-32x32.png")
+
+
+# (Optional) serve a manifest if you add one later
+@app.route("/site.webmanifest")
+def site_webmanifest():
+    path = os.path.join(STATIC_DIR, "site.webmanifest")
+    if os.path.exists(path):
+        return send_from_directory(STATIC_DIR, "site.webmanifest")
+    # gentle fallback
+    return jsonify({"name": "Purdue MBB Feed", "icons": []})
+
+
+# (Optional) simple health route
+@app.route("/health")
+def health():
+    return jsonify({"ok": True, "ts": datetime.utcnow().isoformat(timespec="seconds") + "Z"})
+
+
+# ---------- run (for local dev only)
 if __name__ == "__main__":
-    # Local dev runner
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=True)
+    # Local dev: python3 server.py
+    # Prod: use gunicorn -w 4 -b 0.0.0.0:$PORT server:app
+    app.run(host="127.0.0.1", port=5000, debug=False)
