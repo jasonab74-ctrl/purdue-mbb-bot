@@ -33,13 +33,11 @@ def parse_rss(xml_bytes):
     Very tolerant RSS/Atom parser (title/link/summary/date)
     """
     root = ET.fromstring(xml_bytes)
-    # common namespaces we might need (content:encoded, etc.)
-    ns = {"content":"http://purl.org/rss/1.0/modules/content/"}
+    ns = {"content":"http://purl.org/rss/1.0/modules/content/"}  # common extns
     out = []
     for it in root.findall(".//item") + root.findall(".//{http://www.w3.org/2005/Atom}entry"):
         title = (it.findtext("title") or it.findtext("{http://www.w3.org/2005/Atom}title") or "").strip()
         link  = (it.findtext("link")  or it.findtext("{http://www.w3.org/2005/Atom}link")  or "").strip()
-        # Atom link may be an element with href attr
         if not link:
             lnode = it.find("{http://www.w3.org/2005/Atom}link")
             if lnode is not None:
@@ -102,16 +100,12 @@ def hash_id(link, title):
     h.update(to_text(title).encode("utf-8"))
     return h.hexdigest()[:16]
 
-# -------------------- MEN’S-ONLY filter (stricter) --------------------
+# -------------------- MEN’S-ONLY filter (trusted feeds relaxed) --------------------
 
 PLAYERS = [
     "c.j. cox", "antione west", "fletcher loyer", "braden smith", "aaron fine", "jack lusk",
     "jack benter", "omer mayer", "gicarri harris", "jace rayl", "trey kaufman-renn", "liam murphy",
     "sam king", "raleigh burgess", "daniel jacobsen", "oscar cluff", "matt painter", "zach edey"
-]
-
-KEY_PURDUE_TERMS = [
-    "purdue", "boilermaker", "boilermakers", "mackey", "west lafayette", "men of mackey"
 ]
 
 MEN_SIGNALS     = re.compile(r"\bmen'?s\b|\bmbb\b|\bmen'?s?\s+basketball\b", re.I)
@@ -120,11 +114,7 @@ BASKETBALL      = re.compile(r"\bbasketball\b", re.I)
 PLAYER_SIG      = re.compile("|".join(re.escape(n) for n in PLAYERS), re.I)
 WOMENS          = re.compile(r"\bwomen'?s\b|\bwbb\b|\bwbk\b|\blady\b", re.I)
 OTHER_SPORTS    = re.compile(r"\bfootball\b|\bvolleyball\b|\bbaseball\b|\bsoccer\b|\bwrestling\b|\bsoftball\b|\btrack\b|\bgolf\b", re.I)
-
-# Headlines we see that are rarely Purdue-specific unless Purdue is explicitly named
 GENERIC_LISTY   = re.compile(r"\broster\b|\bschedule\b|\bteam rankings\b|\bcommits\b|\boffers\b|\bcrystal ball\b|\btop\s+\d+\b", re.I)
-
-# Schools/teams that commonly pollute the Purdue feed via network/team hubs; block unless Purdue is present
 OTHER_SCHOOLS_HINT = re.compile(
     r"\b(iowa|butler|jacksonville state|nicholls|virginia|duke|florida|memphis|north carolina|illinois|michigan state|michigan|ohio state|wisconsin|indiana)\b",
     re.I
@@ -134,7 +124,7 @@ TRUSTED_NAMES = None
 def is_trusted(feed_name: str) -> bool:
     global TRUSTED_NAMES
     if TRUSTED_NAMES is None:
-        TRUSTED_NAMES = {f["name"] for f in FEEDS if f.get("trust")}
+        TRUSTED_NAMES = {f.get("name") for f in FEEDS if f.get("trust")}
     return feed_name in TRUSTED_NAMES
 
 def clearly_purdue(blob: str) -> bool:
@@ -142,14 +132,9 @@ def clearly_purdue(blob: str) -> bool:
 
 def allow_item(title, summary, feed):
     """
-    STRICT Purdue Men's Basketball filter.
-    Rules (ordered, fail-fast):
-      1) Block explicit women's-only if no hoops context.
-      2) If another sport is present, require hoops signal IN TITLE.
-      3) Require Purdue-ish AND Hoops context overall.
-      4) If title looks generic list/roster, require Purdue in title (not just feed name).
-      5) If other school words appear, require Purdue in title OR a Purdue player/coach.
-      6) 'Trusted' feeds do NOT bypass Purdue/hoops anymore; they only skip some generic checks.
+    Relaxed for trusted feeds:
+      - Trusted: require (Purdue-ish OR hoops), and skip generic/other-school penalties.
+      - Others: require (Purdue-ish AND hoops), plus generic/school checks.
     """
     name      = feed.get("name","")
     trusted   = is_trusted(name)
@@ -172,29 +157,32 @@ def allow_item(title, summary, feed):
     if OTHER_SPORTS.search(blob) and not any_hoops:
         return False
 
-    # 3) must be Purdue-ish AND hoops-ish
-    if not (purdueish and any_hoops):
+    # 3) core requirement (trusted vs untrusted)
+    if trusted:
+        if not (purdueish or any_hoops):
+            return False
+    else:
+        if not (purdueish and any_hoops):
+            return False
+
+    # 4) generic listy titles must have Purdue IN TITLE (only for untrusted)
+    if (not trusted) and GENERIC_LISTY.search(title_t) and not re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I):
         return False
 
-    # 4) generic list/roster/schedule headlines need Purdue IN TITLE specifically
-    if GENERIC_LISTY.search(title_t) and not re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I):
-        return False
-
-    # 5) other schools keywords require Purdue in title OR Purdue player/coach explicitly
-    if OTHER_SCHOOLS_HINT.search(blob):
+    # 5) other schools keywords require Purdue in title or a Purdue name (only for untrusted)
+    if (not trusted) and OTHER_SCHOOLS_HINT.search(blob):
         if not (re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I) or PLAYER_SIG.search(blob)):
             return False
 
-    # 6) trusted feeds: do not loosen Purdue/hoops requirement; already enforced above.
     return True
 
 # -------------------- date handling --------------------
 
 DATE_FORMATS = (
-    "%a, %d %b %Y %H:%M:%S %z",   # RFC822 like: Fri, 29 Aug 2025 17:25:06 +0000
-    "%a, %d %b %Y %H:%M:%S %Z",   # with GMT
-    "%Y-%m-%dT%H:%M:%S%z",        # ISO with tz
-    "%Y-%m-%dT%H:%M:%S",          # ISO without tz
+    "%a, %d %b %Y %H:%M:%S %z",
+    "%a, %d %b %Y %H:%M:%S %Z",
+    "%Y-%m-%dT%H:%M:%S%z",
+    "%Y-%m-%dT%H:%M:%S",
     "%Y-%m-%d %H:%M:%S%z",
     "%Y-%m-%d %H:%M:%S",
 )
@@ -217,55 +205,8 @@ def normalize_datetime_str(d: str):
             return dt_utc.strftime("%a, %d %b %Y %H:%M:%S GMT"), int(dt_utc.timestamp())
         except Exception:
             continue
-    # last resort: now
     dt = datetime.now(timezone.utc)
     return dt.strftime("%a, %d %b %Y %H:%M:%S GMT"), int(dt.timestamp())
-
-# -------------------- game-day detector (adds meta.gameday) --------------------
-
-_GAMEDAY_PATTERNS = [
-    r"\bPurdue(?: Boilermakers)?\s+(?:vs\.?|at)\s+([A-Za-z .'\-]+)\b",
-    r"\b([A-Za-z .'\-]+)\s+(?:vs\.?|at)\s+Purdue(?: Boilermakers)?\b",
-]
-
-_DK_CBB_GAME_LINES = "https://sportsbook.draftkings.com/leagues/basketball/1035?category=game-lines"
-
-def detect_gameday(items):
-    """
-    Inspect recent item titles for an opponent mention.
-    Returns a dict for meta.gameday or None.
-
-    Example return:
-      {
-        "active": True,
-        "opponent": "Marquette",
-        "label": "Live Betting Odds — DraftKings (Game Day: vs Marquette)",
-        "url": "https://sportsbook.draftkings.com/leagues/basketball/1035?category=game-lines"
-      }
-    """
-    opponent = None
-    for it in items[:40]:  # look at a reasonable slice
-        title = to_text(it.get("title") or it.get("headline") or "")
-        if not title:
-            continue
-        for rx in _GAMEDAY_PATTERNS:
-            m = re.search(rx, title, flags=re.IGNORECASE)
-            if m:
-                opponent = m.group(1).strip(" .-")
-                break
-        if opponent:
-            break
-
-    if not opponent:
-        return {"active": False}
-
-    label = f"Live Betting Odds — DraftKings (Game Day: vs {opponent})"
-    return {
-        "active": True,
-        "opponent": opponent,
-        "label": label,
-        "url": _DK_CBB_GAME_LINES
-    }
 
 # -------------------- collect --------------------
 
@@ -306,29 +247,23 @@ def collect():
                 "link": link,
                 "summary": summary,
                 "source": name,
-                "date": disp_date,  # nice RFC1123-style string for UI
-                "ts": ts            # numeric timestamp for sorting/export
+                "date": disp_date,
+                "ts": ts
             })
 
         time.sleep(0.08)
 
-    # Sort newest first using ts (stable)
     out.sort(key=lambda x: int(x.get("ts", 0)), reverse=True)
     out = out[:MAX_ITEMS]
-
-    # --- NEW: compute game-day metadata safely from items we already have
-    gameday = detect_gameday(out)
 
     meta = {
         "generated_at": now_iso(),
         "items_count": len(out),
         "items_mtime": now_iso(),
         "last_run": {"ok": True, "rc": 0, "final_count": len(out),
-                     "per_feed_counts": per, "ts": now_iso()},
-        "gameday": gameday,  # <— add here; purely additive
+                     "per_feed_counts": per, "ts": now_iso()}
     }
 
-    # ATOMIC WRITE
     payload = json.dumps({"items": out, "meta": meta}, ensure_ascii=False)
     dirn = os.path.dirname(ITEMS_PATH) or "."
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=dirn, delete=False) as tmp:
