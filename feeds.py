@@ -1,6 +1,5 @@
 # feeds.py — Purdue Men's Basketball sources (used by collect.py)
 # FEEDS drives the Sources dropdown. STATIC_LINKS drives the top buttons.
-# NOTE: We leave "type" unspecified for most; collect.py defaults to "rss".
 
 FEEDS = [
     # ===== Broad Purdue MBB aggregators
@@ -65,9 +64,10 @@ FEEDS = [
      )},
 ]
 
-# Quick links (top buttons). Order = display order.
-# YouTube buttons are grouped at the end. Added DraftKings and “YouTube – Brian Neubert”.
+# Quick links (top buttons). Order matters. DK first. YouTube buttons grouped last.
 STATIC_LINKS = [
+    {"label": "Betting Odds — DraftKings",  "url": "https://sportsbook.draftkings.com/search?query=Purdue%20basketball"},
+
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Purdue – Schedule",          "url": "https://purduesports.com/sports/mens-basketball/schedule"},
     {"label": "Purdue – Roster",            "url": "https://purduesports.com/sports/mens-basketball/roster"},
@@ -80,7 +80,6 @@ STATIC_LINKS = [
     {"label": "Reddit – r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/"},
     {"label": "Journal & Courier",          "url": "https://www.jconline.com/sports/boilermakers/"},
     {"label": "Purdue Exponent (MBB)",      "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
-    {"label": "DraftKings – Purdue (search)","url":"https://sportsbook.draftkings.com/search?query=Purdue"},
 
     # YouTube — grouped last
     {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@Fieldof68"},
