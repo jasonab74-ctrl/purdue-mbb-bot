@@ -1,53 +1,112 @@
-from flask import Flask, render_template, jsonify, abort
-from jinja2 import TemplateNotFound
-import json, os
-from json import JSONDecodeError
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
-ITEMS_PATH = os.environ.get("ITEMS_PATH", "items.json")
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-# Try to import STATIC_LINKS for the buttons row; fall back to [] if not present.
-try:
-    from feeds import STATIC_LINKS
-except Exception:
-    STATIC_LINKS = []
+import os
+import json
+import threading
+import time
+from datetime import datetime, timezone
 
-def read_items():
-    """
-    Never crash the server if items.json is missing or malformed.
-    """
+from flask import Flask, render_template, send_file, send_from_directory, jsonify, request, abort
+
+# Our existing modules
+from feeds import FEEDS, STATIC_LINKS
+import collect as collector  # has collect.collect() that writes items.json
+
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+ITEMS_PATH = os.path.join(APP_DIR, "items.json")
+COLLECT_TOKEN = os.environ.get("COLLECT_TOKEN", "")  # set this in Railway
+ENABLE_AUTO_COLLECT = os.environ.get("ENABLE_AUTO_COLLECT", "1") == "1"
+COLLECT_EVERY_SECONDS = int(os.environ.get("COLLECT_EVERY_SECONDS", "1800"))
+
+app = Flask(__name__, static_folder="static", template_folder="templates")
+
+def _load_items():
+    if not os.path.exists(ITEMS_PATH):
+        return {"items": [], "meta": {"generated_at": None}}
     try:
         with open(ITEMS_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            return data.get("items", []), data.get("meta", {})
-    except (FileNotFoundError, JSONDecodeError, OSError):
-        return [], {"generated_at": "", "items_count": 0}
+            return json.load(f)
+    except Exception:
+        return {"items": [], "meta": {"generated_at": None}}
 
-@app.route("/healthz")
-def healthz():
-    return "ok", 200
+def _ensure_first_build():
+    """Build items.json once on boot if missing, without killing the app if it fails."""
+    if not os.path.exists(ITEMS_PATH):
+        try:
+            count = collector.collect()
+            print(f"[boot] collected {count} items", flush=True)
+        except Exception as e:
+            print(f"[boot] collect failed: {e}", flush=True)
 
-@app.route("/api/items")
-def api_items():
-    items, meta = read_items()
-    return jsonify({"items": items, "meta": meta})
+def _auto_collect_loop():
+    """Background refresher."""
+    while True:
+        try:
+            count = collector.collect()
+            ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            print(f"[auto] collected {count} items @ {ts}", flush=True)
+        except Exception as e:
+            print(f"[auto] collect failed: {e}", flush=True)
+        time.sleep(COLLECT_EVERY_SECONDS)
 
 @app.route("/")
 def index():
-    items, meta = read_items()
+    data = _load_items()
+    items = data.get("items", [])
+    meta = data.get("meta", {})
+    return render_template(
+        "index.html",
+        items=items,
+        meta=meta,
+        feeds=FEEDS,
+        static_links=STATIC_LINKS
+    )
+
+@app.route("/items.json")
+def items_json():
+    if not os.path.exists(ITEMS_PATH):
+        # Return an empty-but-valid JSON so the UI doesn't break
+        return jsonify({"items": [], "meta": {"generated_at": None}})
+    return send_file(ITEMS_PATH, mimetype="application/json", conditional=True)
+
+@app.route("/collect")
+def run_collect():
+    """
+    Safe, token-protected trigger for the fetcher.
+    Call with /collect?token=SECRET  (COLLECT_TOKEN env var)
+    """
+    token = request.args.get("token", "")
+    if not COLLECT_TOKEN or token != COLLECT_TOKEN:
+        abort(404)
+
     try:
-        return render_template("index.html",
-                               items=items, meta=meta, static_links=STATIC_LINKS)
-    except TemplateNotFound:
-        # Minimal fallback page so we never 500
-        return (
-            "<!doctype html><meta charset='utf-8'>"
-            "<h1>Feed</h1>"
-            f"<p>Items: {len(items)}</p>"
-            "<p>JSON: <a href='/api/items'>/api/items</a></p>",
-            200,
-            {"Content-Type": "text/html; charset=utf-8"},
-        )
+        count = collector.collect()
+        ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        return jsonify({"ok": True, "count": count, "ts": ts})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/healthz")
+def healthz():
+    return jsonify({"ok": True})
+
+# ---- Icon routes at ROOT for Safari/Chrome Favorites & Home Screen (safe) ----
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/x-icon")
+
+@app.route("/apple-touch-icon.png")
+def apple_touch_icon():
+    return send_from_directory(app.static_folder, "apple-touch-icon.png", mimetype="image/png")
+
+# ---- App boot hooks ----
+_ensure_first_build()
+if ENABLE_AUTO_COLLECT:
+    t = threading.Thread(target=_auto_collect_loop, daemon=True)
+    t.start()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
+    # Local dev runner
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=True)
