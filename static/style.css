@@ -117,14 +117,12 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   cursor: pointer;
   transition: background .15s var(--ease), border-color .15s var(--ease), transform .05s ease;
 }
-.pill:hover, .btn:hover, .dropdown-trigger:hover, button:hover {
-  background: var(--btn-hover-bg);
-  border-color: var(--btn-border);
-}
-.pill:active, .btn:active, .dropdown-trigger:active, button:active {
-  background: var(--btn-active-bg);
-  transform: translateY(1px);
-}
+
+/* >>> Make pill text bold and remove underline <<< */
+.pill { font-weight: 700; text-decoration: none; }
+.pill:visited { text-decoration: none; }
+.pill:hover { background: var(--btn-hover-bg); border-color: var(--btn-border); text-decoration: none; }
+.pill:active { background: var(--btn-active-bg); transform: translateY(1px); }
 
 /* Controls */
 .controls {
