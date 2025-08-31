@@ -14,12 +14,14 @@
   --shadow-2: 0 2px 4px rgba(0,0,0,.08), 0 10px 26px rgba(0,0,0,.10);
   --ease: cubic-bezier(.2,.65,.25,1);
 
+  /* Button theme (all pills share this, incl. YouTube) */
   --btn-bg: #F0E8D6;
   --btn-text: #000;
   --btn-border: #D7C8A1;
   --btn-hover-bg: #E6DBBE;
   --btn-active-bg: #DCCFAD;
 
+  /* Card theme */
   --card-bg: #FFFBF0;
   --card-text: #1B1B1B;
   --card-border: rgba(0,0,0,.08);
@@ -96,17 +98,6 @@ h1 { margin:0; line-height:1.05; font-size: clamp(28px,5.8vw,48px); }
 .pill:hover { background:var(--btn-hover-bg); }
 .pill:active { background:var(--btn-active-bg); transform:translateY(1px); }
 
-/* 🎥 Special style for YouTube buttons so they group visually */
-.pill[href*="youtube.com"] {
-  background:#fff0f0;
-  border-color:#d99;
-  color:#c00;
-}
-.pill[href*="youtube.com"]:hover {
-  background:#ffe5e5;
-  border-color:#c55;
-}
-
 /* Controls */
 .controls { display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 14px 0; }
 .input, .select {
@@ -131,15 +122,27 @@ h1 { margin:0; line-height:1.05; font-size: clamp(28px,5.8vw,48px); }
   transition:box-shadow .18s var(--ease),border-color .18s var(--ease),background-color .18s var(--ease),transform .1s ease-out;
 }
 .item:hover { box-shadow:var(--shadow-2);border-color:var(--ring);transform:translateY(-1px); }
+
 .item-head { display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap; }
 .title { color:var(--card-text);text-decoration:none;font-weight:800;font-size:clamp(16px,3.2vw,21px);line-height:1.3;flex:1; }
 .title:hover { text-decoration:underline; }
-.badge { font-size:12px;font-weight:700;color:var(--card-badge-text);background:var(--card-badge-bg);
-  padding:5px 10px;border-radius:999px;border:1px solid var(--card-border);white-space:nowrap;margin-left:auto; }
+.badge {
+  font-size:12px;font-weight:700;color:var(--card-badge-text);background:var(--card-badge-bg);
+  padding:5px 10px;border-radius:999px;border:1px solid var(--card-border);white-space:nowrap;margin-left:auto;
+}
 
+/* Simple, clean description */
 .meta { color:#4a4a4a;font-size:13px;margin-top:6px; }
-.desc { margin:8px 0 0 0;color:#2b2b2b;font-size:14.5px;line-height:1.55;
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden; }
+.desc {
+  margin:6px 0 0 0;
+  color:#3a3a3a;
+  font-size:14px;
+  line-height:1.5;
+  display:-webkit-box;
+  -webkit-line-clamp:2;           /* tighter: 2 clean lines */
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
 
 /* Footer */
 .footer { text-align:center;color:var(--muted);margin:24px 0 10px 0;font-size:13px; }
@@ -147,5 +150,21 @@ h1 { margin:0; line-height:1.05; font-size: clamp(28px,5.8vw,48px); }
 /* Mobile tweaks */
 @media (max-width: 640px) {
   .quick { flex-direction:column;align-items:stretch; }
-  .pill { width:100%; text-align:center; }
+  /* Smaller, tidier buttons on mobile; same color scheme */
+  .pill {
+    width:100%;
+    font-size:13px;               /* smaller text */
+    padding:7px 10px;             /* shorter height/length feel */
+    letter-spacing:.1px;
+  }
+  .controls { gap:8px; }
+  .select { flex:1 1 160px; max-width:none; }
+  .item { border-radius:14px; }
+}
+
+/* Accessibility focus ring */
+a:focus-visible, .pill:focus-visible, .input:focus-visible,
+.select:focus-visible, .fight-btn:focus-visible, button:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
 }
