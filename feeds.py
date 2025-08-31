@@ -67,6 +67,7 @@ FEEDS = [
 
 # Quick links (for your top pills; not used by the collector)
 STATIC_LINKS = [
+    {"label": "Live Betting Odds — DraftKings", "url": "https://sportsbook.draftkings.com/leagues/basketball/1035?category=game-lines"},
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Purdue – Schedule",          "url": "https://purduesports.com/sports/mens-basketball/schedule"},
     {"label": "Purdue – Roster",            "url": "https://purduesports.com/sports/mens-basketball/roster"},
