@@ -4,8 +4,9 @@
    =========================== */
 
 :root {
+  /* Global light theme */
   --bg: #f6f2ea;
-  --panel: #fffdf8;
+  --panel: #fffdf8;             /* general panels/inputs */
   --text: #1b1b1b;
   --muted: #6b6b6b;
   --gold: #c5a559;
@@ -15,12 +16,14 @@
   --shadow-2: 0 2px 4px rgba(0,0,0,.08), 0 10px 26px rgba(0,0,0,.10);
   --ease: cubic-bezier(.2,.65,.25,1);
 
+  /* Buttons (light with black text) */
   --btn-bg: #F0E8D6;
   --btn-text: #000000;
   --btn-border: #D7C8A1;
   --btn-hover-bg: #E6DBBE;
   --btn-active-bg: #DCCFAD;
 
+  /* Cards (lighter than buttons for clear offset) */
   --card-bg: #FFFBF0;
   --card-text: #1B1B1B;
   --card-border: rgba(0,0,0,.08);
@@ -30,6 +33,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    /* Keep overall page comfortable in dark, but force cards to stay light */
     --bg: #0f0f0f;
     --panel: #141414;
     --text: #f2f2f2;
@@ -51,32 +55,38 @@ body {
   margin: 0;
   font-family: ui-sans-serif,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial;
   color: var(--text);
+
+  /* HERO BACKGROUND (faded hint) */
   background:
     linear-gradient(rgba(246, 242, 234, 0.94), rgba(246, 242, 234, 0.94)),
     url("{{ url_for('static', filename='hero.jpg') }}") center/cover no-repeat fixed;
+
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
+/* Container */
 .container {
   max-width: 980px;
   margin: 0 auto;
   padding: clamp(12px, 2.6vw, 24px);
 }
 
+/* Header */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 12px; /* a touch more breathing room above chips */
 }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 260px; }
 .logo { width: clamp(52px, 9vw, 84px); height: auto; object-fit: contain; }
 h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
 .sub { color: var(--muted); font-size: clamp(12px, 2.4vw, 14px); margin-top: 2px; }
 
+/* Fight song button */
 .fight-btn {
   appearance: none; border: 0; cursor: pointer;
   background: linear-gradient(180deg, var(--gold) 0%, var(--gold-2) 100%);
@@ -86,25 +96,30 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
 .fight-btn:hover { filter: saturate(1.05); }
 .fight-btn:active { transform: translateY(1px); }
 
+/* Quick links (pills / source chips) */
 .quick {
   display: grid;
-  gap: 10px;
+  gap: 10px; /* slightly larger so cards feel offset below */
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   margin: 8px 0 12px 0;
 }
+/* Pills are buttons: light with black text */
 .pill, .btn, .dropdown-trigger, button {
   display: inline-flex; align-items: center; justify-content: center;
   padding: 7px 12px; border-radius: 999px;
   background: var(--btn-bg);
   border: 1px solid var(--btn-border);
   color: var(--btn-text);
-  font-weight: 700;
-  text-decoration: none;
+  font-weight: 700;             /* bold words */
+  text-decoration: none;        /* remove underline */
   box-shadow: var(--shadow-1);
   font-size: 13.5px; line-height: 1.2; text-align: center;
   cursor: pointer;
   transition: background .15s var(--ease), border-color .15s var(--ease), transform .05s ease;
 }
+/* Make sure Safari/iOS never re-adds underlines for link states */
+.pill:link, .pill:visited, .pill:hover, .pill:active { text-decoration: none; color: var(--btn-text); }
+
 .pill:hover, .btn:hover, .dropdown-trigger:hover, button:hover {
   background: var(--btn-hover-bg);
   border-color: var(--btn-border);
@@ -114,11 +129,12 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   transform: translateY(1px);
 }
 
+/* Controls */
 .controls {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  margin: 8px 0 14px 0;
+  margin: 8px 0 14px 0; /* bigger separation from cards */
 }
 .input, .select {
   flex: 1 1 260px;
@@ -133,6 +149,7 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
 .input::placeholder { color: var(--muted); }
 .select { max-width: 220px; }
 
+/* Notice */
 .notice {
   background: #fff7e0;
   color: #5b4300;
@@ -143,16 +160,17 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   font-size: 14px;
 }
 
+/* Articles */
 .items {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 14px;
+  gap: 14px; /* extra offset from chips/controls */
 }
 .item {
-  background: var(--card-bg);
-  color: var(--card-text);
+  background: var(--card-bg);                  /* light card */
+  color: var(--card-text);                     /* dark text */
   border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 14px;
@@ -173,19 +191,28 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   flex-wrap: wrap;
 }
 
-/* === FIXED: Article title links (force black, no underline) === */
-.title,
-.title:link,
-.title:visited {
-  color: #000 !important;       /* always black */
-  text-decoration: none !important;
+/* Article title links — force black, no underline, across all states */
+.title, .title:link, .title:visited {
+  color: #000;                 /* black text */
+  text-decoration: none;       /* no underline */
   font-weight: 800;
   font-size: clamp(16px, 3.2vw, 21px);
   line-height: 1.3;
   flex: 1;
   cursor: pointer;
 }
-.title:hover {
+.title:hover, .title:active {
+  text-decoration: underline;  /* underline only on interaction */
+  color: #333;
+}
+
+/* Fallback: if class name ever changes, keep item-head <a> looking like titles */
+.items .item .item-head a:not(.badge):not(.pill) {
+  color: #000;
+  text-decoration: none;
+  font-weight: 800;
+}
+.items .item .item-head a:not(.badge):not(.pill):hover {
   text-decoration: underline;
   color: #333;
 }
@@ -202,7 +229,7 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
 }
 
 .meta {
-  color: #4a4a4a;
+  color: #4a4a4a; /* stronger than muted so it reads on light cards */
   font-size: 13px;
   margin-top: 6px;
 }
@@ -217,6 +244,7 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   overflow: hidden;
 }
 
+/* Footer */
 .footer {
   text-align: center;
   color: var(--muted);
@@ -224,6 +252,7 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   font-size: 13px;
 }
 
+/* Mobile tweaks */
 @media (max-width: 560px) {
   .brand { gap: 10px; }
   .logo { width: 56px; }
@@ -238,10 +267,12 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   .item { border-radius: 14px; }
 }
 
+/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .item { transition: none }
 }
 
+/* Focus ring */
 a:focus-visible, .pill:focus-visible, .input:focus-visible,
 .select:focus-visible, .fight-btn:focus-visible, button:focus-visible {
   outline: 3px solid var(--ring);
