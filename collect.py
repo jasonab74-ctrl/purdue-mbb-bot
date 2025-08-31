@@ -1,10 +1,13 @@
+
+# collect.py
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os, re, json, html, hashlib, time
+import os, re, json, html, hashlib, time, tempfile
 from datetime import datetime, timezone
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree as ET
+from json import JSONDecodeError
 
 ITEMS_PATH = os.environ.get("ITEMS_PATH", "items.json")
 MAX_ITEMS  = int(os.environ.get("MAX_ITEMS", "500"))
@@ -18,7 +21,7 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 def http_get(url, headers=None, timeout=TIMEOUT):
-    req = Request(url, headers=headers or {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) MBBFeedBot/1.2"})
+    req = Request(url, headers=headers or {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) MBBFeedBot/1.4"})
     with urlopen(req, timeout=timeout) as r:
         return r.read()
 
@@ -27,33 +30,70 @@ def to_text(x):
     return html.unescape(x if isinstance(x,str) else x.decode("utf-8","ignore"))
 
 def parse_rss(xml_bytes):
+    """
+    Very tolerant RSS/Atom parser (title/link/summary/date)
+    """
     root = ET.fromstring(xml_bytes)
+    # common namespaces we might need (content:encoded, etc.)
+    ns = {"content":"http://purl.org/rss/1.0/modules/content/"}
     out = []
-    for it in root.findall(".//item"):
-        out.append({
-            "title": (it.findtext("title") or "").strip(),
-            "link":  (it.findtext("link") or "").strip(),
-            "summary": (it.findtext("description") or it.findtext("content") or "").strip(),
-            "date": (it.findtext("pubDate") or it.findtext("published") or "").strip(),
-        })
+    for it in root.findall(".//item") + root.findall(".//{http://www.w3.org/2005/Atom}entry"):
+        title = (it.findtext("title") or it.findtext("{http://www.w3.org/2005/Atom}title") or "").strip()
+        link  = (it.findtext("link")  or it.findtext("{http://www.w3.org/2005/Atom}link")  or "").strip()
+        # Atom link may be an element with href attr
+        if not link:
+            lnode = it.find("{http://www.w3.org/2005/Atom}link")
+            if lnode is not None:
+                link = (lnode.get("href") or "").strip()
+
+        summary = (
+            it.findtext("description")
+            or (it.findtext("content") or "")
+            or it.findtext("{http://www.w3.org/2005/Atom}summary")
+            or it.findtext("content:encoded", namespaces=ns)
+            or ""
+        ).strip()
+
+        date = (
+            it.findtext("pubDate")
+            or it.findtext("{http://www.w3.org/2005/Atom}updated")
+            or it.findtext("published")
+            or it.findtext("{http://www.w3.org/2005/Atom}published")
+            or ""
+        ).strip()
+
+        out.append({"title": title, "link": link, "summary": summary, "date": date})
     return out
 
 def fetch_google(f):  return parse_rss(http_get(f["url"]))
 def fetch_bing(f):    return parse_rss(http_get(f["url"]))
 def fetch_rss(f):     return parse_rss(http_get(f["url"]))
+
 def fetch_reddit(f):
-    # Only used if a feed has type "reddit" (JSON). Our current reddit feeds are RSS, which go through fetch_rss.
-    j = json.loads(to_text(http_get(f["url"], headers={"User-Agent":"mmblite/1.0"})))
-    out = []
-    for c in j.get("data",{}).get("children",[]):
-        p = c.get("data",{})
-        out.append({
-            "title": p.get("title",""),
-            "link":  p.get("url","") or ("https://reddit.com" + p.get("permalink","")),
-            "summary": p.get("selftext",""),
-            "date": datetime.fromtimestamp(p.get("created_utc",0), tz=timezone.utc).isoformat(),
-        })
-    return out
+    """
+    Support both JSON and RSS endpoints; never propagate exceptions.
+    """
+    url = f["url"]
+    try:
+        if url.endswith(".rss"):
+            return parse_rss(http_get(url, headers={"User-Agent":"mmblite/1.0"}))
+        raw = http_get(url, headers={"User-Agent":"mmblite/1.0"})
+        j = json.loads(to_text(raw))
+        out = []
+        for c in j.get("data",{}).get("children",[]):
+            p = c.get("data",{})
+            out.append({
+                "title": p.get("title",""),
+                "link":  p.get("url","") or ("https://reddit.com" + p.get("permalink","")),
+                "summary": p.get("selftext",""),
+                "date": datetime.fromtimestamp(p.get("created_utc",0), tz=timezone.utc).isoformat(),
+            })
+        return out
+    except (JSONDecodeError, ET.ParseError, Exception):
+        try:
+            return parse_rss(http_get(url, headers={"User-Agent":"mmblite/1.0"}))
+        except Exception:
+            return []
 
 FETCHERS = {"google": fetch_google, "bing": fetch_bing, "rss": fetch_rss, "reddit": fetch_reddit}
 
@@ -63,20 +103,33 @@ def hash_id(link, title):
     h.update(to_text(title).encode("utf-8"))
     return h.hexdigest()[:16]
 
-# -------------------- MEN’S-ONLY filter (balanced) --------------------
+# -------------------- MEN’S-ONLY filter (stricter) --------------------
 
 PLAYERS = [
-    "c.j. cox","antione west","fletcher loyer","braden smith","aaron fine","jack lusk",
-    "jack benter","omer mayer","gicarri harris","jace rayl","trey kaufman-renn","liam murphy",
-    "sam king","raleigh burgess","daniel jacobsen","oscar cluff","matt painter"
+    "c.j. cox", "antione west", "fletcher loyer", "braden smith", "aaron fine", "jack lusk",
+    "jack benter", "omer mayer", "gicarri harris", "jace rayl", "trey kaufman-renn", "liam murphy",
+    "sam king", "raleigh burgess", "daniel jacobsen", "oscar cluff", "matt painter", "zach edey"
 ]
 
-MEN_SIG        = re.compile(r"\bmen'?s\b|\bmbb\b|\bmen'?s?\s+basketball\b", re.I)
-PURDUE_SIG     = re.compile(r"\bpurdue\b|\bboilermakers?\b|\bboilers?\b", re.I)
-BASKETBALL     = re.compile(r"\bbasketball\b", re.I)
-PLAYER_SIG     = re.compile("|".join(re.escape(n) for n in PLAYERS), re.I)
-WOMENS         = re.compile(r"\bwomen'?s\b|\bwbb\b|\bwbk\b|\blady\b", re.I)
-OTHER_SPORTS   = re.compile(r"\bfootball\b|\bvolleyball\b|\bbaseball\b|\bsoccer\b|\bwrestling\b|\bsoftball\b|\btrack\b|\bgolf\b", re.I)
+KEY_PURDUE_TERMS = [
+    "purdue", "boilermaker", "boilermakers", "mackey", "west lafayette", "men of mackey"
+]
+
+MEN_SIGNALS     = re.compile(r"\bmen'?s\b|\bmbb\b|\bmen'?s?\s+basketball\b", re.I)
+PURDUE_SIGNALS  = re.compile(r"\bpurdue\b|\bboilermakers?\b|\bboilers?\b|\bmackey\b|\bwest\s+lafayette\b", re.I)
+BASKETBALL      = re.compile(r"\bbasketball\b", re.I)
+PLAYER_SIG      = re.compile("|".join(re.escape(n) for n in PLAYERS), re.I)
+WOMENS          = re.compile(r"\bwomen'?s\b|\bwbb\b|\bwbk\b|\blady\b", re.I)
+OTHER_SPORTS    = re.compile(r"\bfootball\b|\bvolleyball\b|\bbaseball\b|\bsoccer\b|\bwrestling\b|\bsoftball\b|\btrack\b|\bgolf\b", re.I)
+
+# Headlines we see that are rarely Purdue-specific unless Purdue is explicitly named
+GENERIC_LISTY   = re.compile(r"\broster\b|\bschedule\b|\bteam rankings\b|\bcommits\b|\boffers\b|\bcrystal ball\b|\btop\s+\d+\b", re.I)
+
+# Schools/teams that commonly pollute the Purdue feed via network/team hubs; block unless Purdue is present
+OTHER_SCHOOLS_HINT = re.compile(
+    r"\b(iowa|butler|jacksonville state|nicholls|virginia|duke|florida|memphis|north carolina|illinois|michigan state|michigan|ohio state|wisconsin|indiana)\b",
+    re.I
+)
 
 TRUSTED_NAMES = None
 def is_trusted(feed_name: str) -> bool:
@@ -85,40 +138,89 @@ def is_trusted(feed_name: str) -> bool:
         TRUSTED_NAMES = {f["name"] for f in FEEDS if f.get("trust")}
     return feed_name in TRUSTED_NAMES
 
+def clearly_purdue(blob: str) -> bool:
+    return bool(PURDUE_SIGNALS.search(blob) or PLAYER_SIG.search(blob))
+
 def allow_item(title, summary, feed):
     """
-    Pass only Purdue men's basketball content.
-    Rules:
-      - Hard-block explicit women’s markers.
-      - If the TITLE mentions another sport, require a hoops signal IN THE TITLE.
-      - Otherwise require: (Purdue-ish) AND (Hoops-ish) somewhere in title+summary or feed name.
-      - Trusted feeds can pass with weaker hoops check, but still must be Purdue-ish and not another sport title.
+    STRICT Purdue Men's Basketball filter.
+    Rules (ordered, fail-fast):
+      1) Block explicit women's-only if no hoops context.
+      2) If another sport is present, require hoops signal IN TITLE.
+      3) Require Purdue-ish AND Hoops context overall.
+      4) If title looks generic list/roster, require Purdue in title (not just feed name).
+      5) If other school words appear, require Purdue in title OR a Purdue player/coach.
+      6) 'Trusted' feeds do NOT bypass Purdue/hoops anymore; they only skip some generic checks.
     """
-    name = feed.get("name","")
-    lname = name.lower()
+    name      = feed.get("name","")
+    trusted   = is_trusted(name)
 
     title_t   = to_text(title)
     summary_t = to_text(summary)
     blob      = f"{title_t}\n{summary_t}"
 
-    purdueish = bool(PURDUE_SIG.search(blob) or PLAYER_SIG.search(blob) or "purdue" in lname)
-    hoopsish_title = bool(BASKETBALL.search(title_t) or MEN_SIG.search(title_t) or PLAYER_SIG.search(title_t) or "mbb" in lname)
-    hoopsish_any   = bool(BASKETBALL.search(blob) or MEN_SIG.search(blob) or PLAYER_SIG.search(blob) or "mbb" in lname)
+    title_hoops = bool(BASKETBALL.search(title_t) or MEN_SIGNALS.search(title_t) or PLAYER_SIG.search(title_t))
+    any_hoops   = title_hoops or bool(BASKETBALL.search(summary_t) or MEN_SIGNALS.search(summary_t) or PLAYER_SIG.search(summary_t))
+    purdueish   = clearly_purdue(blob) or ("purdue" in name.lower())
 
-    # 1) explicit women's → reject
-    if WOMENS.search(blob):
+    # 1) women's-only -> block
+    if WOMENS.search(blob) and not any_hoops:
         return False
 
-    # 2) title says another sport → only pass if title is clearly hoops too
-    if OTHER_SPORTS.search(title_t) and not hoopsish_title:
+    # 2) other sports present -> require hoops in title
+    if OTHER_SPORTS.search(title_t) and not title_hoops:
+        return False
+    if OTHER_SPORTS.search(blob) and not any_hoops:
         return False
 
-    # 3) trusted feeds: lighter requirement but still Purdue-ish and not off-sport
-    if is_trusted(name):
-        return purdueish and (hoopsish_any or hoopsish_title)
+    # 3) must be Purdue-ish AND hoops-ish
+    if not (purdueish and any_hoops):
+        return False
 
-    # 4) default requirement
-    return purdueish and hoopsish_any
+    # 4) generic list/roster/schedule headlines need Purdue IN TITLE specifically
+    if GENERIC_LISTY.search(title_t) and not re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I):
+        return False
+
+    # 5) other schools keywords require Purdue in title OR Purdue player/coach explicitly
+    if OTHER_SCHOOLS_HINT.search(blob):
+        if not (re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I) or PLAYER_SIG.search(blob)):
+            return False
+
+    # 6) trusted feeds: do not loosen Purdue/hoops requirement; already enforced above.
+    return True
+
+# -------------------- date handling --------------------
+
+DATE_FORMATS = (
+    "%a, %d %b %Y %H:%M:%S %z",   # RFC822 like: Fri, 29 Aug 2025 17:25:06 +0000
+    "%a, %d %b %Y %H:%M:%S %Z",   # with GMT
+    "%Y-%m-%dT%H:%M:%S%z",        # ISO with tz
+    "%Y-%m-%dT%H:%M:%S",          # ISO without tz
+    "%Y-%m-%d %H:%M:%S%z",
+    "%Y-%m-%d %H:%M:%S",
+)
+
+def normalize_datetime_str(d: str):
+    """
+    Returns (display_rfc1123, ts_int)
+    If parsing fails, uses current UTC time.
+    """
+    if not d:
+        dt = datetime.now(timezone.utc)
+        return dt.strftime("%a, %d %b %Y %H:%M:%S GMT"), int(dt.timestamp())
+    zz = d.strip().replace("Z", "+0000")
+    for fmt in DATE_FORMATS:
+        try:
+            dt = datetime.strptime(zz, fmt)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            dt_utc = dt.astimezone(timezone.utc)
+            return dt_utc.strftime("%a, %d %b %Y %H:%M:%S GMT"), int(dt_utc.timestamp())
+        except Exception:
+            continue
+    # last resort: now
+    dt = datetime.now(timezone.utc)
+    return dt.strftime("%a, %d %b %Y %H:%M:%S GMT"), int(dt.timestamp())
 
 # -------------------- collect --------------------
 
@@ -131,7 +233,8 @@ def collect():
         name = feed.get("name","Feed")
         per[name] = 0
         try:
-            data = FETCHERS.get(feed.get("type","rss"), fetch_rss)(feed)
+            fetcher = FETCHERS.get(feed.get("type","rss"), fetch_rss)
+            data = fetcher(feed)
         except Exception:
             continue
 
@@ -140,42 +243,50 @@ def collect():
             link  = to_text(it.get("link","")).strip()
             if not title or not link:
                 continue
+
             summary = to_text(it.get("summary",""))
             if not allow_item(title, summary, feed):
                 continue
+
             uid = hash_id(link, title)
             if uid in seen:
                 continue
             seen.add(uid)
+
+            disp_date, ts = normalize_datetime_str(to_text(it.get("date","")))
             per[name] += 1
             out.append({
-                "id": uid, "title": title, "link": link, "summary": summary,
-                "source": name, "date": it.get("date","")
+                "id": uid,
+                "title": title,
+                "link": link,
+                "summary": summary,
+                "source": name,
+                "date": disp_date,  # nice RFC1123-style string for UI
+                "ts": ts            # numeric timestamp for sorting/export
             })
 
-        time.sleep(0.1)
+        time.sleep(0.08)
 
-    # sort newest first (best-effort)
-    def sort_key(x):
-        d = x.get("date","")
-        for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S"):
-            try:
-                return datetime.strptime(d.replace("Z","+0000"), fmt)
-            except Exception:
-                pass
-        return datetime.now(timezone.utc)
-
-    out.sort(key=sort_key, reverse=True)
+    # Sort newest first using ts (stable)
+    out.sort(key=lambda x: int(x.get("ts", 0)), reverse=True)
     out = out[:MAX_ITEMS]
 
     meta = {
         "generated_at": now_iso(),
         "items_count": len(out),
         "items_mtime": now_iso(),
-        "last_run": {"ok": True, "rc": 0, "final_count": len(out), "per_feed_counts": per, "ts": now_iso()}
+        "last_run": {"ok": True, "rc": 0, "final_count": len(out),
+                     "per_feed_counts": per, "ts": now_iso()}
     }
-    with open(ITEMS_PATH, "w", encoding="utf-8") as f:
-        json.dump({"items": out, "meta": meta}, f, ensure_ascii=False)
+
+    # ATOMIC WRITE
+    payload = json.dumps({"items": out, "meta": meta}, ensure_ascii=False)
+    dirn = os.path.dirname(ITEMS_PATH) or "."
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=dirn, delete=False) as tmp:
+        tmp.write(payload)
+        tmp_path = tmp.name
+    os.replace(tmp_path, ITEMS_PATH)
+
     return len(out)
 
 if __name__ == "__main__":
