@@ -4,9 +4,8 @@
    =========================== */
 
 :root {
-  /* Global light theme */
   --bg: #f6f2ea;
-  --panel: #fffdf8;             /* general panels/inputs */
+  --panel: #fffdf8;
   --text: #1b1b1b;
   --muted: #6b6b6b;
   --gold: #c5a559;
@@ -16,14 +15,12 @@
   --shadow-2: 0 2px 4px rgba(0,0,0,.08), 0 10px 26px rgba(0,0,0,.10);
   --ease: cubic-bezier(.2,.65,.25,1);
 
-  /* Buttons (light with black text) */
   --btn-bg: #F0E8D6;
   --btn-text: #000000;
   --btn-border: #D7C8A1;
   --btn-hover-bg: #E6DBBE;
   --btn-active-bg: #DCCFAD;
 
-  /* Cards (lighter than buttons for clear offset) */
   --card-bg: #FFFBF0;
   --card-text: #1B1B1B;
   --card-border: rgba(0,0,0,.08);
@@ -54,23 +51,19 @@ body {
   margin: 0;
   font-family: ui-sans-serif,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial;
   color: var(--text);
-
   background:
     linear-gradient(rgba(246, 242, 234, 0.94), rgba(246, 242, 234, 0.94)),
     url("{{ url_for('static', filename='hero.jpg') }}") center/cover no-repeat fixed;
-
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Container */
 .container {
   max-width: 980px;
   margin: 0 auto;
   padding: clamp(12px, 2.6vw, 24px);
 }
 
-/* Header */
 .header {
   display: flex;
   align-items: center;
@@ -84,7 +77,6 @@ body {
 h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
 .sub { color: var(--muted); font-size: clamp(12px, 2.4vw, 14px); margin-top: 2px; }
 
-/* Fight song button */
 .fight-btn {
   appearance: none; border: 0; cursor: pointer;
   background: linear-gradient(180deg, var(--gold) 0%, var(--gold-2) 100%);
@@ -94,7 +86,6 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
 .fight-btn:hover { filter: saturate(1.05); }
 .fight-btn:active { transform: translateY(1px); }
 
-/* Quick links (pills / source chips) */
 .quick {
   display: grid;
   gap: 10px;
@@ -107,8 +98,8 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   background: var(--btn-bg);
   border: 1px solid var(--btn-border);
   color: var(--btn-text);
-  font-weight: 700;             /* bold */
-  text-decoration: none;        /* no underline */
+  font-weight: 700;
+  text-decoration: none;
   box-shadow: var(--shadow-1);
   font-size: 13.5px; line-height: 1.2; text-align: center;
   cursor: pointer;
@@ -123,7 +114,6 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   transform: translateY(1px);
 }
 
-/* Controls */
 .controls {
   display: flex;
   gap: 10px;
@@ -143,7 +133,6 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
 .input::placeholder { color: var(--muted); }
 .select { max-width: 220px; }
 
-/* Notice */
 .notice {
   background: #fff7e0;
   color: #5b4300;
@@ -154,7 +143,6 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   font-size: 14px;
 }
 
-/* Articles */
 .items {
   list-style: none;
   padding: 0;
@@ -185,10 +173,12 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   flex-wrap: wrap;
 }
 
-/* Article title links */
-.title {
-  color: #000;                 /* black text */
-  text-decoration: none;       /* no underline */
+/* === FIXED: Article title links (force black, no underline) === */
+.title,
+.title:link,
+.title:visited {
+  color: #000 !important;       /* always black */
+  text-decoration: none !important;
   font-weight: 800;
   font-size: clamp(16px, 3.2vw, 21px);
   line-height: 1.3;
@@ -196,7 +186,7 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   cursor: pointer;
 }
 .title:hover {
-  text-decoration: underline;  /* underline only on hover */
+  text-decoration: underline;
   color: #333;
 }
 
@@ -227,7 +217,6 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   overflow: hidden;
 }
 
-/* Footer */
 .footer {
   text-align: center;
   color: var(--muted);
@@ -235,7 +224,6 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   font-size: 13px;
 }
 
-/* Mobile tweaks */
 @media (max-width: 560px) {
   .brand { gap: 10px; }
   .logo { width: 56px; }
@@ -250,12 +238,10 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   .item { border-radius: 14px; }
 }
 
-/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .item { transition: none }
 }
 
-/* Focus ring */
 a:focus-visible, .pill:focus-visible, .input:focus-visible,
 .select:focus-visible, .fight-btn:focus-visible, button:focus-visible {
   outline: 3px solid var(--ring);
