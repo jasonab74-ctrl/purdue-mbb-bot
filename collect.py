@@ -33,7 +33,7 @@ def parse_rss(xml_bytes):
     Very tolerant RSS/Atom parser (title/link/summary/date)
     """
     root = ET.fromstring(xml_bytes)
-    ns = {"content":"http://purl.org/rss/1.0/modules/content/"}  # common extns
+    ns = {"content":"http://purl.org/rss/1.0/modules/content/"}  # used by some feeds
     out = []
     for it in root.findall(".//item") + root.findall(".//{http://www.w3.org/2005/Atom}entry"):
         title = (it.findtext("title") or it.findtext("{http://www.w3.org/2005/Atom}title") or "").strip()
@@ -100,7 +100,7 @@ def hash_id(link, title):
     h.update(to_text(title).encode("utf-8"))
     return h.hexdigest()[:16]
 
-# -------------------- MEN’S-ONLY filter (trusted feeds relaxed) --------------------
+# -------------------- Purdue MBB filter (relaxed for trusted feeds) --------------------
 
 PLAYERS = [
     "c.j. cox", "antione west", "fletcher loyer", "braden smith", "aaron fine", "jack lusk",
@@ -132,9 +132,8 @@ def clearly_purdue(blob: str) -> bool:
 
 def allow_item(title, summary, feed):
     """
-    Relaxed for trusted feeds:
-      - Trusted: require (Purdue-ish OR hoops), and skip generic/other-school penalties.
-      - Others: require (Purdue-ish AND hoops), plus generic/school checks.
+    Trusted feeds: allow if (Purdue-ish OR hoops-ish).
+    Others: require (Purdue-ish AND hoops-ish) + generic/school checks.
     """
     name      = feed.get("name","")
     trusted   = is_trusted(name)
@@ -147,17 +146,17 @@ def allow_item(title, summary, feed):
     any_hoops   = title_hoops or bool(BASKETBALL.search(summary_t) or MEN_SIGNALS.search(summary_t) or PLAYER_SIG.search(summary_t))
     purdueish   = clearly_purdue(blob) or ("purdue" in name.lower())
 
-    # 1) women's-only -> block
+    # women's-only phrasing with no hoops → drop
     if WOMENS.search(blob) and not any_hoops:
         return False
 
-    # 2) other sports present -> require hoops in title
+    # mentions of other sports → must have hoops context
     if OTHER_SPORTS.search(title_t) and not title_hoops:
         return False
     if OTHER_SPORTS.search(blob) and not any_hoops:
         return False
 
-    # 3) core requirement (trusted vs untrusted)
+    # core requirement
     if trusted:
         if not (purdueish or any_hoops):
             return False
@@ -165,14 +164,12 @@ def allow_item(title, summary, feed):
         if not (purdueish and any_hoops):
             return False
 
-    # 4) generic listy titles must have Purdue IN TITLE (only for untrusted)
-    if (not trusted) and GENERIC_LISTY.search(title_t) and not re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I):
-        return False
-
-    # 5) other schools keywords require Purdue in title or a Purdue name (only for untrusted)
-    if (not trusted) and OTHER_SCHOOLS_HINT.search(blob):
-        if not (re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I) or PLAYER_SIG.search(blob)):
+        if GENERIC_LISTY.search(title_t) and not re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I):
             return False
+
+        if OTHER_SCHOOLS_HINT.search(blob):
+            if not (re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I) or PLAYER_SIG.search(blob)):
+                return False
 
     return True
 
