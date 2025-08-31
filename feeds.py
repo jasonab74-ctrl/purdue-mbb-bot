@@ -1,142 +1,72 @@
-# feeds.py — Purdue Men's Basketball sources (for collect.py that imports FEEDS)
 
-KEYWORDS_EXCLUDE = [
-    "women's basketball", "wbb", "wbk", "lady",
-    "football", "volleyball", "baseball", "softball", "soccer",
-    "wrestling", "hockey", "golf", "track", "cross country"
-]
+# feeds.py — Purdue Men's Basketball sources (used by collect.py)
 
 FEEDS = [
-    # ---- Broad Purdue MBB news aggregators
-    {
-        "name": "Google News — Purdue Basketball",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=Purdue+Men%27s+Basketball+OR+MBB+OR+%22Matt+Painter%22&hl=en-US&gl=US&ceid=US:en",
-        "trust": True
-    },
-    {
-        "name": "Bing News — Purdue Basketball",
-        "type": "bing",
-        "url": "https://www.bing.com/news/search?q=Purdue+Men%27s+Basketball+OR+MBB+OR+%22Matt+Painter%22&format=RSS",
-        "trust": True
-    },
+    # ===== Broad Purdue MBB aggregators
+    {"name": "Google News — Purdue Basketball",
+     "url": "https://news.google.com/rss/search?q=Purdue+Men%27s+Basketball+OR+MBB+OR+%22Matt+Painter%22&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Bing News — Purdue Basketball",
+     "url": "https://www.bing.com/news/search?q=Purdue+Men%27s+Basketball+OR+MBB+OR+%22Matt+Painter%22&format=RSS"},
 
-    # ---- National outlets scoped to Purdue MBB
-    {
-        "name": "Google News — ESPN Purdue MBB",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:espn.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en",
-        "trust": True
-    },
-    {
-        "name": "Google News — CBS Sports – Purdue",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:cbssports.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en",
-        "trust": True
-    },
-    {
-        "name": "Google News — Yahoo Sports – Purdue",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:sports.yahoo.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en",
-        "trust": True
-    },
+    # ===== Major outlets (site-scoped searches keep noise down)
+    {"name": "ESPN — Purdue (MBB search)",
+     "url": "https://news.google.com/rss/search?q=site:espn.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "CBS Sports — Purdue (MBB search)",
+     "url": "https://news.google.com/rss/search?q=site:cbssports.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Yahoo Sports — Purdue (MBB search)",
+     "url": "https://news.google.com/rss/search?q=site:sports.yahoo.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Sports Illustrated — Purdue (MBB search)",
+     "url": "https://news.google.com/rss/search?q=site:si.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
 
-    # ---- Local & beat outlets
-    {
-        "name": "Journal & Courier Purdue",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:jconline.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"
-    },
-    {
-        "name": "Purdue Exponent — Men’s Basketball",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:purdueexponent.org%2Fsports%2Fmens%2Fbasketball%2F+Purdue+Basketball&hl=en-US&gl=US&ceid=US:en"
-    },
-    {
-        "name": "IndyStar Purdue",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:indystar.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"
-    },
+    # ===== Local & beat
+    {"name": "Journal & Courier (J&C) — Purdue",
+     "url": "https://news.google.com/rss/search?q=site:jconline.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Purdue Exponent — Men’s Basketball",
+     "url": "https://news.google.com/rss/search?q=site:purdueexponent.org/sports/mens/basketball/+Purdue&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "IndyStar — Purdue (MBB search)",
+     "url": "https://news.google.com/rss/search?q=site:indystar.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
 
-    # ---- Recruiting / team sites
-    {
-        "name": "On3 — Purdue (team feed)",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:on3.com%2Fteams%2Fpurdue-boilermakers%2F+basketball&hl=en-US&gl=US&ceid=US:en"
-    },
-    {
-        "name": "247Sports — Purdue (team feed)",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:247sports.com%2Fcollege%2Fpurdue%2F+basketball&hl=en-US&gl=US&ceid=US:en"
-    },
-    {
-        "name": "Rivals — GoldandBlack (Purdue)",
-        "type": "bing",
-        "url": "https://www.bing.com/news/search?q=site:goldandblack.com+Purdue+Basketball&format=RSS"
-    },
-    {
-        "name": "Sports Illustrated — Purdue",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=site:si.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"
-    },
+    # ===== Recruiting / team sites
+    {"name": "On3 — Purdue team feed",
+     "url": "https://news.google.com/rss/search?q=site:on3.com/teams/purdue-boilermakers/+basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "247Sports — Purdue team feed",
+     "url": "https://news.google.com/rss/search?q=site:247sports.com/college/purdue/+basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Rivals — GoldandBlack (site)",
+     "url": "https://www.bing.com/news/search?q=site:goldandblack.com+Purdue+Basketball&format=RSS"},
 
-    # ---- Blogs / fan sites with working RSS
-    {
-        "name": "Hammer & Rails (SB Nation)",
-        "type": "rss",
-        "url": "https://www.hammerandrails.com/rss/index.xml"
-    },
+    # ===== Blogs / fan
+    {"name": "Hammer & Rails (SB Nation)",
+     "url": "https://www.hammerandrails.com/rss/index.xml"},
 
-    # ---- Official (no native RSS scoped to MBB; use site query)
-    {
-        "name": "PurdueSports.com — “Men’s Basketball”",
-        "type": "bing",
-        "url": "https://www.bing.com/news/search?q=site:purduesports.com+%22Men%27s+Basketball%22&format=RSS",
-        "trust": True
-    },
+    # ===== Official (no native MBB RSS; use site search)
+    {"name": "PurdueSports.com — “Men’s Basketball”",
+     "url": "https://www.bing.com/news/search?q=site:purduesports.com+%22Men%27s+Basketball%22&format=RSS"},
 
-    # ---- Reddit (RSS)
-    {
-        "name": "Reddit — r/Boilermakers",
-        "type": "rss",
-        "url": "https://www.reddit.com/r/Boilermakers/.rss"
-    },
-    {
-        "name": "Reddit — r/CollegeBasketball (Purdue search)",
-        "type": "rss",
-        "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue%20basketball&restrict_sr=on&sort=new"
-    },
+    # ===== Reddit (stay on RSS so the collector treats all uniformly)
+    {"name": "Reddit — r/Boilermakers",
+     "url": "https://www.reddit.com/r/Boilermakers/.rss"},
+    {"name": "Reddit — r/CollegeBasketball (Purdue search)",
+     "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue%20basketball&restrict_sr=on&sort=new"},
 
-    # ---- Focused queries (coach / arena / tournament context)
-    {
-        "name": "Google News — Matt Painter",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=%22Matt+Painter%22+Purdue+basketball&hl=en-US&gl=US&ceid=US:en"
-    },
-    {
-        "name": "Google News — Mackey Arena (MBB context)",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=%22Mackey+Arena%22+Purdue+basketball&hl=en-US&gl=US&ceid=US:en"
-    },
-    {
-        "name": "Google News — NCAA Tournament (Purdue)",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=Purdue+basketball+NCAA+Tournament&hl=en-US&gl=US&ceid=US:en"
-    },
+    # ===== Focus signals (coach/arena)
+    {"name": "Matt Painter — news",
+     "url": "https://news.google.com/rss/search?q=%22Matt+Painter%22+Purdue+basketball&hl=en-US&gl=US&ceid=US:en"},
+    {"name": "Mackey Arena — news",
+     "url": "https://news.google.com/rss/search?q=%22Mackey+Arena%22+Purdue+basketball&hl=en-US&gl=US&ceid=US:en"},
 
-    # ---- Player-name signals to help the filter
-    {
-        "name": "YouTube Mentions — Purdue Basketball",
-        "type": "google",
-        "url": "https://news.google.com/rss/search?q=Purdue+basketball+("
-               "Braden+Smith+OR+Fletcher+Loyer+OR+Trey+Kaufman-Renn+OR+Jack+Benter+OR+Omer+Mayer+OR+"
-               "Gicarri+Harris+OR+Raleigh+Burgess+OR+Daniel+Jacobsen+OR+Oscar+Cluff+OR+Liam+Murphy+OR+"
-               "Sam+King+OR+Aaron+Fine+OR+Jace+Rayl+OR+Jack+Lusk+OR+C.J.+Cox)"
-               "&hl=en-US&gl=US&ceid=US:en"
-    },
+    # ===== Player-name bundle (helps pass legit MBB items)
+    {"name": "Purdue Player Mentions — bundle",
+     "url": (
+        "https://news.google.com/rss/search?q="
+        "Purdue+basketball+("
+        "Braden+Smith+OR+Fletcher+Loyer+OR+Trey+Kaufman-Renn+OR+Jack+Benter+OR+Omer+Mayer+OR+"
+        "Gicarri+Harris+OR+Raleigh+Burgess+OR+Daniel+Jacobsen+OR+Oscar+Cluff+OR+Liam+Murphy+OR+"
+        "Sam+King+OR+Aaron+Fine+OR+Jace+Rayl+OR+Jack+Lusk+OR+C.J.+Cox)"
+        "&hl=en-US&gl=US&ceid=US:en"
+     )},
 ]
 
-# 🔗 Quick links (buttons row) — YouTube buttons grouped at the end
+# Quick links (for your top pills; not used by the collector)
 STATIC_LINKS = [
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Purdue – Schedule",          "url": "https://purduesports.com/sports/mens-basketball/schedule"},
@@ -148,10 +78,8 @@ STATIC_LINKS = [
     {"label": "GoldandBlack (Rivals)",      "url": "https://goldandblack.com/"},
     {"label": "Barstool – Purdue",          "url": "https://www.barstoolsports.com/tag/purdue"},
     {"label": "Reddit – r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/"},
-    {"label": "Journal & Courier",          "url": "https://www.jconline.com/sports/boilermakers/"},
-    {"label": "Purdue Exponent (MBB)",      "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
-    # YouTube group (together at the end):
     {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@Fieldof68"},
     {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@SleepersMedia"},
-    {"label": "YouTube – Brian Neubert",    "url": "https://www.youtube.com/@Goldandblackcom"},
+    {"label": "Journal & Courier",          "url": "https://www.jconline.com/sports/boilermakers/"},
+    {"label": "Purdue Exponent (MBB)",      "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
 ]
