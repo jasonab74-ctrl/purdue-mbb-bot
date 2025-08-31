@@ -1,12 +1,5 @@
 # feeds.py — Purdue Men's Basketball sources (for collect.py that imports FEEDS)
-#
-# Notes:
-# - The "All sources" dropdown is populated from FEEDS below.
-# - Each entry is a dict with: name, type ("google" | "bing" | "rss" | "reddit"), url, optional "trust".
-# - Women's / other-sport noise is filtered in collect.py (not here).
-# - STATIC_LINKS controls the buttons row at the top of the UI.
 
-# Keywords we never want (kept here for reference; collect.py does the actual filtering)
 KEYWORDS_EXCLUDE = [
     "women's basketball", "wbb", "wbk", "lady",
     "football", "volleyball", "baseball", "softball", "soccer",
@@ -102,7 +95,7 @@ FEEDS = [
         "trust": True
     },
 
-    # ---- Reddit
+    # ---- Reddit (RSS)
     {
         "name": "Reddit — r/Boilermakers",
         "type": "rss",
@@ -143,7 +136,7 @@ FEEDS = [
     },
 ]
 
-# 🔗 Quick links (buttons row). The new button is the LAST item below.
+# 🔗 Quick links (buttons row) — YouTube buttons grouped at the end
 STATIC_LINKS = [
     {"label": "Purdue – Official MBB Page", "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Purdue – Schedule",          "url": "https://purduesports.com/sports/mens-basketball/schedule"},
@@ -155,10 +148,10 @@ STATIC_LINKS = [
     {"label": "GoldandBlack (Rivals)",      "url": "https://goldandblack.com/"},
     {"label": "Barstool – Purdue",          "url": "https://www.barstoolsports.com/tag/purdue"},
     {"label": "Reddit – r/Boilermakers",    "url": "https://www.reddit.com/r/Boilermakers/"},
-    {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@Fieldof68"},
-    {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@SleepersMedia"},
     {"label": "Journal & Courier",          "url": "https://www.jconline.com/sports/boilermakers/"},
     {"label": "Purdue Exponent (MBB)",      "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
-    # NEW requested button (last):
-    {"label": "YouTube – Brian Neubert (GoldandBlack)", "url": "https://www.youtube.com/@Goldandblackcom"},
+    # YouTube group (together at the end):
+    {"label": "YouTube – Field of 68",      "url": "https://www.youtube.com/@Fieldof68"},
+    {"label": "YouTube – Sleepers Media",   "url": "https://www.youtube.com/@SleepersMedia"},
+    {"label": "YouTube – Brian Neubert",    "url": "https://www.youtube.com/@Goldandblackcom"},
 ]
