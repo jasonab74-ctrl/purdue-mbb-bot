@@ -8,7 +8,7 @@ FEEDS = [
     {"name": "Bing News — Purdue Basketball",
      "url": "https://www.bing.com/news/search?q=Purdue+Men%27s+Basketball+OR+MBB+OR+%22Matt+Painter%22&format=RSS"},
 
-    # ===== Major outlets (site-scoped searches keep noise down)
+    # ===== Major outlets
     {"name": "ESPN — Purdue (MBB search)",
      "url": "https://news.google.com/rss/search?q=site:espn.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
     {"name": "CBS Sports — Purdue (MBB search)",
@@ -37,7 +37,7 @@ FEEDS = [
     # ===== Blogs / fan
     {"name": "Hammer & Rails (SB Nation)", "url": "https://www.hammerandrails.com/rss/index.xml"},
 
-    # ===== Official (no native MBB RSS; use site search)
+    # ===== Official
     {"name": "PurdueSports.com — “Men’s Basketball”",
      "url": "https://www.bing.com/news/search?q=site:purduesports.com+%22Men%27s+Basketball%22&format=RSS"},
 
@@ -52,7 +52,7 @@ FEEDS = [
     {"name": "Mackey Arena — news",
      "url": "https://news.google.com/rss/search?q=%22Mackey+Arena%22+Purdue+basketball&hl=en-US&gl=US&ceid=US:en"},
 
-    # ===== Player-name bundle (helps pass legit MBB items)
+    # ===== Player-name bundle
     {"name": "Purdue Player Mentions — bundle",
      "url": (
         "https://news.google.com/rss/search?q="
@@ -64,25 +64,22 @@ FEEDS = [
      )},
 ]
 
-# Quick links (top buttons). Order matters. DK first. YouTube grouped last. Labels = short.
+# Quick links (top buttons). Order & labels = per your request.
 STATIC_LINKS = [
-    {"label": "DK Odds",              "url": "https://sportsbook.draftkings.com/search?query=Purdue%20basketball"},
-
-    {"label": "Official MBB",         "url": "https://purduesports.com/sports/mens-basketball"},
+    {"label": "Betting",              "url": "https://sportsbook.draftkings.com/search?query=Purdue%20basketball"},
+    {"label": "Purdue Official",      "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Schedule",             "url": "https://purduesports.com/sports/mens-basketball/schedule"},
     {"label": "Roster",               "url": "https://purduesports.com/sports/mens-basketball/roster"},
     {"label": "ESPN",                 "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
     {"label": "CBS Sports",           "url": "https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/"},
     {"label": "Yahoo Sports",         "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
     {"label": "Hammer & Rails",       "url": "https://www.hammerandrails.com/"},
-    {"label": "GoldandBlack",         "url": "https://goldandblack.com/"},
-    {"label": "Barstool",             "url": "https://www.barstoolsports.com/tag/purdue"},
-    {"label": "Reddit",               "url": "https://www.reddit.com/r/Boilermakers/"},
+    {"label": "G&B",                  "url": "https://goldandblack.com/"},
+    {"label": "Barstool Sports",      "url": "https://www.barstoolsports.com/tag/purdue"},
+    {"label": "Reddit - Boilermakers","url": "https://www.reddit.com/r/Boilermakers/"},
     {"label": "J&C",                  "url": "https://www.jconline.com/sports/boilermakers/"},
     {"label": "Exponent",             "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
-
-    # YouTube — grouped last
-    {"label": "YouTube — Field of 68", "url": "https://www.youtube.com/@Fieldof68"},
-    {"label": "YouTube — Sleepers",    "url": "https://www.youtube.com/@SleepersMedia"},
-    {"label": "YouTube — Neubert",     "url": "https://www.youtube.com/@Goldandblackcom"}
+    {"label": "Youtube - Field of 68","url": "https://www.youtube.com/@Fieldof68"},
+    {"label": "Youtube - Sleepers",   "url": "https://www.youtube.com/@SleepersMedia"},
+    {"label": "Youtube - G&B",        "url": "https://www.youtube.com/@Goldandblackcom"}
 ]
