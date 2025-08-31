@@ -221,6 +221,52 @@ def normalize_datetime_str(d: str):
     dt = datetime.now(timezone.utc)
     return dt.strftime("%a, %d %b %Y %H:%M:%S GMT"), int(dt.timestamp())
 
+# -------------------- game-day detector (adds meta.gameday) --------------------
+
+_GAMEDAY_PATTERNS = [
+    r"\bPurdue(?: Boilermakers)?\s+(?:vs\.?|at)\s+([A-Za-z .'\-]+)\b",
+    r"\b([A-Za-z .'\-]+)\s+(?:vs\.?|at)\s+Purdue(?: Boilermakers)?\b",
+]
+
+_DK_CBB_GAME_LINES = "https://sportsbook.draftkings.com/leagues/basketball/1035?category=game-lines"
+
+def detect_gameday(items):
+    """
+    Inspect recent item titles for an opponent mention.
+    Returns a dict for meta.gameday or None.
+
+    Example return:
+      {
+        "active": True,
+        "opponent": "Marquette",
+        "label": "Live Betting Odds — DraftKings (Game Day: vs Marquette)",
+        "url": "https://sportsbook.draftkings.com/leagues/basketball/1035?category=game-lines"
+      }
+    """
+    opponent = None
+    for it in items[:40]:  # look at a reasonable slice
+        title = to_text(it.get("title") or it.get("headline") or "")
+        if not title:
+            continue
+        for rx in _GAMEDAY_PATTERNS:
+            m = re.search(rx, title, flags=re.IGNORECASE)
+            if m:
+                opponent = m.group(1).strip(" .-")
+                break
+        if opponent:
+            break
+
+    if not opponent:
+        return {"active": False}
+
+    label = f"Live Betting Odds — DraftKings (Game Day: vs {opponent})"
+    return {
+        "active": True,
+        "opponent": opponent,
+        "label": label,
+        "url": _DK_CBB_GAME_LINES
+    }
+
 # -------------------- collect --------------------
 
 def collect():
@@ -270,12 +316,16 @@ def collect():
     out.sort(key=lambda x: int(x.get("ts", 0)), reverse=True)
     out = out[:MAX_ITEMS]
 
+    # --- NEW: compute game-day metadata safely from items we already have
+    gameday = detect_gameday(out)
+
     meta = {
         "generated_at": now_iso(),
         "items_count": len(out),
         "items_mtime": now_iso(),
         "last_run": {"ok": True, "rc": 0, "final_count": len(out),
-                     "per_feed_counts": per, "ts": now_iso()}
+                     "per_feed_counts": per, "ts": now_iso()},
+        "gameday": gameday,  # <— add here; purely additive
     }
 
     # ATOMIC WRITE
