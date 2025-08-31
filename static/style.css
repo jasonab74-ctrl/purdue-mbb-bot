@@ -85,7 +85,20 @@ body {
 }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 260px; }
 .logo { width: clamp(52px, 9vw, 84px); height: auto; object-fit: contain; }
-h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
+
+/* >>> Make the big site title pop (fix "washed out") <<< */
+h1 {
+  margin: 0;
+  line-height: 1.05;
+  font-size: clamp(28px, 5.8vw, 48px);
+  color: #1b1b1b !important;       /* force solid dark text */
+  opacity: 1 !important;            /* ensure no accidental fading */
+  mix-blend-mode: normal !important;
+  filter: none !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.45);  /* subtle lift on light bg */
+  font-weight: 900;                  /* a bit bolder for legibility */
+}
+
 .sub { color: var(--muted); font-size: clamp(12px, 2.4vw, 14px); margin-top: 2px; }
 
 /* Fight song button */
