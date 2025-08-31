@@ -1,21 +1,13 @@
-/* Purdue MBB — Clean, high-contrast, no templating in CSS */
+/* Purdue MBB — Clean, high-contrast; improved mobile chips with horizontal scroll */
 
 :root{
-  --bg: #f6f2ea;
-  --panel: #fffdf8;
-  --text: #1b1b1b;
-  --muted: #5f5f5f;
-
-  --gold: #d7c38a;
-  --gold-2:#b89a54;
-
-  --line: rgba(0,0,0,.12);
-  --shadow1: 0 1px 2px rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.08);
-  --shadow2: 0 2px 4px rgba(0,0,0,.08), 0 10px 26px rgba(0,0,0,.10);
-  --ring: rgba(10,124,255,.35);
-
-  --radius: 16px;
-  --e: cubic-bezier(.2,.65,.25,1);
+  --bg:#f6f2ea; --panel:#fffdf8; --text:#1b1b1b; --muted:#5f5f5f;
+  --gold:#d7c38a; --gold-2:#b89a54;
+  --line:rgba(0,0,0,.12);
+  --shadow1:0 1px 2px rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.08);
+  --shadow2:0 2px 4px rgba(0,0,0,.08), 0 10px 26px rgba(0,0,0,.10);
+  --ring:rgba(10,124,255,.35);
+  --radius:16px; --e:cubic-bezier(.2,.65,.25,1);
 }
 
 *{box-sizing:border-box}
@@ -54,11 +46,16 @@ body{
   min-height:56px;padding:12px 16px;max-width:260px;
   font-weight:750;font-size:14.5px;color:#1f1f1f;text-decoration:none;
   background:#F0E8D6;border:1px solid #D7C8A1;border-radius:999px;
-  box-shadow:var(--shadow1)
+  box-shadow:var(--shadow1);
+  transition:transform .08s ease, background .15s var(--e);
 }
 .pill:hover{background:#E6DBBE}
 .pill:active{background:#DCCFAD;transform:translateY(1px)}
 .pill:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
+
+/* Live pill accent */
+.pill-live{background:#ffe9b3;border-color:#f2c86b}
+.pill-live:hover{background:#ffe2a1}
 
 /* Controls */
 .controls{display:flex;gap:10px;align-items:center;margin:10px 0 16px}
@@ -71,7 +68,7 @@ body{
 .input::placeholder{color:#8a8a8a}
 .input:focus-visible,.select:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
 
-/* Notice / empty */
+/* Notice / footer */
 .notice{margin:10px 0;background:#fff7e0;color:#5b4300;border:1px solid #f0d48a;border-radius:12px;padding:8px 10px;font-size:14px}
 .footer{color:#6a6a6a;font-size:13px;margin:20px 0}
 
@@ -90,13 +87,23 @@ body{
 .meta{color:#4a4a4a;font-size:13px;margin-top:6px}
 .desc{margin:8px 0 0;color:#2b2b2b;font-size:14.5px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 
-/* Mobile */
+/* Mobile polish: horizontally scrollable chips with snap */
 @media (max-width:740px){
   .logo{width:48px}
   .title{font-size:26px}
+
+  .quick{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+    gap:10px;
+    padding-bottom:6px;
+    mask-image: linear-gradient(to right, transparent 0, black 28px, black calc(100% - 28px), transparent 100%);
+  }
+  .pill{min-width:70%; max-width:none; scroll-snap-align:start}
   .controls{flex-direction:column;align-items:stretch}
   .select{min-width:unset}
-  .pill{min-height:48px;padding:10px 14px}
   .item{padding:12px;border-radius:14px}
 }
 
@@ -107,5 +114,5 @@ a:focus-visible,.pill:focus-visible,.input:focus-visible,.select:focus-visible,.
 
 /* Reduced motion */
 @media (prefers-reduced-motion:reduce){
-  .item{transition:none}
+  .item,.pill{transition:none}
 }
