@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- iOS/Icons -->
+  <!-- icons -->
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}?v=6">
   <link rel="mask-icon" href="{{ url_for('static', filename='safari-pinned-tab.svg') }}" color="#C5A559">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=6">
@@ -35,7 +35,11 @@
     </div>
 
     <!-- Quick Links (buttons) -->
-    <div class="quick">
+    <div class="quick" id="quickRow">
+      <!-- Dynamic 'Game Day' pill placeholder (hidden until JS decides to show) -->
+      <a class="pill pill-live" id="gamePill" href="https://purduesports.com/sports/mens-basketball/schedule"
+         target="_blank" rel="noopener" style="display:none">🏀 Game Day</a>
+
       {% for link in static_links %}
         <a class="pill" href="{{ link.url }}" target="_blank" rel="noopener">{{ link.label }}</a>
       {% endfor %}
@@ -93,7 +97,45 @@
     });
   }
 
-  // Passive auto-refresh indicator every 5 minutes
+  // Lightweight "Game Day" detector: show within ~36h if titles look like matchup/pregame.
+  async function evaluateGameSoon() {
+    try {
+      const res = await fetch("/items.json", { cache: "no-store" });
+      const data = await res.json();
+      const items = data.items || [];
+      const now = new Date().getTime();
+      const soon = 36 * 60 * 60 * 1000; // 36h window
+
+      // Simple title heuristics (avoid brittleness)
+      const reMatch = /\b(vs\.|vs|at)\b/i;
+      const reSignal = /\b(gameday|game\s*day|pregame|preview)\b/i;
+
+      let hit = false, opponent = "";
+
+      for (const it of items.slice(0, 50)) { // newest chunk
+        const t = (it.title || "");
+        const when = Date.parse(it.date?.replace("Z","+00:00")) || now; // tolerate missing
+        if (now - when > soon) continue; // too old
+        if (reMatch.test(t) || reSignal.test(t)) {
+          hit = true;
+          // Try to grab opponent-ish word(s)
+          const m = t.match(/\b(?:vs\.|vs|at)\s+([A-Z][A-Za-z&\-\.\s]{2,40})/i);
+          opponent = m ? m[1].trim() : opponent;
+          break;
+        }
+      }
+
+      const pill = document.getElementById("gamePill");
+      if (hit && pill) {
+        pill.style.display = "inline-flex";
+        pill.textContent = opponent ? `🏀 Game Day — ${opponent}` : "🏀 Game Day";
+      } else if (pill) {
+        pill.style.display = "none";
+      }
+    } catch (e) { /* silent */ }
+  }
+
+  // Passive update stamp + new-items notice
   async function checkUpdates() {
     try {
       const res = await fetch("/items.json", { cache: "no-store" });
@@ -105,9 +147,14 @@
       if (data.items && data.items.length > shown) {
         document.getElementById("notice").style.display = "block";
       }
-    } catch (e) { console.error("Update check failed", e); }
+    } catch (e) { /* silent */ }
   }
-  setInterval(checkUpdates, 300000);
+
+  // Kick off
+  evaluateGameSoon();
+  checkUpdates();
+  setInterval(evaluateGameSoon, 15 * 60 * 1000);
+  setInterval(checkUpdates,       5 * 60 * 1000);
   </script>
 </body>
 </html>
