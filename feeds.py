@@ -64,22 +64,22 @@ FEEDS = [
      )},
 ]
 
-# Quick links (top buttons). Order & labels = per your request.
+# Quick links (top buttons). Order & labels per request, with corrected capitalization.
 STATIC_LINKS = [
-    {"label": "Betting",              "url": "https://sportsbook.draftkings.com/search?query=Purdue%20basketball"},
-    {"label": "Purdue Official",      "url": "https://purduesports.com/sports/mens-basketball"},
-    {"label": "Schedule",             "url": "https://purduesports.com/sports/mens-basketball/schedule"},
-    {"label": "Roster",               "url": "https://purduesports.com/sports/mens-basketball/roster"},
-    {"label": "ESPN",                 "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
-    {"label": "CBS Sports",           "url": "https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/"},
-    {"label": "Yahoo Sports",         "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
-    {"label": "Hammer & Rails",       "url": "https://www.hammerandrails.com/"},
-    {"label": "G&B",                  "url": "https://goldandblack.com/"},
-    {"label": "Barstool Sports",      "url": "https://www.barstoolsports.com/tag/purdue"},
-    {"label": "Reddit - Boilermakers","url": "https://www.reddit.com/r/Boilermakers/"},
-    {"label": "J&C",                  "url": "https://www.jconline.com/sports/boilermakers/"},
-    {"label": "Exponent",             "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
-    {"label": "Youtube - Field of 68","url": "https://www.youtube.com/@Fieldof68"},
-    {"label": "Youtube - Sleepers",   "url": "https://www.youtube.com/@SleepersMedia"},
-    {"label": "Youtube - G&B",        "url": "https://www.youtube.com/@Goldandblackcom"}
+    {"label": "Betting",               "url": "https://sportsbook.draftkings.com/search?query=Purdue%20basketball"},
+    {"label": "Purdue Official",       "url": "https://purduesports.com/sports/mens-basketball"},
+    {"label": "Schedule",              "url": "https://purduesports.com/sports/mens-basketball/schedule"},
+    {"label": "Roster",                "url": "https://purduesports.com/sports/mens-basketball/roster"},
+    {"label": "ESPN",                  "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
+    {"label": "CBS Sports",            "url": "https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/"},
+    {"label": "Yahoo Sports",          "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
+    {"label": "Hammer & Rails",        "url": "https://www.hammerandrails.com/"},
+    {"label": "G&B",                   "url": "https://goldandblack.com/"},
+    {"label": "Barstool Sports",       "url": "https://www.barstoolsports.com/tag/purdue"},
+    {"label": "Reddit - Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/"},
+    {"label": "J&C",                   "url": "https://www.jconline.com/sports/boilermakers/"},
+    {"label": "Exponent",              "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
+    {"label": "YouTube - Field of 68", "url": "https://www.youtube.com/@Fieldof68"},
+    {"label": "YouTube - Sleepers",    "url": "https://www.youtube.com/@SleepersMedia"},
+    {"label": "YouTube - G&B",         "url": "https://www.youtube.com/@Goldandblackcom"}
 ]
