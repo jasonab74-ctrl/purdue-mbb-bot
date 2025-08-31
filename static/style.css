@@ -117,8 +117,7 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   cursor: pointer;
   transition: background .15s var(--ease), border-color .15s var(--ease), transform .05s ease;
 }
-
-/* >>> Make pill text bold and remove underline <<< */
+/* Make pill labels bold and remove underline */
 .pill { font-weight: 700; text-decoration: none; }
 .pill:visited { text-decoration: none; }
 .pill:hover { background: var(--btn-hover-bg); border-color: var(--btn-border); text-decoration: none; }
@@ -142,6 +141,7 @@ h1 { margin: 0; line-height: 1.05; font-size: clamp(28px, 5.8vw, 48px); }
   font-size: 14px;
 }
 .input::placeholder { color: var(--muted); }
+/* If you want the Sources dropdown wider, bump this next line (optional) */
 .select { max-width: 220px; }
 
 /* Notice */
