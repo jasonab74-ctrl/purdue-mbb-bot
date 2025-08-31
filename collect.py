@@ -38,6 +38,7 @@ def parse_rss(xml_bytes):
     for it in root.findall(".//item") + root.findall(".//{http://www.w3.org/2005/Atom}entry"):
         title = (it.findtext("title") or it.findtext("{http://www.w3.org/2005/Atom}title") or "").strip()
         link  = (it.findtext("link")  or it.findtext("{http://www.w3.org/2005/Atom}link")  or "").strip()
+        # Atom link may be an element with href attr
         if not link:
             lnode = it.find("{http://www.w3.org/2005/Atom}link")
             if lnode is not None:
@@ -100,7 +101,7 @@ def hash_id(link, title):
     h.update(to_text(title).encode("utf-8"))
     return h.hexdigest()[:16]
 
-# -------------------- Purdue MBB filter (relaxed for trusted feeds) --------------------
+# -------------------- Purdue MBB filter (forgiving, still sane) --------------------
 
 PLAYERS = [
     "c.j. cox", "antione west", "fletcher loyer", "braden smith", "aaron fine", "jack lusk",
@@ -114,64 +115,31 @@ BASKETBALL      = re.compile(r"\bbasketball\b", re.I)
 PLAYER_SIG      = re.compile("|".join(re.escape(n) for n in PLAYERS), re.I)
 WOMENS          = re.compile(r"\bwomen'?s\b|\bwbb\b|\bwbk\b|\blady\b", re.I)
 OTHER_SPORTS    = re.compile(r"\bfootball\b|\bvolleyball\b|\bbaseball\b|\bsoccer\b|\bwrestling\b|\bsoftball\b|\btrack\b|\bgolf\b", re.I)
-GENERIC_LISTY   = re.compile(r"\broster\b|\bschedule\b|\bteam rankings\b|\bcommits\b|\boffers\b|\bcrystal ball\b|\btop\s+\d+\b", re.I)
-OTHER_SCHOOLS_HINT = re.compile(
-    r"\b(iowa|butler|jacksonville state|nicholls|virginia|duke|florida|memphis|north carolina|illinois|michigan state|michigan|ohio state|wisconsin|indiana)\b",
-    re.I
-)
-
-TRUSTED_NAMES = None
-def is_trusted(feed_name: str) -> bool:
-    global TRUSTED_NAMES
-    if TRUSTED_NAMES is None:
-        TRUSTED_NAMES = {f.get("name") for f in FEEDS if f.get("trust")}
-    return feed_name in TRUSTED_NAMES
 
 def clearly_purdue(blob: str) -> bool:
     return bool(PURDUE_SIGNALS.search(blob) or PLAYER_SIG.search(blob))
 
 def allow_item(title, summary, feed):
     """
-    Trusted feeds: allow if (Purdue-ish OR hoops-ish).
-    Others: require (Purdue-ish AND hoops-ish) + generic/school checks.
+    Forgiving rules:
+      • Drop women’s-only mentions if no hoops context.
+      • If another sport is present, require some hoops context.
+      • Otherwise allow if content is Purdue-ish OR hoops-ish.
     """
-    name      = feed.get("name","")
-    trusted   = is_trusted(name)
-
     title_t   = to_text(title)
     summary_t = to_text(summary)
     blob      = f"{title_t}\n{summary_t}"
 
     title_hoops = bool(BASKETBALL.search(title_t) or MEN_SIGNALS.search(title_t) or PLAYER_SIG.search(title_t))
     any_hoops   = title_hoops or bool(BASKETBALL.search(summary_t) or MEN_SIGNALS.search(summary_t) or PLAYER_SIG.search(summary_t))
-    purdueish   = clearly_purdue(blob) or ("purdue" in name.lower())
+    purdueish   = clearly_purdue(blob)
 
-    # women's-only phrasing with no hoops → drop
     if WOMENS.search(blob) and not any_hoops:
-        return False
-
-    # mentions of other sports → must have hoops context
-    if OTHER_SPORTS.search(title_t) and not title_hoops:
         return False
     if OTHER_SPORTS.search(blob) and not any_hoops:
         return False
 
-    # core requirement
-    if trusted:
-        if not (purdueish or any_hoops):
-            return False
-    else:
-        if not (purdueish and any_hoops):
-            return False
-
-        if GENERIC_LISTY.search(title_t) and not re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I):
-            return False
-
-        if OTHER_SCHOOLS_HINT.search(blob):
-            if not (re.search(r"\bpurdue\b|\bboilermakers?\b|\bmackey\b", title_t, re.I) or PLAYER_SIG.search(blob)):
-                return False
-
-    return True
+    return bool(purdueish or any_hoops)
 
 # -------------------- date handling --------------------
 
@@ -250,8 +218,22 @@ def collect():
 
         time.sleep(0.08)
 
+    # newest first
     out.sort(key=lambda x: int(x.get("ts", 0)), reverse=True)
     out = out[:MAX_ITEMS]
+
+    # ---------- SAFE WRITE ----------
+    # If a run yields 0 items, DO NOT overwrite items.json (prevents “site goes empty”).
+    if len(out) == 0:
+        try:
+            with open(ITEMS_PATH, "r", encoding="utf-8") as f:
+                prev = json.load(f)
+            prev_count = len(prev.get("items", []))
+        except Exception:
+            prev_count = 0
+        print(json.dumps({"ok": True, "count": prev_count, "skipped_write": True, "ts": now_iso()}))
+        return prev_count
+    # --------------------------------
 
     meta = {
         "generated_at": now_iso(),
