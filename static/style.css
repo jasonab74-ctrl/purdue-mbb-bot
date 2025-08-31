@@ -1,4 +1,4 @@
-/* Purdue MBB — Buttons & layout polish (short labels, wrap grid on mobile)  */
+/* Purdue MBB — Buttons & layout polish */
 
 :root{
   --bg:#f6f2ea; --panel:#fffdf8; --text:#1b1b1b; --muted:#5f5f5f;
@@ -39,16 +39,16 @@ body{
 .fight-btn:active{transform:translateY(0)}
 .fight-btn:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
 
-/* Pills (buttons) — grid layout on all screens, wraps naturally on mobile */
+/* Pills (buttons) — grid layout on all screens, wraps on mobile */
 .quick{
   display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap:12px;
   margin:14px 0 16px;
 }
 .pill{
   display:inline-flex;align-items:center;justify-content:center;text-align:center;
-  min-height:48px;padding:10px 14px;
+  min-height:44px;padding:9px 12px;
   font-weight:750;font-size:14px;color:#1f1f1f;text-decoration:none;
   background:#F0E8D6;border:1px solid #D7C8A1;border-radius:999px;
   box-shadow:var(--shadow1);
@@ -57,10 +57,6 @@ body{
 .pill:hover{background:#E6DBBE}
 .pill:active{background:#DCCFAD;transform:translateY(1px)}
 .pill:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
-
-/* Live pill accent (if you kept the optional Game Day pill) */
-.pill-live{background:#ffe9b3;border-color:#f2c86b}
-.pill-live:hover{background:#ffe2a1}
 
 /* Controls */
 .controls{display:flex;gap:10px;align-items:center;margin:10px 0 16px}
@@ -77,7 +73,7 @@ body{
 .notice{margin:10px 0;background:#fff7e0;color:#5b4300;border:1px solid #f0d48a;border-radius:12px;padding:8px 10px;font-size:14px}
 .footer{color:#6a6a6a;font-size:13px;margin:20px 0}
 
-/* Items (unchanged) */
+/* Articles */
 .items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
 .item{
   background:#FFFBF0;color:#1B1B1B;border:1px solid rgba(0,0,0,.08);
@@ -92,12 +88,12 @@ body{
 .meta{color:#4a4a4a;font-size:13px;margin-top:6px}
 .desc{margin:8px 0 0;color:#2b2b2b;font-size:14.5px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 
-/* Mobile tweaks — smaller button minimum, tighter grid */
+/* Mobile tweaks */
 @media (max-width:740px){
   .logo{width:48px}
   .title{font-size:26px}
-  .quick{grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px}
-  .pill{min-height:44px;padding:9px 12px;font-size:13.5px}
+  .quick{grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px}
+  .pill{min-height:42px;padding:8px 10px;font-size:13.5px}
   .controls{flex-direction:column;align-items:stretch}
   .select{min-width:unset}
   .item{padding:12px;border-radius:14px}
