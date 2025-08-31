@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,107 +6,112 @@
 
   <title>Purdue Men’s Basketball — Live Feed</title>
 
-  <!-- your existing favicon lines stay here -->
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-  <!-- iOS Favorites / Home Screen icon -->
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="mask-icon" href="{{ url_for('static', filename='safari-pinned-tab.svg') }}" color="#C5A559">
+
+  <!-- iOS Home Screen / Safari Favorites -->
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <meta name="apple-mobile-web-app-title" content="Purdue MBB Feed">
+
+  <!-- Theme -->
+  <meta name="theme-color" content="#C5A559">
 </head>
 <body>
   <div class="container">
     <!-- Header -->
     <div class="header">
       <div class="brand">
-        <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Purdue Logo">
         <div>
           <h1>Purdue Men’s Basketball</h1>
           <div class="sub">
-            <span class="count">{{ items|length }} articles</span> ·
-            <span class="stamp">Updated: {{ meta.generated_at }}</span>
+            {{ items|length }} articles · Updated: {{ updated }}
           </div>
         </div>
       </div>
-      <button class="fight-btn" onclick="toggleFightSong()">▶ Fight Song</button>
-      <audio id="fightSong" src="{{ url_for('static', filename='fight_song.mp3') }}"></audio>
+      <button class="fight-btn" onclick="playFightSong()">▶ Fight Song</button>
     </div>
 
     <!-- Quick Links -->
     <div class="quick">
       {% for link in static_links %}
-        <a class="pill" href="{{ link.url }}" target="_blank" rel="noopener">{{ link.label }}</a>
+        <a class="pill" href="{{ link.url }}" target="_blank">{{ link.label }}</a>
       {% endfor %}
     </div>
 
     <!-- Controls -->
     <div class="controls">
-      <input type="search" class="input" id="searchBox" placeholder="Search articles…"
-             oninput="filterItems()">
-      <select class="select" id="sourceFilter" onchange="filterItems()">
+      <input id="searchInput" class="input" type="text" placeholder="Search articles..." onkeyup="filterArticles()">
+      <select id="sourceFilter" class="select" onchange="filterArticles()">
         <option value="">All Sources</option>
-        {% for f in feeds %}
-          <option value="{{ f.name }}">{{ f.name }}</option>
+        {% for feed in feeds %}
+          <option value="{{ feed.name }}">{{ feed.name }}</option>
         {% endfor %}
       </select>
     </div>
 
-    <!-- Notice -->
-    <div id="notice" class="notice" style="display:none;">
-      New items available — <a href="#" onclick="location.reload()">refresh now</a>.
-    </div>
+    <!-- Notice (new items) -->
+    <div id="notice" class="notice hidden">New items available — refresh to load.</div>
 
     <!-- Articles -->
-    <ul class="items" id="feedList">
-      {% for it in items %}
-        <li class="item" data-source="{{ it.source }}">
-          <div class="item-head">
-            <a class="title" href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a>
-            <span class="badge">{{ it.source }}</span>
-          </div>
-          <div class="meta">{{ it.date }}</div>
-          {% if it.summary %}
-            <!-- strip all markup and clamp; remove line breaks to avoid odd wrapping -->
-            <p class="desc">
-              {{ it.summary|striptags|replace('\n',' ')|replace('\r',' ')|truncate(240, True, '…') }}
-            </p>
-          {% endif %}
-        </li>
+    <ul id="items" class="items">
+      {% for item in items %}
+      <li class="item" data-source="{{ item.source }}">
+        <div class="item-head">
+          <a class="title" href="{{ item.link }}" target="_blank">{{ item.title }}</a>
+          <span class="badge">{{ item.source }}</span>
+        </div>
+        <div class="meta">{{ item.published }}</div>
+        {% if item.summary %}
+          <div class="desc">{{ item.summary }}</div>
+        {% endif %}
+      </li>
       {% endfor %}
     </ul>
 
-    <div class="footer">Boiler Up! — Purdue Men’s Basketball Live Feed</div>
+    <!-- Footer -->
+    <div class="footer">
+      &copy; {{ now.year }} Purdue MBB Feed · Unofficial Fan Project
+    </div>
   </div>
 
+  <!-- Script -->
   <script>
-  function toggleFightSong() {
-    const a = document.getElementById("fightSong");
-    if (a.paused) { a.play(); } else { a.pause(); }
-  }
+    function playFightSong() {
+      const audio = new Audio("{{ url_for('static', filename='fight.mp3') }}");
+      audio.play();
+    }
 
-  function filterItems() {
-    const q = document.getElementById("searchBox").value.toLowerCase();
-    const f = document.getElementById("sourceFilter").value;
-    document.querySelectorAll("#feedList .item").forEach(it => {
-      const text = it.innerText.toLowerCase();
-      const src  = it.getAttribute("data-source");
-      const show = (!q || text.includes(q)) && (!f || src === f);
-      it.style.display = show ? "" : "none";
-    });
-  }
+    function filterArticles() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const filter = document.getElementById('sourceFilter').value;
+      const items = document.querySelectorAll('#items .item');
+      items.forEach(item => {
+        const title = item.querySelector('.title').textContent.toLowerCase();
+        const source = item.dataset.source;
+        const matchesText = title.includes(search);
+        const matchesSource = !filter || source === filter;
+        item.style.display = (matchesText && matchesSource) ? '' : 'none';
+      });
+    }
 
-  async function checkUpdates() {
-    try {
-      const res = await fetch("/items.json", {cache:"no-store"});
-      const data = await res.json();
-      const lastRun = data?.meta?.last_run?.ts;
-      const stamp = document.querySelector(".stamp");
-      if (stamp && lastRun) stamp.textContent = "Updated: " + lastRun;
-      const shown = document.querySelectorAll("#feedList .item").length;
-      if (data.items && data.items.length > shown) {
-        document.getElementById("notice").style.display="block";
+    async function checkForUpdates() {
+      try {
+        const resp = await fetch('/items.json?_ts=' + Date.now());
+        const data = await resp.json();
+        if (data.items.length > {{ items|length }}) {
+          document.getElementById('notice').classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch(e) { console.error("Update check failed", e); }
-  }
-  setInterval(checkUpdates, 300000); // every 5 min
+    }
+    setInterval(checkForUpdates, 300000); // 5 min
   </script>
 </body>
 </html>
