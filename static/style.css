@@ -139,7 +139,7 @@ h1 { margin:0; line-height:1.05; font-size: clamp(28px,5.8vw,48px); }
   font-size:14px;
   line-height:1.5;
   display:-webkit-box;
-  -webkit-line-clamp:2;           /* tighter: 2 clean lines */
+  -webkit-line-clamp:2;
   -webkit-box-orient:vertical;
   overflow:hidden;
 }
@@ -147,16 +147,22 @@ h1 { margin:0; line-height:1.05; font-size: clamp(28px,5.8vw,48px); }
 /* Footer */
 .footer { text-align:center;color:var(--muted);margin:24px 0 10px 0;font-size:13px; }
 
-/* Mobile tweaks */
+/* ========== Mobile tweaks: two-column buttons, smaller size ========== */
 @media (max-width: 640px) {
-  .quick { flex-direction:column;align-items:stretch; }
-  /* Smaller, tidier buttons on mobile; same color scheme */
-  .pill {
-    width:100%;
-    font-size:13px;               /* smaller text */
-    padding:7px 10px;             /* shorter height/length feel */
-    letter-spacing:.1px;
+  /* Two-column grid for buttons with no horizontal scroll */
+  .quick {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);  /* exactly two columns */
+    gap: 8px 10px;                           /* row gap / column gap */
   }
+  .pill {
+    width: 100%;
+    font-size: 13px;     /* smaller text */
+    padding: 7px 10px;   /* shorter height */
+    letter-spacing: .1px;
+    text-align: center;
+  }
+
   .controls { gap:8px; }
   .select { flex:1 1 160px; max-width:none; }
   .item { border-radius:14px; }
