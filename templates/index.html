@@ -9,16 +9,16 @@
   <!-- CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-  <!-- Favicons -->
+  <!-- Favicons / Safari pinned tab -->
   <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
   <link rel="mask-icon" href="{{ url_for('static', filename='safari-pinned-tab.svg') }}" color="#C5A559">
 
-  <!-- iOS Home Screen / Safari Favorites -->
+  <!-- iOS Favorites / Home Screen -->
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
   <meta name="apple-mobile-web-app-title" content="Purdue MBB Feed">
 
-  <!-- Theme -->
+  <!-- Theme color (address bar tint on mobile) -->
   <meta name="theme-color" content="#C5A559">
 </head>
 <body>
@@ -40,7 +40,7 @@
     <!-- Quick Links -->
     <div class="quick">
       {% for link in static_links %}
-        <a class="pill" href="{{ link.url }}" target="_blank">{{ link.label }}</a>
+        <a class="pill" href="{{ link.url }}" target="_blank" rel="noopener">{{ link.label }}</a>
       {% endfor %}
     </div>
 
@@ -55,7 +55,7 @@
       </select>
     </div>
 
-    <!-- Notice (new items) -->
+    <!-- “New items” notice (client checks /items.json every 5 min) -->
     <div id="notice" class="notice hidden">New items available — refresh to load.</div>
 
     <!-- Articles -->
@@ -63,7 +63,7 @@
       {% for item in items %}
       <li class="item" data-source="{{ item.source }}">
         <div class="item-head">
-          <a class="title" href="{{ item.link }}" target="_blank">{{ item.title }}</a>
+          <a class="title" href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a>
           <span class="badge">{{ item.source }}</span>
         </div>
         <div class="meta">{{ item.published }}</div>
@@ -76,42 +76,42 @@
 
     <!-- Footer -->
     <div class="footer">
-      &copy; {{ now.year }} Purdue MBB Feed · Unofficial Fan Project
+      &copy; {{ now.year }} Purdue MBB Feed · Unofficial fan project
     </div>
   </div>
 
-  <!-- Script -->
+  <!-- Scripts -->
   <script>
     function playFightSong() {
       const audio = new Audio("{{ url_for('static', filename='fight.mp3') }}");
-      audio.play();
+      audio.play().catch(() => {});
     }
 
     function filterArticles() {
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const filter = document.getElementById('sourceFilter').value;
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const src = document.getElementById('sourceFilter').value;
       const items = document.querySelectorAll('#items .item');
-      items.forEach(item => {
-        const title = item.querySelector('.title').textContent.toLowerCase();
-        const source = item.dataset.source;
-        const matchesText = title.includes(search);
-        const matchesSource = !filter || source === filter;
-        item.style.display = (matchesText && matchesSource) ? '' : 'none';
-      });
+      for (const li of items) {
+        const title = li.querySelector('.title').textContent.toLowerCase();
+        const source = li.dataset.source;
+        const okText = !q || title.includes(q);
+        const okSrc = !src || source === src;
+        li.style.display = (okText && okSrc) ? '' : 'none';
+      }
     }
 
     async function checkForUpdates() {
       try {
-        const resp = await fetch('/items.json?_ts=' + Date.now());
+        const resp = await fetch('/items.json?_ts=' + Date.now(), { cache: 'no-store' });
         const data = await resp.json();
-        if (data.items.length > {{ items|length }}) {
+        if (Array.isArray(data.items) && data.items.length > {{ items|length }}) {
           document.getElementById('notice').classList.remove('hidden');
         }
-      } catch (err) {
-        console.error(err);
+      } catch (e) {
+        // silent
       }
     }
-    setInterval(checkForUpdates, 300000); // 5 min
+    setInterval(checkForUpdates, 300000); // 5 minutes
   </script>
 </body>
 </html>
