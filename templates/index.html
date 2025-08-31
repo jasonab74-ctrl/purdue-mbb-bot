@@ -6,20 +6,14 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- iPhone / iPad Home Screen icon -->
+  <!-- iOS/Icons -->
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}?v=6">
   <link rel="mask-icon" href="{{ url_for('static', filename='safari-pinned-tab.svg') }}" color="#C5A559">
-
-  <!-- ✅ Added (Safari quirk support): absolute-root path & precomposed -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=6">
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png?v=6">
-
-  <!-- Favicons for Safari Bookmarks / Desktop -->
   <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}?v=6">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}?v=6">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=6">
-
-  <!-- Optional nicety -->
   <meta name="apple-mobile-web-app-title" content="Purdue MBB">
 </head>
 <body>
@@ -29,7 +23,7 @@
       <div class="brand">
         <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
         <div>
-          <h1>Purdue Men’s Basketball</h1>
+          <h1 class="title">Purdue Men’s Basketball</h1>
           <div class="sub">
             <span class="count">{{ items|length }} articles</span> ·
             <span class="stamp">Updated: {{ meta.generated_at }}</span>
@@ -40,7 +34,7 @@
       <audio id="fightSong" src="{{ url_for('static', filename='fight_song.mp3') }}"></audio>
     </div>
 
-    <!-- Quick Links -->
+    <!-- Quick Links (buttons) -->
     <div class="quick">
       {% for link in static_links %}
         <a class="pill" href="{{ link.url }}" target="_blank" rel="noopener">{{ link.label }}</a>
@@ -49,8 +43,7 @@
 
     <!-- Controls -->
     <div class="controls">
-      <input type="search" class="input" id="searchBox" placeholder="Search articles…"
-             oninput="filterItems()">
+      <input type="search" class="input" id="searchBox" placeholder="Search articles…" oninput="filterItems()">
       <select class="select" id="sourceFilter" onchange="filterItems()">
         <option value="">All Sources</option>
         {% for f in feeds %}
@@ -69,15 +62,12 @@
       {% for it in items %}
         <li class="item" data-source="{{ it.source }}">
           <div class="item-head">
-            <a class="title" href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a>
+            <a class="title-link" href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a>
             <span class="badge">{{ it.source }}</span>
           </div>
           <div class="meta">{{ it.date }}</div>
           {% if it.summary %}
-            <!-- strip all markup and clamp; remove line breaks to avoid odd wrapping -->
-            <p class="desc">
-              {{ it.summary|striptags|replace('\n',' ')|replace('\r',' ')|truncate(240, True, '…') }}
-            </p>
+            <p class="desc">{{ it.summary|striptags|replace('\n',' ')|replace('\r',' ')|truncate(240, True, '…') }}</p>
           {% endif %}
         </li>
       {% endfor %}
@@ -103,20 +93,21 @@
     });
   }
 
+  // Passive auto-refresh indicator every 5 minutes
   async function checkUpdates() {
     try {
-      const res = await fetch("/items.json", {cache:"no-store"});
+      const res = await fetch("/items.json", { cache: "no-store" });
       const data = await res.json();
       const lastRun = data?.meta?.last_run?.ts;
       const stamp = document.querySelector(".stamp");
       if (stamp && lastRun) stamp.textContent = "Updated: " + lastRun;
       const shown = document.querySelectorAll("#feedList .item").length;
       if (data.items && data.items.length > shown) {
-        document.getElementById("notice").style.display="block";
+        document.getElementById("notice").style.display = "block";
       }
-    } catch(e) { console.error("Update check failed", e); }
+    } catch (e) { console.error("Update check failed", e); }
   }
-  setInterval(checkUpdates, 300000); // every 5 min
+  setInterval(checkUpdates, 300000);
   </script>
 </body>
 </html>
