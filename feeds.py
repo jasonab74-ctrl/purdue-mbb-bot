@@ -66,7 +66,7 @@ FEEDS = [
 
 # Quick links (top buttons). Order & labels per request, with corrected capitalization.
 STATIC_LINKS = [
-    {"label": "Betting",               "url": "https://sportsbook.draftkings.com/search?query=Purdue%20basketball"},
+    {"label": "Odds — Purdue",         "url": "https://www.google.com/search?q=Purdue+Boilermakers+basketball+odds"},
     {"label": "Purdue Official",       "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Schedule",              "url": "https://purduesports.com/sports/mens-basketball/schedule"},
     {"label": "Roster",                "url": "https://purduesports.com/sports/mens-basketball/roster"},
