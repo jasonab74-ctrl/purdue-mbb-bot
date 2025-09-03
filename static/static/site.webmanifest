@@ -1,0 +1,13 @@
+{
+  "name": "Chicago Cubs — MLB Feed",
+  "short_name": "Cubs Feed",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0E3386",
+  "icons": [
+    { "src": "/static/favicon-16.png",  "sizes": "16x16",  "type": "image/png" },
+    { "src": "/static/favicon-32.png",  "sizes": "32x32",  "type": "image/png" },
+    { "src": "/static/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose":"any" }
+  ]
+}
