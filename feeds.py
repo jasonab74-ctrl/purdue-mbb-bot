@@ -12,7 +12,7 @@ FEEDS = [
     {"name": "ESPN — Purdue (MBB search)",
      "url": "https://news.google.com/rss/search?q=site:espn.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
     {"name": "CBS Sports — Purdue (MBB search)",
-     "url": "https://news.google.com/rss/search?q=site:cbssports.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
+      "url": "https://news.google.com/rss/search?q=site:cbssports.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
     {"name": "Yahoo Sports — Purdue (MBB search)",
      "url": "https://news.google.com/rss/search?q=site:sports.yahoo.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
     {"name": "Sports Illustrated — Purdue (MBB search)",
@@ -45,6 +45,8 @@ FEEDS = [
     {"name": "Reddit — r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/.rss"},
     {"name": "Reddit — r/CollegeBasketball (Purdue search)",
      "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue%20basketball&restrict_sr=on&sort=new"},
+    # Added: basketball-specific subreddit to reduce football noise at the source
+    {"name": "Reddit — r/PurdueBasketball", "url": "https://www.reddit.com/r/PurdueBasketball/.rss"},
 
     # ===== Focus signals (coach/arena)
     {"name": "Matt Painter — news",
@@ -83,3 +85,9 @@ STATIC_LINKS = [
     {"label": "YouTube - Sleepers",    "url": "https://www.youtube.com/@SleepersMedia"},
     {"label": "YouTube - G&B",         "url": "https://www.youtube.com/@Goldandblackcom"}
 ]
+
+# Only mark feeds here if they are truly MBB-only. Do NOT add mixed-sport sites.
+# This works with the collector you’re using and prevents football posts from bypassing filters.
+TRUSTED_FEEDS = {
+    "PurdueSports.com — “Men’s Basketball”",  # official MBB-only page
+}
