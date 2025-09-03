@@ -2,179 +2,225 @@
 # -*- coding: utf-8 -*-
 
 """
-Collects articles from FEEDS (feeds.py), filters for Purdue Men's Basketball,
-normalizes, sorts newest-first, and writes items.json.
-
-SAFE CHANGE: caps output to the 50 most recent items (configurable via MAX_ITEMS).
+Purdue MBB collector
+- Fetches feeds from feeds.py: FEEDS (list of (name, url)) and optional TRUSTED_FEEDS (set of names)
+- Strictly filters for Purdue Men's Basketball
+- Explicitly excludes football (and other non-MBB sports) unless the text clearly indicates basketball
+- Sorts newest-first and caps at MAX_ITEMS (default 50)
+- Writes items.json in repo root
 """
 
 import os
 import json
 import time
 from datetime import datetime, timezone
-from typing import List, Dict, Any
+from email.utils import parsedate_to_datetime
+from typing import Dict, Any, List, Tuple
+
 import feedparser
-import requests
 
-from feeds import FEEDS  # list of dicts: {"name": ..., "url": ...}
+# ---- config ----
+MAX_ITEMS = 50
+ITEMS_PATH = os.path.join(os.path.dirname(__file__), "items.json")
+USER_AGENT = "Mozilla/5.0 (Purdue-MBB Collector; +https://example.local)"
 
-# ---- Settings ----
-OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "items.json")
-TIMEOUT = float(os.environ.get("HTTP_TIMEOUT", "12"))
-MAX_ITEMS = int(os.environ.get("MAX_ITEMS", "50"))  # <-- cap (default 50)
+# ---- feeds ----
+try:
+    # Expected: FEEDS = [("Source Name", "https://...rss"), ...]
+    # Optional: TRUSTED_FEEDS = {"Gold and Black", "Field of 68", ...}
+    from feeds import FEEDS, STATIC_LINKS  # noqa: F401 (STATIC_LINKS not used here)
+    try:
+        from feeds import TRUSTED_FEEDS  # type: ignore
+    except Exception:
+        TRUSTED_FEEDS = set()
+except Exception as e:
+    raise SystemExit(f"[collect.py] Could not import feeds.py: {e}")
 
-# Some feeds are trusted and bypass aggressive keyword checks
-TRUSTED_SOURCES = {
-    "Hammer & Rails (SB Nation)",
-    "PurdueSports.com — “Men’s Basketball”",
-    "Reddit — r/Boilermakers",
-    "Reddit — r/CollegeBasketball (Purdue search)",
-}
+# ---- filtering helpers ----
 
-# Basic word lists for filtering
-KEY_INCLUDE = [
-    "purdue",
-    "boilermaker",
-    "boilermakers",
-    "matt painter",
-    "mackey",
-]
-KEY_BBALL = [
+INCLUDE_ALL = [
+    "purdue", "boilermaker", "boilermakers", "boilers",
+    "mbb", "men's basketball", "mens basketball", "men’s basketball",
     "basketball",
-    "mbb",
-    "men’s basketball",
-    "men's basketball",
-]
-KEY_EXCLUDE = [
-    "football", "volleyball", "softball", "baseball",
-    "women’s", "women's", "wbb", "soccer", "w. basketball",
-]
-
-# Player/coach names to strengthen recall
-PEOPLE = [
-    "braden smith", "fletcher loyer", "trey kaufman-renn", "jack benter", "omer mayer",
-    "gicarri harris", "raleigh burgess", "daniel jacobsen", "oscar cluff", "liam murphy",
-    "sam king", "aaron fine", "jace rayl", "jack lusk", "c.j. cox", "cj cox",
-    "matt painter"
+    # coach + player signals
+    "matt painter", "painter",
+    "zach edey", "edey",
+    "braden smith", "smith",  # 'smith' is common; it will still require 'purdue' nearby in practice
+    "fletcher loyer", "loyer",
+    "trey kaufman-renn", "kaufman-renn", "tkr",
+    "caleb furst", "furst",
+    "mason gillis", "gillis",
+    "lance jones", "camden heide", "myles colvin",
 ]
 
+# terms that strongly indicate the content is *not* MBB
+# (we still allow if headline clearly contains basketball)
+EXCLUDE_STRONG = [
+    "football", "fb",
+    "wbb", "women's", "women’s", "women basketball", "women’s basketball",
+    "volleyball", "softball", "soccer", "baseball", "wrestling", "track",
+    "cross country", "golf", "tennis", "swimming", "diving", "hockey",
+    "lacrosse", "gymnastics",
+]
 
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+# generic department term that often shows up in all-sports posts
+EXCLUDE_WEAK = [
+    "athletics", "athletic department",
+]
 
+BASKETBALL_SIGNALS = [
+    "mbb", "basketball", "men's basketball", "mens basketball", "men’s basketball",
+    "matt painter", "painter", "edey", "zach edey",
+    "braden smith", "loyer", "kaufman-renn", "furst", "gillis",
+]
 
-def fetch(url: str) -> bytes:
-    """HTTP GET with a short timeout; return raw bytes."""
-    r = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": "purdue-mbb-bot/1.0"})
-    r.raise_for_status()
-    return r.content
+def _lower_join(*parts: str) -> str:
+    return " ".join(p or "" for p in parts).lower().strip()
 
-
-def parse_datetime(entry: Dict[str, Any]) -> float:
+def allow_item(title: str, summary: str, source_name: str) -> bool:
     """
-    Return a unix timestamp (float) for sorting.
-    Prefer published_parsed, then updated_parsed, else now.
+    Decision:
+    - Always lowercase inputs.
+    - If source is trusted:
+        * allow if it's clearly basketball OR Purdue MBB names.
+        * still BLOCK if it explicitly says "football" (or other strong excludes) and doesn't also say basketball.
+    - For non-trusted:
+        * require 'purdue' AND any basketball signal (e.g., 'basketball' or player/coach)
+        * reject if strong excludes appear without basketball context
+        * weak excludes like 'athletics' are rejected unless basketball is present
     """
-    ts = None
+    text = _lower_join(title, summary)
+    source_lower = (source_name or "").lower()
+
+    has_purdue = "purdue" in text or "boilermaker" in text or "boilermakers" in text or "boilers" in text
+    has_basketball = any(tok in text for tok in BASKETBALL_SIGNALS)
+    has_strong_exclude = any(tok in text for tok in EXCLUDE_STRONG)
+    has_weak_exclude = any(tok in text for tok in EXCLUDE_WEAK)
+
+    is_trusted = source_name in TRUSTED_FEEDS or source_lower in {s.lower() for s in TRUSTED_FEEDS}
+
+    # If it's clearly basketball, we can allow (trusted or not), provided it's Purdue-linked for non-trusted.
+    if has_basketball:
+        if is_trusted:
+            # Even for trusted, block explicit football/etc if basketball is *not* present (but we *are* present here),
+            # so trusted + basketball => allow.
+            return True
+        else:
+            return has_purdue  # must still be Purdue-related for non-trusted
+
+    # Not clearly basketball… apply exclusions strongly.
+    if has_strong_exclude:
+        # Any strong non-MBB sport mention => reject.
+        return False
+
+    if has_weak_exclude and not has_basketball:
+        # Generic "athletics" or department posts without any basketball hint => reject.
+        return False
+
+    # Trusted feeds can sometimes post neutral items (e.g., schedule notes). Be conservative:
+    if is_trusted:
+        # Only allow if at least Purdue mention AND NOT a strong exclude
+        return has_purdue and not has_strong_exclude
+
+    # Default for non-trusted: require both Purdue + some MBB signal (which we don't have), so reject.
+    return False
+
+# ---- parsing helpers ----
+
+def parse_when(entry: Dict[str, Any]) -> datetime:
+    # Try published, then updated, else now
     for key in ("published_parsed", "updated_parsed"):
+        dt = entry.get(key)
+        if dt:
+            try:
+                # feedparser gives time.struct_time
+                return datetime.fromtimestamp(time.mktime(dt), tz=timezone.utc)
+            except Exception:
+                pass
+    # RFC2822 fallback
+    for key in ("published", "updated"):
         val = entry.get(key)
         if val:
             try:
-                ts = time.mktime(val)
-                break
+                return parsedate_to_datetime(val).astimezone(timezone.utc)
             except Exception:
                 pass
-    if ts is None:
-        ts = time.time()
-    return float(ts)
+    return datetime.now(tz=timezone.utc)
 
-
-def norm_text(x: Any) -> str:
-    return (x or "").strip()
-
-
-def allow_item(title: str, summary: str, source: str) -> bool:
-    """
-    Filtering: keep strong Purdue MBB relevance; trusted sources bypass.
-    """
-    t = f"{title} {summary}".lower()
-
-    if source in TRUSTED_SOURCES:
-        return True
-
-    if any(ex in t for ex in KEY_EXCLUDE):
-        return False
-
-    inc_hit = any(k in t for k in KEY_INCLUDE) or any(p in t for p in PEOPLE)
-    bball_hit = any(k in t for k in KEY_BBALL)
-
-    return inc_hit and bball_hit
-
-
-def normalize(entry: Dict[str, Any], source: str) -> Dict[str, Any]:
-    title = norm_text(entry.get("title"))
-    link = norm_text(entry.get("link"))
-    summary = norm_text(entry.get("summary") or entry.get("description") or "")
-    # Some feeds put the site name in link text; keep display clean
-    date_ts = parse_datetime(entry)
-    dt = datetime.fromtimestamp(date_ts, tz=timezone.utc)
-    iso = dt.isoformat(timespec="seconds")
-    nice = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
+def normalize_item(source_name: str, entry: Dict[str, Any]) -> Dict[str, Any]:
+    title = (entry.get("title") or "").strip()
+    link = (entry.get("link") or "").strip()
+    summary = (entry.get("summary") or entry.get("description") or "").strip()
+    when = parse_when(entry)
 
     return {
         "title": title,
         "link": link,
+        "source": source_name,
         "summary": summary,
-        "date": nice,
-        "ts": date_ts,
-        "source": source,
+        "published": when.isoformat(),
+        "published_ts": int(when.timestamp()),
     }
 
+def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen_links = set()
+    seen_titles = set()
+    out = []
+    for it in items:
+        key_link = (it.get("link") or "").strip().lower()
+        key_title = (it.get("title") or "").strip().lower()
+        if key_link and key_link in seen_links:
+            continue
+        if key_title and key_title in seen_titles:
+            continue
+        seen_links.add(key_link)
+        seen_titles.add(key_title)
+        out.append(it)
+    return out
 
-def collect() -> int:
+# ---- fetch ----
+
+def fetch_feed(name: str, url: str) -> List[Dict[str, Any]]:
+    parsed = feedparser.parse(url, request_headers={"User-Agent": USER_AGENT})
+    entries = parsed.get("entries") or []
     items: List[Dict[str, Any]] = []
+    for e in entries:
+        item = normalize_item(name, e)
+        if allow_item(item["title"], item["summary"], name):
+            items.append(item)
+    return items
 
-    for feed in FEEDS:
-        name = feed.get("name", "Unknown")
-        url = feed.get("url")
-        if not url:
-            continue
+def collect() -> List[Dict[str, Any]]:
+    all_items: List[Dict[str, Any]] = []
+    for name, url in FEEDS:
         try:
-            raw = fetch(url)
-            parsed = feedparser.parse(raw)
-            for e in parsed.entries:
-                # Normalize first (we need title/summary for filtering)
-                n = normalize(e, name)
-                if allow_item(n["title"], n["summary"], name):
-                    items.append(n)
-        except Exception as e:
-            # Non-fatal; continue other feeds
-            print(f"[collect] feed error: {name}: {e}", flush=True)
+            batch = fetch_feed(name, url)
+            all_items.extend(batch)
+        except Exception as ex:
+            # Don't crash the whole collector for one bad feed
+            print(f"[collect] Feed failed: {name} ({url}) -> {ex}")
             continue
 
-    # Sort newest-first and CAP to MAX_ITEMS (default 50)
-    items.sort(key=lambda x: x.get("ts", 0.0), reverse=True)
-    if MAX_ITEMS > 0:
-        items = items[:MAX_ITEMS]
+    # sort newest → oldest and dedupe
+    all_items.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
+    all_items = dedupe(all_items)
 
-    data = {
+    # cap to MAX_ITEMS
+    return all_items[:MAX_ITEMS]
+
+def write_items(items: List[Dict[str, Any]], path: str = ITEMS_PATH) -> None:
+    payload = {
+        "updated": datetime.now(tz=timezone.utc).isoformat(),
+        "count": len(items),
         "items": items,
-        "meta": {
-            "generated_at": utc_now_iso(),
-            "count": len(items),
-            "max": MAX_ITEMS,
-        },
     }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
 
-    # Write atomically
-    tmp = OUTPUT_PATH + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False)
-    os.replace(tmp, OUTPUT_PATH)
-
-    print(f"[collect] wrote {len(items)} items (cap={MAX_ITEMS}) → {OUTPUT_PATH}", flush=True)
-    return len(items)
-
+def main():
+    items = collect()
+    write_items(items)
+    print(f"[collect.py] Wrote {len(items)} items to {ITEMS_PATH}")
 
 if __name__ == "__main__":
-    collect()
+    main()
