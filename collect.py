@@ -2,15 +2,14 @@
 # -*- coding: utf-8 -*-
 
 """
-Purdue MBB collector (robust + forgiving)
-- Works with FEEDS as dicts {"name","url"} or tuples (name,url)
-- FILTER CHANGE: For non-trusted feeds, allow if the text clearly mentions Purdue/Boilermakers
-  AND does NOT contain strong excludes (like "football"). This prevents zero-results when
-  feeds omit the word "basketball" in titles/summaries.
-- Still blocks football & other sports unless basketball is obvious.
-- Sorts newest-first, dedupes, caps to MAX_ITEMS (50)
+Purdue MBB collector — RESET TO WORK
+- Goal: get articles showing again, no over-filtering
+- Works with FEEDS as list of dicts {"name","url"} or tuples (name,url)
+- Very permissive filter: allow if text mentions Purdue/Boilermakers OR basketball signals
+  (NO football/WBB exclusions right now — we’ll add back once you’re stable)
+- Sort newest-first, dedupe, cap to MAX_ITEMS (50)
 - Writes items.json at repo root
-- Prints per-feed counts for quick debugging
+- Prints per-feed counts for quick verification
 """
 
 import os
@@ -25,19 +24,17 @@ import feedparser
 # ------------ config ------------
 MAX_ITEMS = 50
 ITEMS_PATH = os.path.join(os.path.dirname(__file__), "items.json")
-USER_AGENT = "Mozilla/5.0 (Purdue-MBB Collector)"
+USER_AGENT = "Mozilla/5.0 (Purdue-MBB Collector Reset)"
 
 # ------------ import feeds ------------
 try:
     from feeds import FEEDS, STATIC_LINKS  # noqa: F401
     try:
-        from feeds import TRUSTED_FEEDS  # optional
+        from feeds import TRUSTED_FEEDS  # optional, ignored in this reset
     except Exception:
         TRUSTED_FEEDS = set()
 except Exception as e:
     raise SystemExit(f"[collect.py] Could not import feeds.py: {e}")
-
-_TRUSTED_LOWER = {s.lower() for s in (TRUSTED_FEEDS or set())}
 
 def _coerce_feeds(feeds_any: Any) -> List[Tuple[str, str]]:
     """Accept FEEDS as list of dicts or tuples and return [(name,url), ...]."""
@@ -58,10 +55,11 @@ def _coerce_feeds(feeds_any: Any) -> List[Tuple[str, str]]:
 
 FEEDS_NORM: List[Tuple[str, str]] = _coerce_feeds(FEEDS)
 
-# ------------ filtering ------------
-
-BASKETBALL_SIGNALS = [
-    "mbb", "basketball", "men's basketball", "mens basketball", "men’s basketball",
+# ------------ permissive filter ------------
+# Keep anything clearly Purdue-related OR basketball-related (no hard excludes for now)
+KEEP_SIGNALS = [
+    "purdue", "boilermaker", "boilermakers", "boilers",
+    "basketball", "mbb", "men's basketball", "mens basketball", "men’s basketball",
     "matt painter", "painter",
     "edey", "zach edey",
     "braden smith", "fletcher loyer", "loyer",
@@ -70,64 +68,20 @@ BASKETBALL_SIGNALS = [
     "mason gillis", "gillis",
     "camden heide", "myles colvin", "oscar cluff", "jack benter",
     "omer mayer", "gicarri harris", "raleigh burgess", "daniel jacobsen",
-    "liam murphy", "sam king", "aaron fine", "jace rayl", "jack lusk", "c.j. cox", "cj cox"
+    "liam murphy", "sam king", "aaron fine", "jace rayl", "jack lusk", "c.j. cox", "cj cox",
 ]
-
-EXCLUDE_STRONG = [
-    "football", "fb",
-    "wbb", "women's", "women’s", "women basketball", "women’s basketball",
-    "volleyball", "softball", "soccer", "baseball", "wrestling", "track",
-    "cross country", "golf", "tennis", "swimming", "diving", "hockey",
-    "lacrosse", "gymnastics",
-]
-
-EXCLUDE_WEAK = ["athletics", "athletic department"]
 
 def _lower_join(*parts: str) -> str:
     return " ".join(p or "" for p in parts).lower().strip()
 
 def allow_item(title: str, summary: str, source_name: str) -> bool:
-    """
-    Final rules:
-      - If strong excludes (football/other sports) appear AND there's no basketball signal → BLOCK.
-      - Trusted feeds:
-          * Allow if basketball is present, OR (Purdue present AND no strong excludes).
-      - Non-trusted feeds (RELAXED to avoid zero-results):
-          * Allow if Purdue/Boilermakers present AND no strong excludes.
-          * This keeps MBB and neutral Purdue items, while still blocking football by keyword.
-      - Weak excludes ("athletics") without basketball won't auto-block if Purdue is present,
-        since we're already blocking strong non-MBB sports explicitly.
-    """
     text = _lower_join(title, summary)
-    source_lower = (source_name or "").lower()
-
-    has_purdue = any(tok in text for tok in ["purdue", "boilermaker", "boilermakers", "boilers"])
-    has_basketball = any(tok in text for tok in BASKETBALL_SIGNALS)
-    has_strong_exclude = any(tok in text for tok in EXCLUDE_STRONG)
-    # has_weak_exclude = any(tok in text for tok in EXCLUDE_WEAK)  # informative only
-
-    is_trusted = (source_name in TRUSTED_FEEDS) or (source_lower in _TRUSTED_LOWER)
-
-    # Hard block strong non-MBB sports unless it's clearly a basketball story (rare mixed cases)
-    if has_strong_exclude and not has_basketball:
-        return False
-
-    if is_trusted:
-        # Trusted may allow basketball, or Purdue without strong excludes
-        if has_basketball:
-            return True
-        return has_purdue and not has_strong_exclude
-
-    # Non-trusted (RELAXED): Purdue mention required; strong excludes blocked
-    if has_purdue and not has_strong_exclude:
-        return True
-
-    return False
+    return any(tok in text for tok in KEEP_SIGNALS)
 
 # ------------ parsing helpers ------------
 
 def parse_when(entry: Dict[str, Any]) -> datetime:
-    # Try structured times first
+    # Try structured first
     for key in ("published_parsed", "updated_parsed"):
         dt = entry.get(key)
         if dt:
@@ -143,7 +97,7 @@ def parse_when(entry: Dict[str, Any]) -> datetime:
                 return parsedate_to_datetime(val).astimezone(timezone.utc)
             except Exception:
                 pass
-    # Last resort: now (ensures items still sort and show)
+    # Last resort
     return datetime.now(tz=timezone.utc)
 
 def normalize_item(source_name: str, entry: Dict[str, Any]) -> Dict[str, Any]:
