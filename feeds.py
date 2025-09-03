@@ -12,7 +12,7 @@ FEEDS = [
     {"name": "ESPN — Purdue (MBB search)",
      "url": "https://news.google.com/rss/search?q=site:espn.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
     {"name": "CBS Sports — Purdue (MBB search)",
-      "url": "https://news.google.com/rss/search?q=site:cbssports.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
+     "url": "https://news.google.com/rss/search?q=site:cbssports.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
     {"name": "Yahoo Sports — Purdue (MBB search)",
      "url": "https://news.google.com/rss/search?q=site:sports.yahoo.com+Purdue+Men%27s+Basketball&hl=en-US&gl=US&ceid=US:en"},
     {"name": "Sports Illustrated — Purdue (MBB search)",
@@ -45,7 +45,7 @@ FEEDS = [
     {"name": "Reddit — r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/.rss"},
     {"name": "Reddit — r/CollegeBasketball (Purdue search)",
      "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue%20basketball&restrict_sr=on&sort=new"},
-    # Added: basketball-specific subreddit to reduce football noise at the source
+    # Basketball-specific subreddit (reduces football noise at the source)
     {"name": "Reddit — r/PurdueBasketball", "url": "https://www.reddit.com/r/PurdueBasketball/.rss"},
 
     # ===== Focus signals (coach/arena)
@@ -66,8 +66,12 @@ FEEDS = [
      )},
 ]
 
-# Quick links (top buttons). Order & labels per request, with corrected capitalization.
+# Quick links (top buttons). Order matters on the page.
 STATIC_LINKS = [
+    # Restored: “Game Day” — great during the season.
+    # This points to a smart Google query that surfaces Gamecast, TV info, and tip time.
+    {"label": "Game Day",              "url": "https://www.google.com/search?q=Purdue+Men%27s+Basketball+game+today"},
+
     {"label": "Odds — Purdue",         "url": "https://www.google.com/search?q=Purdue+Boilermakers+basketball+odds"},
     {"label": "Purdue Official",       "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Schedule",              "url": "https://purduesports.com/sports/mens-basketball/schedule"},
@@ -87,7 +91,7 @@ STATIC_LINKS = [
 ]
 
 # Only mark feeds here if they are truly MBB-only. Do NOT add mixed-sport sites.
-# This works with the collector you’re using and prevents football posts from bypassing filters.
+# This works with the collector and prevents football posts from bypassing filters.
 TRUSTED_FEEDS = {
     "PurdueSports.com — “Men’s Basketball”",  # official MBB-only page
 }
