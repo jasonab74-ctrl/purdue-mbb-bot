@@ -1,4 +1,4 @@
-/* Purdue theme — sharp banner, logo header, bold pills, refined cards, client search */
+/* Purdue theme — responsive grid, logo header, clean banner, bold pills, refined cards */
 :root{
   --bg:#0b0b0b;
   --card:#121212;
@@ -6,7 +6,7 @@
   --border:#222;
   --text:#f4f4f4;
   --muted:#bcbcbc;
-  --gold:#CFB87C;            /* Purdue gold */
+  --gold:#CFB87C;
   --gold-ink:#111;
   --pill:#181818;
   --pill-border:#2a2a2a;
@@ -31,9 +31,7 @@ a:hover{color:var(--gold)}
 }
 .brand{display:flex; align-items:center; gap:10px}
 .logo{
-  width:40px;
-  height:40px;
-  object-fit:contain;
+  width:40px; height:40px; object-fit:contain;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
 }
 .titles h1{margin:0; font-size:20px; letter-spacing:.2px}
@@ -59,7 +57,7 @@ a:hover{color:var(--gold)}
 .update-banner.show{ transform:translateY(0); opacity:1; }
 .update-icon{display:inline-flex; align-items:center; justify-content:center}
 
-/* Utility bar (fight song) */
+/* Utility bar (Fight Song) */
 .utility-bar{
   display:flex; align-items:center; justify-content:space-between;
   gap:12px; padding:10px 14px; border-bottom:1px solid var(--border);
@@ -92,16 +90,13 @@ a:hover{color:var(--gold)}
 .sources{ list-style:none; margin:8px 0 0 16px; padding:0 }
 .sources a:hover{ text-decoration:underline }
 
-/* Feed grid */
+/* Responsive feed grid (auto-fit) */
 #feed{
-  padding:16px; max-width:1000px; margin:0 auto;
-  display:grid; grid-template-columns:1fr; gap:14px;
-}
-@media (min-width:900px){
-  #feed{ grid-template-columns:1fr 1fr; }   /* 2 columns on wide screens */
+  padding:16px; max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:14px;
 }
 
-/* Cards (news bubbles) */
+/* Cards */
 .card{
   background:linear-gradient(180deg, var(--card), var(--card-accent));
   border:1px solid var(--border);
@@ -143,15 +138,14 @@ a:hover{color:var(--gold)}
 
 /* Empty state & footer */
 .empty{padding:28px; color:var(--muted); text-align:center}
-.actions{display:flex; justify-content:center; margin:6px 0 26px}
 .site-footer{
   border-top:1px solid var(--border); color:var(--muted); font-size:12px;
   padding:12px 14px; text-align:center;
 }
 
-/* Mobile */
+/* Mobile refinements */
 @media (max-width:640px){
   .title{font-size:18px}
-  .pill{padding:8px 12px}
   .search-wrap{min-width:0; width:45%}
+  .logo{width:36px; height:36px}
 }
