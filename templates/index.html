@@ -11,7 +11,14 @@
   <!-- Header with Purdue logo + search -->
   <header class="site-header">
     <div class="brand">
-      <img class="logo" src="/static/purdue-logo.png" alt="Purdue logo" />
+      <!-- Primary logo; falls back to /static/logo.png if missing -->
+      <img
+        class="logo"
+        src="/static/purdue-logo.png"
+        alt="Purdue logo"
+        width="40"
+        height="40"
+        onerror="this.onerror=null;this.src='/static/logo.png'"/>
       <div class="titles">
         <h1>Purdue Men's Basketball</h1>
         <div class="updated">Updated: <span id="updatedText">{{ updated or "—" }}</span></div>
@@ -38,7 +45,6 @@
     <div class="left">
       <button id="fightSongBtn" class="btn btn-gold">Fight Song</button>
       <audio id="fightSong" preload="none" src="/static/fight-song.mp3"></audio>
-      <span id="songStatus" class="song-status" aria-live="polite"></span>
     </div>
     <div class="right"></div>
   </section>
@@ -99,19 +105,16 @@
   </footer>
 
   <script>
-    // Fight Song
+    // Fight Song (no status text)
     const audio = document.getElementById('fightSong');
     const songBtn = document.getElementById('fightSongBtn');
-    const songStatus = document.getElementById('songStatus');
-    function setStatus(m){ if(songStatus) songStatus.textContent = m || ""; }
     songBtn?.addEventListener('click', async () => {
       if (!audio) return;
       try {
-        if (audio.paused) { audio.currentTime = 0; await audio.play(); setStatus("Playing"); }
-        else { audio.pause(); audio.currentTime = 0; setStatus("Stopped"); }
-      } catch { setStatus("Could not play (check /static/fight-song.mp3)"); }
+        if (audio.paused) { audio.currentTime = 0; await audio.play(); }
+        else { audio.pause(); audio.currentTime = 0; }
+      } catch { /* ignore */ }
     });
-    audio?.addEventListener('ended', ()=> setStatus(""));
 
     // Friendly time labels
     function fmt(dt){
@@ -149,8 +152,6 @@
       }catch{}
     }
     refreshBtn?.addEventListener('click', ()=> location.reload());
-
-    // Poll every 60s for updates
     setInterval(checkForNew, 60000);
 
     // Client-side search (title + source + summary)
@@ -170,9 +171,10 @@
     }
     q?.addEventListener('input', () => { window.requestAnimationFrame(filterCards); });
 
-    // If server had to auto-populate after first view, reload once when items arrive
+    // If server auto-populated after first view, refresh once when items appear
     (async ()=>{
-      if (baseline.count === 0) {
+      const initialCards = document.querySelectorAll('#feed .card').length || 0;
+      if (initialCards === 0) {
         try{
           const r = await fetch('/items.json', {cache:'no-store'});
           if (r.ok){
