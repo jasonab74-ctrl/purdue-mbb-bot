@@ -5,27 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Purdue Men's Basketball — Feed</title>
   <link rel="stylesheet" href="/static/style.css"/>
-  <meta name="color-scheme" content="dark light">
+  <meta name="color-scheme" content="light dark">
 </head>
 <body>
-  <!-- Header with Purdue logo + search -->
+  <!-- Header with Purdue logo + wordmark -->
   <header class="site-header">
     <div class="brand">
-      <!-- Primary logo; falls back to /static/logo.png if missing -->
       <img
         class="logo"
         src="/static/purdue-logo.png"
         alt="Purdue logo"
-        width="40"
-        height="40"
+        width="44"
+        height="44"
         onerror="this.onerror=null;this.src='/static/logo.png'"/>
       <div class="titles">
         <h1>Purdue Men's Basketball</h1>
         <div class="updated">Updated: <span id="updatedText">{{ updated or "—" }}</span></div>
       </div>
-    </div>
-    <div class="search-wrap">
-      <input id="searchInput" type="search" placeholder="Search articles…" aria-label="Search articles"/>
     </div>
   </header>
 
@@ -40,7 +36,7 @@
     <button id="updateRefresh" class="btn btn-dark">Refresh</button>
   </div>
 
-  <!-- Utility bar: Fight Song under banner (left) -->
+  <!-- Utility bar: Fight Song on the left -->
   <section class="utility-bar">
     <div class="left">
       <button id="fightSongBtn" class="btn btn-gold">Fight Song</button>
@@ -56,9 +52,9 @@
     {% endfor %}
   </nav>
 
-  <!-- Sources (collapsible) -->
-  <section class="sources-wrap">
-    <details>
+  <!-- Sources + Search combined -->
+  <section class="sources-search">
+    <details class="sources-details">
       <summary>Sources</summary>
       <ul class="sources">
         {% for s in sources %}
@@ -66,6 +62,10 @@
         {% endfor %}
       </ul>
     </details>
+
+    <div class="search-wrap">
+      <input id="searchInput" type="search" placeholder="Search articles…" aria-label="Search articles"/>
+    </div>
   </section>
 
   <!-- Feed -->
@@ -101,7 +101,7 @@
   </main>
 
   <footer class="site-footer">
-    <span>Checks for updates every minute</span>
+    <span>Auto-checks for updates every minute</span>
   </footer>
 
   <script>
@@ -113,7 +113,7 @@
       try {
         if (audio.paused) { audio.currentTime = 0; await audio.play(); }
         else { audio.pause(); audio.currentTime = 0; }
-      } catch { /* ignore */ }
+      } catch {}
     });
 
     // Friendly time labels
@@ -131,7 +131,7 @@
       if(!isNaN(dt)) el.textContent = fmt(dt);
     });
 
-    // New items banner logic
+    // New items banner
     const banner = document.getElementById('newItemsBanner');
     const refreshBtn = document.getElementById('updateRefresh');
     const baseline = {
@@ -171,7 +171,7 @@
     }
     q?.addEventListener('input', () => { window.requestAnimationFrame(filterCards); });
 
-    // If server auto-populated after first view, refresh once when items appear
+    // First-visit assist: if server populated items after render, reload once
     (async ()=>{
       const initialCards = document.querySelectorAll('#feed .card').length || 0;
       if (initialCards === 0) {
