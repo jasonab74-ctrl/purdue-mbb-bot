@@ -23,11 +23,11 @@ html,body{
 a{color:inherit;text-decoration:none}
 a:hover{color:#7C6A2F}
 
-/* Header with logo */
+/* Header with logo and gold accent bar */
 .site-header{
-  padding:14px 16px;
-  border-bottom:1px solid var(--border);
+  padding:14px 16px 0 16px;
   background:var(--bg);
+  border-bottom:1px solid var(--border);
 }
 .brand{display:flex; align-items:center; gap:12px}
 .logo{
@@ -38,31 +38,26 @@ a:hover{color:#7C6A2F}
   margin:0; font-size:22px; letter-spacing:.2px; font-weight:900;
 }
 .updated{color:var(--muted); font-size:13px; margin-top:2px}
-
-/* Banner */
-.update-banner{
-  position:sticky; top:0; z-index:20;
-  display:flex; align-items:center; justify-content:center; gap:10px;
-  background:var(--gold); color:var(--gold-ink);
-  padding:10px 14px; border-bottom:1px solid #BFAE70;
-  transform:translateY(-100%); opacity:0; transition:transform .25s ease, opacity .25s ease;
-  box-shadow:0 1px 0 rgba(0,0,0,.05) inset;
-  font-weight:900; letter-spacing:.2px;
+/* Accent bar gives the header a cooler look */
+.header-accent{
+  height:10px; margin-top:12px;
+  background:linear-gradient(90deg,#cdb67a, #e4d6a7 40%, #cdb67a 80%);
+  border-top:1px solid rgba(0,0,0,.05);
+  border-bottom:1px solid var(--border);
 }
-.update-banner.show{ transform:translateY(0); opacity:1; }
-.update-icon{display:inline-flex; align-items:center; justify-content:center}
-.btn{
-  border:none; border-radius:12px; padding:8px 12px; cursor:pointer; font-weight:800;
-}
-.btn-dark{background:#232323; color:var(--gold); border:1px solid #000; padding:6px 10px}
-.btn-gold{background:var(--gold); color:var(--gold-ink)}
-.btn-gold:hover{filter:brightness(1.06)}
 
-/* Fight Song bar */
+/* Utility bar */
 .utility-bar{
   display:flex; align-items:center; justify-content:space-between;
-  gap:12px; padding:10px 16px; border-bottom:1px solid var(--border); background:var(--bg);
+  gap:12px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg);
 }
+.btn{
+  border:none; border-radius:14px; padding:8px 12px; cursor:pointer; font-weight:800;
+}
+.btn-gold{background:var(--gold); color:var(--gold-ink)}
+.btn-gold:hover{filter:brightness(1.06)}
+/* Bigger fight song button */
+.btn-large{ padding:12px 18px; font-size:16px; }
 
 /* Pills (quick links) */
 .pills{
@@ -122,7 +117,12 @@ a:hover{color:#7C6A2F}
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;
   font-weight:800; text-transform:uppercase; letter-spacing:.3px; color:#7b6d45;
 }
-.time{opacity:.9}
+/* Keep the time compact and on one line */
+.time{
+  white-space:nowrap;
+  font-size:13px;
+  color:#6b6b6b;
+}
 
 .title{margin:0 0 8px 0; font-size:19px; line-height:1.28}
 .title-link{font-weight:900}
@@ -131,15 +131,7 @@ a:hover{color:#7C6A2F}
 .summary{
   margin:0; color:#2a2a2a; font-size:15px; line-height:1.46;
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
-  margin-bottom:10px;
 }
-.card-bottom{display:flex; justify-content:flex-end;}
-.read-link{
-  display:inline-block; font-weight:900; letter-spacing:.2px;
-  border:1px solid var(--border); padding:6px 10px; border-radius:10px; color:#604E14;
-  background:#fff;
-}
-.read-link:hover{border-color:#BFAE70; color:#1f1f1f}
 
 /* Empty state & footer */
 .empty{padding:28px; color:#6b6b6b; text-align:center}
