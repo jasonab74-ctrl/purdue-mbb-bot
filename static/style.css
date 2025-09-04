@@ -30,7 +30,12 @@ a:hover{color:var(--gold)}
   display:flex; align-items:center; justify-content:space-between; gap:12px;
 }
 .brand{display:flex; align-items:center; gap:10px}
-.logo{width:32px; height:32px; object-fit:contain; filter: drop-shadow(0 1px 0 rgba(0,0,0,.4))}
+.logo{
+  width:40px;
+  height:40px;
+  object-fit:contain;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
+}
 .titles h1{margin:0; font-size:20px; letter-spacing:.2px}
 .updated{color:var(--muted); font-size:13px; margin-top:2px}
 
@@ -129,9 +134,7 @@ a:hover{color:var(--gold)}
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
   margin-bottom:10px;
 }
-.card-bottom{
-  display:flex; justify-content:flex-end;
-}
+.card-bottom{display:flex; justify-content:flex-end;}
 .read-link{
   display:inline-block; font-weight:900; letter-spacing:.2px;
   border:1px solid var(--border); padding:6px 10px; border-radius:10px;
