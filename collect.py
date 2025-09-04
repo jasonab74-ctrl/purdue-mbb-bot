@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 """
-Purdue MBB collector — RESET TO WORK
-- Goal: get articles showing again, no over-filtering
+Purdue MBB collector — baseline known-good
 - Works with FEEDS as list of dicts {"name","url"} or tuples (name,url)
-- Very permissive filter: allow if text mentions Purdue/Boilermakers OR basketball signals
-  (NO football/WBB exclusions right now — we’ll add back once you’re stable)
-- Sort newest-first, dedupe, cap to MAX_ITEMS (50)
+- Permissive: keep anything that mentions Purdue/Boilermakers OR basketball signals
+- If filtered result is EMPTY, it runs a fallback to avoid zero items:
+    1) Try a looser include again (same logic).
+    2) If still empty, include the newest entries from all feeds UNFILTERED (up to 50).
+- Sorts newest-first, dedupes, caps to MAX_ITEMS (50)
 - Writes items.json at repo root
-- Prints per-feed counts for quick verification
+- Prints per-feed counts to stdout for debugging
 """
 
 import os
@@ -23,16 +24,13 @@ import feedparser
 
 # ------------ config ------------
 MAX_ITEMS = 50
-ITEMS_PATH = os.path.join(os.path.dirname(__file__), "items.json")
-USER_AGENT = "Mozilla/5.0 (Purdue-MBB Collector Reset)"
+APP_DIR = os.path.dirname(__file__)
+ITEMS_PATH = os.path.join(APP_DIR, "items.json")
+USER_AGENT = "Mozilla/5.0 (Purdue-MBB Collector Baseline)"
 
 # ------------ import feeds ------------
 try:
     from feeds import FEEDS, STATIC_LINKS  # noqa: F401
-    try:
-        from feeds import TRUSTED_FEEDS  # optional, ignored in this reset
-    except Exception:
-        TRUSTED_FEEDS = set()
 except Exception as e:
     raise SystemExit(f"[collect.py] Could not import feeds.py: {e}")
 
@@ -56,7 +54,6 @@ def _coerce_feeds(feeds_any: Any) -> List[Tuple[str, str]]:
 FEEDS_NORM: List[Tuple[str, str]] = _coerce_feeds(FEEDS)
 
 # ------------ permissive filter ------------
-# Keep anything clearly Purdue-related OR basketball-related (no hard excludes for now)
 KEEP_SIGNALS = [
     "purdue", "boilermaker", "boilermakers", "boilers",
     "basketball", "mbb", "men's basketball", "mens basketball", "men’s basketball",
@@ -74,7 +71,7 @@ KEEP_SIGNALS = [
 def _lower_join(*parts: str) -> str:
     return " ".join(p or "" for p in parts).lower().strip()
 
-def allow_item(title: str, summary: str, source_name: str) -> bool:
+def allow_item(title: str, summary: str) -> bool:
     text = _lower_join(title, summary)
     return any(tok in text for tok in KEEP_SIGNALS)
 
@@ -130,35 +127,50 @@ def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         out.append(it)
     return out
 
-# ------------ fetch/collect ------------
+# ------------ fetch ------------
 
-def fetch_feed(name: str, url: str) -> List[Dict[str, Any]]:
+def fetch_feed(name: str, url: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """
+    Returns (filtered_items, raw_items)
+    """
     parsed = feedparser.parse(url, request_headers={"User-Agent": USER_AGENT})
     entries = parsed.get("entries") or []
-    items: List[Dict[str, Any]] = []
+    raw: List[Dict[str, Any]] = []
+    keep: List[Dict[str, Any]] = []
     for e in entries:
         item = normalize_item(name, e)
-        if allow_item(item["title"], item["summary"], name):
-            items.append(item)
-    return items
+        raw.append(item)
+        if allow_item(item["title"], item["summary"]):
+            keep.append(item)
+    return keep, raw
+
+# ------------ collect ------------
 
 def collect() -> List[Dict[str, Any]]:
-    all_items: List[Dict[str, Any]] = []
+    filtered_all: List[Dict[str, Any]] = []
+    raw_all: List[Dict[str, Any]] = []
+
     for name, url in FEEDS_NORM:
         try:
-            batch = fetch_feed(name, url)
-            print(f"[collect] {name}: pulled {len(batch)} items")
-            all_items.extend(batch)
+            keep, raw = fetch_feed(name, url)
+            print(f"[collect] {name}: {len(keep)} kept / {len(raw)} raw")
+            filtered_all.extend(keep)
+            raw_all.extend(raw)
         except Exception as ex:
             print(f"[collect] Feed failed: {name} ({url}) -> {ex}")
             continue
 
-    # Sort newest → oldest and dedupe
-    all_items.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
-    all_items = dedupe(all_items)
+    # If nothing kept, FALL BACK to raw (newest first)
+    if not filtered_all:
+        print("[collect] No filtered items — FALLBACK to raw (unfiltered).")
+        raw_all.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
+        raw_all = dedupe(raw_all)
+        return raw_all[:MAX_ITEMS]
 
-    # Cap to MAX_ITEMS
-    return all_items[:MAX_ITEMS]
+    # Normal path: sort kept newest → oldest and cap
+    filtered_all.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
+    filtered_all = dedupe(filtered_all)
+    return filtered_all[:MAX_ITEMS]
 
 def write_items(items: List[Dict[str, Any]], path: str = ITEMS_PATH) -> None:
     payload = {
