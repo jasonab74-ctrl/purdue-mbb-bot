@@ -1,12 +1,11 @@
-/* Purdue light theme — cream background, dark text, gold accents, mobile-first */
 :root{
-  --bg:#F7F3E7;           /* light cream */
+  --bg:#F7F3E7;
   --card:#FFFFFF;
   --card-accent:#FAF8F2;
   --border:#E2DCCB;
   --text:#121212;
   --muted:#5a5a5a;
-  --gold:#CFB87C;         /* Purdue gold */
+  --gold:#CFB87C;
   --gold-ink:#111;
   --pill:#ffffff;
   --pill-border:#E1DCCB;
@@ -18,32 +17,27 @@ html,body{
   margin:0; padding:0;
   background:var(--bg); color:var(--text);
   font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
 }
 a{color:inherit;text-decoration:none}
 a:hover{color:#7C6A2F}
 
-/* Header with logo and gold accent bar */
+/* Header with gold banner */
 .site-header{
   padding:14px 16px 0 16px;
   background:var(--bg);
   border-bottom:1px solid var(--border);
 }
 .brand{display:flex; align-items:center; gap:12px}
-.logo{
-  width:44px; height:44px; object-fit:contain;
-  filter: drop-shadow(0 1px 0 rgba(0,0,0,.25));
-}
-.titles h1{
-  margin:0; font-size:22px; letter-spacing:.2px; font-weight:900;
-}
+.logo{width:44px; height:44px; object-fit:contain;}
+.titles h1{margin:0; font-size:22px; font-weight:900;}
 .updated{color:var(--muted); font-size:13px; margin-top:2px}
-/* Accent bar gives the header a cooler look */
-.header-accent{
-  height:10px; margin-top:12px;
-  background:linear-gradient(90deg,#cdb67a, #e4d6a7 40%, #cdb67a 80%);
-  border-top:1px solid rgba(0,0,0,.05);
-  border-bottom:1px solid var(--border);
+/* Gold banner bar */
+.header-banner{
+  height:18px; margin-top:10px;
+  background:var(--gold);
+  border-top:1px solid #b7a568;
+  border-bottom:1px solid #b7a568;
+  border-radius:4px;
 }
 
 /* Utility bar */
@@ -51,98 +45,38 @@ a:hover{color:#7C6A2F}
   display:flex; align-items:center; justify-content:space-between;
   gap:12px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg);
 }
-.btn{
-  border:none; border-radius:14px; padding:8px 12px; cursor:pointer; font-weight:800;
-}
+.btn{border:none; border-radius:14px; padding:8px 12px; cursor:pointer; font-weight:800;}
 .btn-gold{background:var(--gold); color:var(--gold-ink)}
 .btn-gold:hover{filter:brightness(1.06)}
-/* Bigger fight song button */
 .btn-large{ padding:12px 18px; font-size:16px; }
 
-/* Pills (quick links) */
-.pills{
-  display:flex; flex-wrap:wrap; gap:10px;
-  padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg);
-}
-.pill{
-  padding:9px 12px; border-radius:999px;
-  background:var(--pill);
-  border:1px solid var(--pill-border);
-  color:var(--text); font-weight:900; letter-spacing:.2px;
-  box-shadow:0 1px 0 rgba(0,0,0,.03) inset;
-}
+/* Pills */
+.pills{display:flex; flex-wrap:wrap; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg);}
+.pill{padding:9px 12px; border-radius:999px; background:var(--pill); border:1px solid var(--pill-border); font-weight:900;}
 .pill:hover{border-color:#BFAE70; color:#604E14}
 
-/* Sources + Search */
-.sources-search{
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  padding:10px 16px; border-bottom:1px solid var(--border); background:var(--bg);
-  flex-wrap:wrap;
-}
+/* Sources */
+.sources-search{padding:10px 16px; border-bottom:1px solid var(--border); background:var(--bg);}
 .sources-details summary{ color:#604E14; cursor:pointer; font-weight:900 }
 .sources{ list-style:none; margin:8px 0 0 16px; padding:0 }
 .sources a:hover{ text-decoration:underline; color:#604E14 }
-.search-wrap{ min-width:220px; flex:1; display:flex; justify-content:flex-end }
-.search-wrap input{
-  width:100%; max-width:360px; border-radius:10px; border:1px solid var(--border);
-  background:#fff; color:var(--text); padding:10px 12px;
-}
-.search-wrap input::placeholder{color:#8b8b8b}
 
-/* Responsive feed grid (auto-fit) */
-#feed{
-  padding:16px; max-width:1200px; margin:0 auto;
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:14px;
-}
-
-/* Cards (light) */
-.card{
-  background:linear-gradient(180deg, var(--card), var(--card-accent));
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:16px;
-  box-shadow: var(--shadow);
-  transition: transform .08s ease, border-color .12s ease, box-shadow .12s ease;
-}
-.card:hover{
-  transform:translateY(-1px);
-  border-color:#D7CFB9;
-  box-shadow: 0 10px 22px rgba(0,0,0,.12);
-}
-.card-top{
-  display:flex; justify-content:space-between; align-items:baseline;
-  gap:10px; margin-bottom:8px; color:#6b6b6b; font-size:12px;
-}
-.src{
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;
-  font-weight:800; text-transform:uppercase; letter-spacing:.3px; color:#7b6d45;
-}
-/* Keep the time compact and on one line */
-.time{
-  white-space:nowrap;
-  font-size:13px;
-  color:#6b6b6b;
-}
-
+/* Feed grid */
+#feed{padding:16px; max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:14px;}
+.card{background:linear-gradient(180deg, var(--card), var(--card-accent)); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow);}
+.card-top{display:flex; justify-content:space-between; font-size:12px; color:#6b6b6b;}
+.src{font-weight:800; text-transform:uppercase; color:#7b6d45;}
+.time{white-space:nowrap; font-size:13px; color:#6b6b6b;}
 .title{margin:0 0 8px 0; font-size:19px; line-height:1.28}
 .title-link{font-weight:900}
-.title-link:hover{color:#7C6A2F}
+.summary{margin:0; color:#2a2a2a; font-size:15px; line-height:1.46; -webkit-line-clamp:3; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;}
 
-.summary{
-  margin:0; color:#2a2a2a; font-size:15px; line-height:1.46;
-  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
-}
-
-/* Empty state & footer */
+/* Footer */
 .empty{padding:28px; color:#6b6b6b; text-align:center}
-.site-footer{
-  border-top:1px solid var(--border); color:#6b6b6b; font-size:12px;
-  padding:12px 16px; text-align:center; background:var(--bg);
-}
+.site-footer{border-top:1px solid var(--border); color:#6b6b6b; font-size:12px; padding:12px 16px; text-align:center; background:var(--bg);}
 
-/* Mobile refinements */
+/* Mobile tweaks */
 @media (max-width:640px){
   .title{font-size:18px}
   .logo{width:40px; height:40px}
-  .search-wrap{min-width:0; width:100%}
 }
