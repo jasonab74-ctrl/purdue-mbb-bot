@@ -26,7 +26,6 @@
         </div>
       </div>
     </div>
-    <div class="header-banner" aria-hidden="true"></div>
   </header>
 
   <!-- Utility bar: Fight Song (bigger button) -->
@@ -45,10 +44,10 @@
     {% endfor %}
   </nav>
 
-  <!-- Sources (search removed) -->
+  <!-- News Sources -->
   <section class="sources-search">
     <details class="sources-details">
-      <summary>Sources</summary>
+      <summary>News Sources</summary>
       <ul class="sources">
         {% for s in sources %}
           <li><a href="{{s.url}}" target="_blank" rel="noopener">{{s.name}}</a></li>
