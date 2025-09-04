@@ -9,6 +9,7 @@
   --gold-weak:#b9a66b;
   --pill:#1b1b1b;
   --pill-border:#2a2a2a;
+  --banner-text:#111;
 }
 
 *{box-sizing:border-box}
@@ -48,6 +49,12 @@ a:hover{color:var(--gold)}
   border:1px solid var(--border);
 }
 .btn-ghost:hover{border-color:var(--gold)}
+.btn-dark{
+  background:#111;color:var(--gold);
+  border:1px solid #000;border-radius:10px;
+  padding:6px 10px;font-weight:800;
+}
+.btn-dark:hover{filter:brightness(1.1)}
 
 .pills{
   display:flex;flex-wrap:wrap;gap:8px;
@@ -67,6 +74,17 @@ a:hover{color:var(--gold)}
 .sources{list-style:none;margin:8px 0 0 16px;padding:0}
 .sources a{opacity:.95}
 .sources a:hover{text-decoration:underline}
+
+/* New items banner */
+.update-banner{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; justify-content:center; gap:12px;
+  background:var(--gold); color:var(--banner-text);
+  padding:10px 14px; border-bottom:1px solid var(--border);
+  transform:translateY(-100%); opacity:0; transition:transform .25s ease, opacity .25s ease;
+}
+.update-banner.show{ transform:translateY(0); opacity:1; }
+.update-text{font-weight:800}
 
 #feed{
   padding:14px;max-width:920px;margin:0 auto;
