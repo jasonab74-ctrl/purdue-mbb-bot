@@ -1,160 +1,85 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Purdue Men’s Basketball — Live Feed</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-
-  <!-- icons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}?v=6">
-  <link rel="mask-icon" href="{{ url_for('static', filename='safari-pinned-tab.svg') }}" color="#C5A559">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=6">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png?v=6">
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}?v=6">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}?v=6">
-  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=6">
-  <meta name="apple-mobile-web-app-title" content="Purdue MBB">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Purdue Men's Basketball — Feed</title>
+  <link rel="stylesheet" href="/static/style.css"/>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <div class="brand">
-        <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
-        <div>
-          <h1 class="title">Purdue Men’s Basketball</h1>
-          <div class="sub">
-            <span class="count">{{ items|length }} articles</span> ·
-            <span class="stamp">Updated: {{ meta.generated_at }}</span>
-          </div>
-        </div>
-      </div>
-      <button class="fight-btn" onclick="toggleFightSong()">▶ Fight Song</button>
-      <audio id="fightSong" src="{{ url_for('static', filename='fight_song.mp3') }}"></audio>
-    </div>
+<header class="site-header">
+  <h1>Purdue Men's Basketball</h1>
+  <div class="updated">Updated: {{ updated or "—" }}</div>
+</header>
 
-    <!-- Quick Links (buttons) -->
-    <div class="quick" id="quickRow">
-      <!-- Dynamic 'Game Day' pill placeholder (hidden until JS decides to show) -->
-      <a class="pill pill-live" id="gamePill" href="https://purduesports.com/sports/mens-basketball/schedule"
-         target="_blank" rel="noopener" style="display:none">🏀 Game Day</a>
+<nav class="pills">
+  {% for link in static_links %}
+    <a class="pill" href="{{link.url}}" target="_blank" rel="noopener">{{link.label}}</a>
+  {% endfor %}
+</nav>
 
-      {% for link in static_links %}
-        <a class="pill" href="{{ link.url }}" target="_blank" rel="noopener">{{ link.label }}</a>
-      {% endfor %}
-    </div>
-
-    <!-- Controls -->
-    <div class="controls">
-      <input type="search" class="input" id="searchBox" placeholder="Search articles…" oninput="filterItems()">
-      <select class="select" id="sourceFilter" onchange="filterItems()">
-        <option value="">All Sources</option>
-        {% for f in feeds %}
-          <option value="{{ f.name }}">{{ f.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- Notice -->
-    <div id="notice" class="notice" style="display:none;">
-      New items available — <a href="#" onclick="location.reload()">refresh now</a>.
-    </div>
-
-    <!-- Articles -->
-    <ul class="items" id="feedList">
-      {% for it in items %}
-        <li class="item" data-source="{{ it.source }}">
-          <div class="item-head">
-            <a class="title-link" href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a>
-            <span class="badge">{{ it.source }}</span>
-          </div>
-          <div class="meta">{{ it.date }}</div>
-          {% if it.summary %}
-            <p class="desc">{{ it.summary|striptags|replace('\n',' ')|replace('\r',' ')|truncate(240, True, '…') }}</p>
-          {% endif %}
-        </li>
+<section class="controls">
+  <details>
+    <summary>Sources</summary>
+    <ul class="sources">
+      {% for s in sources %}
+      <li><a href="{{s.url}}" target="_blank" rel="noopener">{{s.name}}</a></li>
       {% endfor %}
     </ul>
+  </details>
+  <button id="refreshBtn">Check for updates</button>
+</section>
 
-    <div class="footer">Boiler Up! — Purdue Men’s Basketball Live Feed</div>
-  </div>
+<main id="feed">
+  {% if items and items|length > 0 %}
+    {% for it in items %}
+    <article class="card">
+      <div class="meta">
+        <span class="src">{{ it.source }}</span>
+        <span class="time">{{ it.published[:16].replace('T',' ') if it.published }}</span>
+      </div>
+      <h3 class="title"><a href="{{ it.link }}" target="_blank" rel="noopener">{{ it.title }}</a></h3>
+      {% if it.summary %}
+      <p class="summary">{{ it.summary|safe }}</p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  {% else %}
+    <p class="empty">No items yet. Try <button id="collectNow" class="inline">collecting now</button>.</p>
+  {% endif %}
+</main>
 
-  <script>
-  function toggleFightSong() {
-    const a = document.getElementById("fightSong");
-    if (a.paused) { a.play(); } else { a.pause(); }
-  }
+<script>
+const btn = document.getElementById('refreshBtn');
+btn?.addEventListener('click', async () => {
+  const r = await fetch('/items.json', {cache:'no-store'});
+  if (!r.ok) return;
+  const j = await r.json();
+  const count = (j.items||[]).length;
+  alert(count > 0 ? `Feed has ${count} items.` : 'Still empty.');
+});
 
-  function filterItems() {
-    const q = document.getElementById("searchBox").value.toLowerCase();
-    const f = document.getElementById("sourceFilter").value;
-    document.querySelectorAll("#feedList .item").forEach(it => {
-      const text = it.innerText.toLowerCase();
-      const src  = it.getAttribute("data-source");
-      const show = (!q || text.includes(q)) && (!f || src === f);
-      it.style.display = show ? "" : "none";
-    });
-  }
+const collectNow = document.getElementById('collectNow');
+collectNow?.addEventListener('click', async () => {
+  const r = await fetch('/collect-open', {method:'POST'});
+  if (!r.ok) { alert('Collect failed'); return; }
+  const j = await r.json();
+  alert(j.ok ? `Collected ${j.wrote} items` : `Error: ${j.error}`);
+  location.reload();
+});
 
-  // Lightweight "Game Day" detector: show within ~36h if titles look like matchup/pregame.
-  async function evaluateGameSoon() {
-    try {
-      const res = await fetch("/items.json", { cache: "no-store" });
-      const data = await res.json();
-      const items = data.items || [];
-      const now = new Date().getTime();
-      const soon = 36 * 60 * 60 * 1000; // 36h window
-
-      // Simple title heuristics (avoid brittleness)
-      const reMatch = /\b(vs\.|vs|at)\b/i;
-      const reSignal = /\b(gameday|game\s*day|pregame|preview)\b/i;
-
-      let hit = false, opponent = "";
-
-      for (const it of items.slice(0, 50)) { // newest chunk
-        const t = (it.title || "");
-        const when = Date.parse(it.date?.replace("Z","+00:00")) || now; // tolerate missing
-        if (now - when > soon) continue; // too old
-        if (reMatch.test(t) || reSignal.test(t)) {
-          hit = true;
-          // Try to grab opponent-ish word(s)
-          const m = t.match(/\b(?:vs\.|vs|at)\s+([A-Z][A-Za-z&\-\.\s]{2,40})/i);
-          opponent = m ? m[1].trim() : opponent;
-          break;
-        }
-      }
-
-      const pill = document.getElementById("gamePill");
-      if (hit && pill) {
-        pill.style.display = "inline-flex";
-        pill.textContent = opponent ? `🏀 Game Day — ${opponent}` : "🏀 Game Day";
-      } else if (pill) {
-        pill.style.display = "none";
-      }
-    } catch (e) { /* silent */ }
-  }
-
-  // Passive update stamp + new-items notice
-  async function checkUpdates() {
-    try {
-      const res = await fetch("/items.json", { cache: "no-store" });
-      const data = await res.json();
-      const lastRun = data?.meta?.last_run?.ts;
-      const stamp = document.querySelector(".stamp");
-      if (stamp && lastRun) stamp.textContent = "Updated: " + lastRun;
-      const shown = document.querySelectorAll("#feedList .item").length;
-      if (data.items && data.items.length > shown) {
-        document.getElementById("notice").style.display = "block";
-      }
-    } catch (e) { /* silent */ }
-  }
-
-  // Kick off
-  evaluateGameSoon();
-  checkUpdates();
-  setInterval(evaluateGameSoon, 15 * 60 * 1000);
-  setInterval(checkUpdates,       5 * 60 * 1000);
-  </script>
+// Light auto-refresh (every 3 minutes)
+setInterval(async () => {
+  try {
+    const r = await fetch('/items.json', {cache:'no-store'});
+    if (!r.ok) return;
+    const j = await r.json();
+    // If there are items, refresh to show new ones
+    if ((j.items||[]).length > 0) {
+      location.reload();
+    }
+  } catch(e) {}
+}, 180000);
+</script>
 </body>
 </html>
