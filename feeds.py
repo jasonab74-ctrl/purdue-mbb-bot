@@ -45,7 +45,6 @@ FEEDS = [
     {"name": "Reddit — r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/.rss"},
     {"name": "Reddit — r/CollegeBasketball (Purdue search)",
      "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue%20basketball&restrict_sr=on&sort=new"},
-    # Basketball-specific subreddit (reduces football noise at the source)
     {"name": "Reddit — r/PurdueBasketball", "url": "https://www.reddit.com/r/PurdueBasketball/.rss"},
 
     # ===== Focus signals (coach/arena)
@@ -68,10 +67,7 @@ FEEDS = [
 
 # Quick links (top buttons). Order matters on the page.
 STATIC_LINKS = [
-    # Restored: “Game Day” — great during the season.
-    # This points to a smart Google query that surfaces Gamecast, TV info, and tip time.
     {"label": "Game Day",              "url": "https://www.google.com/search?q=Purdue+Men%27s+Basketball+game+today"},
-
     {"label": "Odds — Purdue",         "url": "https://www.google.com/search?q=Purdue+Boilermakers+basketball+odds"},
     {"label": "Purdue Official",       "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Schedule",              "url": "https://purduesports.com/sports/mens-basketball/schedule"},
@@ -89,9 +85,3 @@ STATIC_LINKS = [
     {"label": "YouTube - Sleepers",    "url": "https://www.youtube.com/@SleepersMedia"},
     {"label": "YouTube - G&B",         "url": "https://www.youtube.com/@Goldandblackcom"}
 ]
-
-# Only mark feeds here if they are truly MBB-only. Do NOT add mixed-sport sites.
-# This works with the collector and prevents football posts from bypassing filters.
-TRUSTED_FEEDS = {
-    "PurdueSports.com — “Men’s Basketball”",  # official MBB-only page
-}
