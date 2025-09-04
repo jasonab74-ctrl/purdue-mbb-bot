@@ -9,22 +9,25 @@
 </head>
 <body>
   <header class="site-header">
-    <div class="brand">
-      <h1>Purdue Men's Basketball</h1>
-      <div class="updated">Updated: <span id="updatedText">{{ updated or "—" }}</span></div>
-    </div>
-    <div class="header-actions">
-      <!-- Fight Song button (label never changes) -->
-      <button id="fightSongBtn" class="btn btn-gold">Fight Song</button>
-      <audio id="fightSong" preload="none" src="/static/fight-song.mp3"></audio>
-    </div>
+    <h1>Purdue Men's Basketball</h1>
+    <div class="updated">Updated: <span id="updatedText">{{ updated or "—" }}</span></div>
   </header>
 
-  <!-- New items banner (hidden until there are new items) -->
+  <!-- New items banner (sticky) -->
   <div id="newItemsBanner" class="update-banner" hidden>
     <span class="update-text">New items available</span>
     <button id="updateRefresh" class="btn btn-dark">Refresh</button>
   </div>
+
+  <!-- Utility bar under banner: Fight Song on the left -->
+  <section class="utility-bar">
+    <div class="left">
+      <button id="fightSongBtn" class="btn btn-gold">Fight Song</button>
+      <audio id="fightSong" preload="none" src="/static/fight-song.mp3"></audio>
+      <span id="songStatus" class="song-status" aria-live="polite"></span>
+    </div>
+    <div class="right"></div>
+  </section>
 
   <!-- Quick links row -->
   <nav class="pills">
@@ -77,20 +80,37 @@
   </main>
 
   <footer class="site-footer">
-    <span>Auto-refreshes every 3 minutes</span>
+    <span>Checks for updates every minute</span>
   </footer>
 
   <script>
-    // Fight Song toggle (label stays "Fight Song")
+    // --- Fight Song (button on the left under the banner) ---
     const audio = document.getElementById('fightSong');
     const songBtn = document.getElementById('fightSongBtn');
-    songBtn?.addEventListener('click', () => {
+    const songStatus = document.getElementById('songStatus');
+
+    function setStatus(msg){ if (songStatus) songStatus.textContent = msg || ""; }
+
+    songBtn?.addEventListener('click', async () => {
       if (!audio) return;
-      if (audio.paused) { audio.currentTime = 0; audio.play(); }
-      else { audio.pause(); audio.currentTime = 0; }
+      try {
+        if (audio.paused) {
+          audio.currentTime = 0;
+          await audio.play();
+          setStatus("Playing");
+        } else {
+          audio.pause();
+          audio.currentTime = 0;
+          setStatus("Stopped");
+        }
+      } catch (e) {
+        setStatus("Could not play (check /static/fight-song.mp3)");
+      }
     });
 
-    // Friendly time labels like "Sep 4 • 3:40 PM"
+    audio?.addEventListener('ended', ()=> setStatus(""));
+
+    // --- Friendly time labels like "Sep 4 • 3:40 PM" ---
     function fmt(dt){
       try{
         const d = dt.toLocaleDateString(undefined, {month:'short', day:'numeric'});
@@ -105,46 +125,37 @@
       if(!isNaN(dt)) el.textContent = fmt(dt);
     });
 
-    // === New items banner logic ===
+    // --- New items banner logic (no surprise auto-reloads) ---
     const banner = document.getElementById('newItemsBanner');
     const refreshBtn = document.getElementById('updateRefresh');
 
-    let baselineCount = (function(){
-      // Count articles currently rendered on the page
-      return document.querySelectorAll('#feed .card').length || 0;
-    })();
+    const baseline = {
+      count: document.querySelectorAll('#feed .card').length || 0,
+      updated: document.getElementById('updatedText')?.textContent || ""
+    };
 
     async function checkForNew(){
       try{
         const r = await fetch('/items.json', {cache:'no-store'});
         if(!r.ok) return;
         const j = await r.json();
-        const latest = (j.items||[]).length;
-        if (latest > baselineCount) {
-          // Reveal banner
+        const latestCount = (j.items||[]).length;
+        const latestUpdated = j.updated || "";
+
+        // Show banner if count grew OR updated timestamp changed
+        if ((latestCount > baseline.count) || (baseline.updated && latestUpdated && baseline.updated !== latestUpdated)) {
           banner?.removeAttribute('hidden');
           banner?.classList.add('show');
         }
       }catch{}
     }
 
-    // Click to refresh
     refreshBtn?.addEventListener('click', ()=> location.reload());
 
-    // Poll every 60s for a snappy signal; server cron fills items.json separately
+    // Poll every 60s for new items; no auto-reload elsewhere
     setInterval(checkForNew, 60000);
 
-    // Auto-refresh every 3 minutes as a backstop
-    setInterval(async ()=>{
-      try{
-        const r = await fetch('/items.json', {cache:'no-store'});
-        if(!r.ok) return;
-        const j = await r.json();
-        if((j.items||[]).length > 0) location.reload();
-      }catch{}
-    }, 180000);
-
-    // Collect-now endpoint for manual refresh (only shown when empty)
+    // Manual collect endpoint (only visible when empty)
     document.getElementById('collectNow')?.addEventListener('click', async ()=>{
       try{
         const r = await fetch('/collect-open', {method:'POST'});
