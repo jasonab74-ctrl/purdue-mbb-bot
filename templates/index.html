@@ -13,15 +13,21 @@
       <h1>Purdue Men's Basketball</h1>
       <div class="updated">Updated: <span id="updatedText">{{ updated or "—" }}</span></div>
     </div>
-    <button id="refreshBtn" class="btn">Check for updates</button>
+    <div class="header-actions">
+      <!-- Fight Song button (label never changes) -->
+      <button id="fightSongBtn" class="btn btn-gold">Fight Song</button>
+      <audio id="fightSong" preload="none" src="/static/fight-song.mp3"></audio>
+    </div>
   </header>
 
+  <!-- Quick links row -->
   <nav class="pills">
     {% for link in static_links %}
       <a class="pill" href="{{link.url}}" target="_blank" rel="noopener">{{link.label}}</a>
     {% endfor %}
   </nav>
 
+  <!-- Sources (collapsible) -->
   <section class="sources-wrap">
     <details>
       <summary>Sources</summary>
@@ -33,14 +39,16 @@
     </details>
   </section>
 
+  <!-- Feed -->
   <main id="feed">
     {% if items and items|length > 0 %}
       {% for it in items %}
         <article class="card">
           <div class="card-top">
             <span class="src">{{ it.source }}</span>
-            <time class="time"
-                  data-iso="{{ it.published or '' }}">{{ it.published[:16].replace('T',' ') if it.published }}</time>
+            <time class="time" data-iso="{{ it.published or '' }}">
+              {{ it.published[:16].replace('T',' ') if it.published }}
+            </time>
           </div>
 
           <h3 class="title">
@@ -67,55 +75,48 @@
   </footer>
 
   <script>
+    // Fight Song toggle (label stays "Fight Song")
+    const audio = document.getElementById('fightSong');
+    const songBtn = document.getElementById('fightSongBtn');
+    songBtn?.addEventListener('click', () => {
+      if (!audio) return;
+      if (audio.paused) { audio.currentTime = 0; audio.play(); }
+      else { audio.pause(); audio.currentTime = 0; }
+    });
+
     // Friendly time labels like "Sep 4 • 3:40 PM"
-    function fmt(dt) {
-      try {
-        const optsDate = { month: 'short', day: 'numeric' };
-        const optsTime = { hour: 'numeric', minute: '2-digit' };
-        return dt.toLocaleDateString(undefined, optsDate) + " • " + dt.toLocaleTimeString(undefined, optsTime);
-      } catch { return ""; }
+    function fmt(dt){
+      try{
+        const d = dt.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+        const t = dt.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+        return d + " • " + t;
+      }catch{return "";}
     }
-
-    // Convert ISO times to friendly ones on load
-    document.querySelectorAll('.time[data-iso]').forEach(el => {
+    document.querySelectorAll('.time[data-iso]').forEach(el=>{
       const iso = el.getAttribute('data-iso');
-      if (!iso) return;
+      if(!iso) return;
       const dt = new Date(iso);
-      if (!isNaN(dt)) el.textContent = fmt(dt);
+      if(!isNaN(dt)) el.textContent = fmt(dt);
     });
 
-    // Header updated text may be ISO from server; leave as-is if already friendly
-    // (No-op here; server already formats it.)
-
-    // Manual refresh button: tells you if new items exist
-    document.getElementById('refreshBtn')?.addEventListener('click', async () => {
-      try {
-        const r = await fetch('/items.json', {cache:'no-store'});
-        if (!r.ok) return alert('Could not check.');
-        const j = await r.json();
-        const count = (j.items||[]).length;
-        alert(count ? `Feed has ${count} items.` : 'Still empty.');
-      } catch { /* ignore */ }
-    });
-
-    // Collect-now: calls the open collector endpoint (if enabled)
-    document.getElementById('collectNow')?.addEventListener('click', async () => {
-      try {
+    // Collect-now endpoint for manual refresh (kept in the empty state only)
+    document.getElementById('collectNow')?.addEventListener('click', async ()=>{
+      try{
         const r = await fetch('/collect-open', {method:'POST'});
         const j = await r.json();
         alert(j.ok ? `Collected ${j.wrote} items` : `Error: ${j.error||'collect failed'}`);
         location.reload();
-      } catch { alert('Collect failed'); }
+      }catch{ alert('Collect failed'); }
     });
 
-    // Light auto-refresh every 3 minutes: if items exist, reload to show newest
-    setInterval(async () => {
-      try {
+    // Auto-refresh every 3 minutes
+    setInterval(async ()=>{
+      try{
         const r = await fetch('/items.json', {cache:'no-store'});
-        if (!r.ok) return;
+        if(!r.ok) return;
         const j = await r.json();
-        if ((j.items||[]).length > 0) location.reload();
-      } catch {}
+        if((j.items||[]).length > 0) location.reload();
+      }catch{}
     }, 180000);
   </script>
 </body>
