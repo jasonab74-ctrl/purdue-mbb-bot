@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Purdue Men's Basketball — Feed</title>
+  <title>Purdue Men's Basketball — Feeds</title>
   <link rel="stylesheet" href="/static/style.css"/>
   <meta name="color-scheme" content="light dark">
 </head>
@@ -19,13 +19,14 @@
         height="44"
         onerror="this.onerror=null;this.src='/static/logo.png'"/>
       <div class="titles">
-        <h1>Purdue Men's Basketball</h1>
-        <!-- Updated time: now formatted to US-friendly text via JS -->
-        <div class="updated">Updated:
-          <span id="updatedText" data-iso="{{ updated or '' }}">—</span>
+        <h1>Purdue Men's Basketball — Feeds</h1>
+        <!-- Updated time: formatted to US-friendly text via JS -->
+        <div class="updated">
+          Updated: <span id="updatedText" data-iso="{{ updated or '' }}">—</span>
         </div>
       </div>
     </div>
+    <div class="header-accent" aria-hidden="true"></div>
   </header>
 
   <!-- Utility bar: Fight Song (bigger button) -->
@@ -81,10 +82,6 @@
           {% if it.summary %}
             <p class="summary">{{ it.summary|striptags }}</p>
           {% endif %}
-
-          <div class="card-bottom">
-            <a class="read-link" href="{{ it.link }}" target="_blank" rel="noopener">Read →</a>
-          </div>
         </article>
       {% endfor %}
     {% else %}
@@ -124,7 +121,7 @@
       } catch {}
     });
 
-    // Friendly time labels for each article card
+    // Friendly time labels for each article card (short + single line)
     function fmt(dt){
       try{
         const d = dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
