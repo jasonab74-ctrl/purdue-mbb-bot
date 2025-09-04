@@ -4,20 +4,18 @@
 import os
 import json
 from datetime import datetime, timezone
-from flask import Flask, render_template, send_file, jsonify, request
+from flask import Flask, render_template, jsonify, send_file
 
 APP_DIR = os.path.dirname(__file__)
 ITEMS_PATH = os.path.join(APP_DIR, "items.json")
 
-# Serve /static/* by default; templates/ for Jinja
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
-# Import after app to avoid circulars
-import collect as collector  # uses feeds.py and writes items.json
+# Import collector + feeds
+import collect as collector
 from feeds import STATIC_LINKS, FEEDS
 
 def _read_items():
-    """Read items.json safely; cap to 50."""
     if not os.path.exists(ITEMS_PATH):
         return {"updated": None, "count": 0, "items": []}
     try:
@@ -28,16 +26,29 @@ def _read_items():
     except Exception:
         return {"updated": None, "count": 0, "items": []}
 
+def _ensure_items_if_empty():
+    """Auto-populate on first load so the page never looks empty."""
+    data = _read_items()
+    if data["count"] == 0:
+        try:
+            items = collector.collect()
+            collector.write_items(items, ITEMS_PATH)
+            return {"updated": datetime.now(tz=timezone.utc).isoformat(),
+                    "count": len(items), "items": items[:50]}
+        except Exception:
+            # If collection fails, return the original empty data
+            return data
+    return data
+
 @app.route("/")
 def index():
-    data = _read_items()
-    updated = data.get("updated")
-    # Let template JS render friendly times
+    # Auto-load if empty
+    data = _ensure_items_if_empty()
     sources = [s if isinstance(s, dict) else {"name": s[0], "url": s[1]} for s in FEEDS]
     return render_template(
         "index.html",
         items=data.get("items", []),
-        updated=updated,
+        updated=data.get("updated"),
         sources=sources,
         static_links=STATIC_LINKS,
     )
@@ -46,9 +57,9 @@ def index():
 def items_json():
     return jsonify(_read_items())
 
-# Open collector endpoint to repopulate items.json on demand
 @app.route("/collect-open", methods=["POST", "GET"])
 def collect_open():
+    # Kept for manual trigger / cron, but not required for first render
     try:
         items = collector.collect()
         collector.write_items(items, ITEMS_PATH)
@@ -56,21 +67,21 @@ def collect_open():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
-# Simple health/debug endpoint so you can confirm both issues in seconds
 @app.route("/health")
 def health():
     static_audio = os.path.exists(os.path.join(app.static_folder, "fight-song.mp3"))
-    items_data = _read_items()
+    logo_exists = os.path.exists(os.path.join(app.static_folder, "purdue-logo.png"))
+    data = _read_items()
     return jsonify({
         "ok": True,
-        "items_count": items_data.get("count", 0),
+        "items_count": data.get("count", 0),
         "items_json_exists": os.path.exists(ITEMS_PATH),
         "static_audio_exists": static_audio,
+        "logo_exists": logo_exists,
         "items_path": ITEMS_PATH,
         "static_folder": os.path.abspath(app.static_folder),
     })
 
-# Optional: direct route to test audio delivery
 @app.route("/test-fight-song")
 def test_fight_song():
     path = os.path.join(app.static_folder, "fight-song.mp3")
