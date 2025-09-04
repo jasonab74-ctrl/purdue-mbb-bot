@@ -20,6 +20,12 @@
     </div>
   </header>
 
+  <!-- New items banner (hidden until there are new items) -->
+  <div id="newItemsBanner" class="update-banner" hidden>
+    <span class="update-text">New items available</span>
+    <button id="updateRefresh" class="btn btn-dark">Refresh</button>
+  </div>
+
   <!-- Quick links row -->
   <nav class="pills">
     {% for link in static_links %}
@@ -99,17 +105,36 @@
       if(!isNaN(dt)) el.textContent = fmt(dt);
     });
 
-    // Collect-now endpoint for manual refresh (kept in the empty state only)
-    document.getElementById('collectNow')?.addEventListener('click', async ()=>{
-      try{
-        const r = await fetch('/collect-open', {method:'POST'});
-        const j = await r.json();
-        alert(j.ok ? `Collected ${j.wrote} items` : `Error: ${j.error||'collect failed'}`);
-        location.reload();
-      }catch{ alert('Collect failed'); }
-    });
+    // === New items banner logic ===
+    const banner = document.getElementById('newItemsBanner');
+    const refreshBtn = document.getElementById('updateRefresh');
 
-    // Auto-refresh every 3 minutes
+    let baselineCount = (function(){
+      // Count articles currently rendered on the page
+      return document.querySelectorAll('#feed .card').length || 0;
+    })();
+
+    async function checkForNew(){
+      try{
+        const r = await fetch('/items.json', {cache:'no-store'});
+        if(!r.ok) return;
+        const j = await r.json();
+        const latest = (j.items||[]).length;
+        if (latest > baselineCount) {
+          // Reveal banner
+          banner?.removeAttribute('hidden');
+          banner?.classList.add('show');
+        }
+      }catch{}
+    }
+
+    // Click to refresh
+    refreshBtn?.addEventListener('click', ()=> location.reload());
+
+    // Poll every 60s for a snappy signal; server cron fills items.json separately
+    setInterval(checkForNew, 60000);
+
+    // Auto-refresh every 3 minutes as a backstop
     setInterval(async ()=>{
       try{
         const r = await fetch('/items.json', {cache:'no-store'});
@@ -118,6 +143,16 @@
         if((j.items||[]).length > 0) location.reload();
       }catch{}
     }, 180000);
+
+    // Collect-now endpoint for manual refresh (only shown when empty)
+    document.getElementById('collectNow')?.addEventListener('click', async ()=>{
+      try{
+        const r = await fetch('/collect-open', {method:'POST'});
+        const j = await r.json();
+        alert(j.ok ? `Collected ${j.wrote} items` : `Error: ${j.error||'collect failed'}`);
+        location.reload();
+      }catch{ alert('Collect failed'); }
+    });
   </script>
 </body>
 </html>
