@@ -25,21 +25,10 @@
     </div>
   </header>
 
-  <!-- Sticky gold banner -->
-  <div id="newItemsBanner" class="update-banner" hidden>
-    <span class="update-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-        <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h18v-1l-2-2z"/>
-      </svg>
-    </span>
-    <span class="update-text">New items available</span>
-    <button id="updateRefresh" class="btn btn-dark">Refresh</button>
-  </div>
-
-  <!-- Utility bar: Fight Song on the left -->
+  <!-- Utility bar: Fight Song (bigger button) -->
   <section class="utility-bar">
     <div class="left">
-      <button id="fightSongBtn" class="btn btn-gold">Fight Song</button>
+      <button id="fightSongBtn" class="btn btn-gold btn-large">Fight Song</button>
       <audio id="fightSong" preload="none" src="/static/fight-song.mp3"></audio>
     </div>
     <div class="right"></div>
@@ -52,7 +41,7 @@
     {% endfor %}
   </nav>
 
-  <!-- Sources + Search combined -->
+  <!-- Sources + Search combined (unchanged) -->
   <section class="sources-search">
     <details class="sources-details">
       <summary>Sources</summary>
@@ -105,7 +94,7 @@
   </footer>
 
   <script>
-    // Fight Song (no status text)
+    // Fight Song (no status text or pop-ups)
     const audio = document.getElementById('fightSong');
     const songBtn = document.getElementById('fightSongBtn');
     songBtn?.addEventListener('click', async () => {
@@ -131,14 +120,12 @@
       if(!isNaN(dt)) el.textContent = fmt(dt);
     });
 
-    // New items banner
-    const banner = document.getElementById('newItemsBanner');
-    const refreshBtn = document.getElementById('updateRefresh');
+    // SILENT auto-refresh (no banner/toast/alert)
     const baseline = {
       count: document.querySelectorAll('#feed .card').length || 0,
       updated: document.getElementById('updatedText')?.textContent || ""
     };
-    async function checkForNew(){
+    async function silentRefresh(){
       try{
         const r = await fetch('/items.json', {cache:'no-store'});
         if(!r.ok) return;
@@ -146,15 +133,13 @@
         const latestCount = (j.items||[]).length;
         const latestUpdated = j.updated || "";
         if ((latestCount > baseline.count) || (baseline.updated && latestUpdated && baseline.updated !== latestUpdated)) {
-          banner?.removeAttribute('hidden');
-          banner?.classList.add('show');
+          location.reload();
         }
       }catch{}
     }
-    refreshBtn?.addEventListener('click', ()=> location.reload());
-    setInterval(checkForNew, 60000);
+    setInterval(silentRefresh, 60000);
 
-    // Client-side search (title + source + summary)
+    // Client-side search (unchanged)
     const q = document.getElementById('searchInput');
     const cards = Array.from(document.querySelectorAll('#feed .card'));
     function filterCards(){
@@ -171,10 +156,9 @@
     }
     q?.addEventListener('input', () => { window.requestAnimationFrame(filterCards); });
 
-    // First-visit assist: if server populated items after render, reload once
+    // First-visit assist: reload once when items appear (silent)
     (async ()=>{
-      const initialCards = document.querySelectorAll('#feed .card').length || 0;
-      if (initialCards === 0) {
+      if ((document.querySelectorAll('#feed .card').length||0) === 0) {
         try{
           const r = await fetch('/items.json', {cache:'no-store'});
           if (r.ok){
