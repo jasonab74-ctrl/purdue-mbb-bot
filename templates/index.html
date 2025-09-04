@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Purdue Men's Basketball — Feeds</title>
+  <title>Purdue Basketball — News and Feeds</title>
   <link rel="stylesheet" href="/static/style.css"/>
   <meta name="color-scheme" content="light dark">
 </head>
@@ -19,14 +19,14 @@
         height="44"
         onerror="this.onerror=null;this.src='/static/logo.png'"/>
       <div class="titles">
-        <h1>Purdue Men's Basketball — Feeds</h1>
+        <h1>Purdue Basketball — News and Feeds</h1>
         <!-- Updated time: formatted to US-friendly text via JS -->
         <div class="updated">
           Updated: <span id="updatedText" data-iso="{{ updated or '' }}">—</span>
         </div>
       </div>
     </div>
-    <div class="header-accent" aria-hidden="true"></div>
+    <div class="header-banner" aria-hidden="true"></div>
   </header>
 
   <!-- Utility bar: Fight Song (bigger button) -->
@@ -45,7 +45,7 @@
     {% endfor %}
   </nav>
 
-  <!-- Sources + Search combined -->
+  <!-- Sources (search removed) -->
   <section class="sources-search">
     <details class="sources-details">
       <summary>Sources</summary>
@@ -55,10 +55,6 @@
         {% endfor %}
       </ul>
     </details>
-
-    <div class="search-wrap">
-      <input id="searchInput" type="search" placeholder="Search articles…" aria-label="Search articles"/>
-    </div>
   </section>
 
   <!-- Feed -->
@@ -110,7 +106,7 @@
       }
     })();
 
-    // Fight Song (no status text or pop-ups)
+    // Fight Song
     const audio = document.getElementById('fightSong');
     const songBtn = document.getElementById('fightSongBtn');
     songBtn?.addEventListener('click', async () => {
@@ -121,7 +117,7 @@
       } catch {}
     });
 
-    // Friendly time labels for each article card (short + single line)
+    // Friendly time labels for article cards
     function fmt(dt){
       try{
         const d = dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
@@ -136,7 +132,7 @@
       if(!isNaN(dt)) el.textContent = fmt(dt);
     });
 
-    // SILENT auto-refresh (no banner/toast/alert)
+    // SILENT auto-refresh
     const baseline = {
       count: document.querySelectorAll('#feed .card').length || 0,
       updated: document.getElementById('updatedText')?.getAttribute('data-iso') || ""
@@ -154,36 +150,6 @@
       }catch{}
     }
     setInterval(silentRefresh, 60000);
-
-    // Client-side search (title + source + summary)
-    const q = document.getElementById('searchInput');
-    const cards = Array.from(document.querySelectorAll('#feed .card'));
-    function filterCards(){
-      const term = (q?.value || '').trim().toLowerCase();
-      cards.forEach(c=>{
-        if(!term){ c.style.display=''; return; }
-        const hay = [
-          c.dataset.title || '',
-          c.dataset.src || '',
-          (c.querySelector('.summary')?.textContent || '')
-        ].join(' ').toLowerCase();
-        c.style.display = hay.includes(term) ? '' : 'none';
-      });
-    }
-    q?.addEventListener('input', () => { window.requestAnimationFrame(filterCards); });
-
-    // First-visit assist: if items appear after initial empty render, reload once
-    (async ()=>{
-      if ((document.querySelectorAll('#feed .card').length||0) === 0) {
-        try{
-          const r = await fetch('/items.json', {cache:'no-store'});
-          if (r.ok){
-            const j = await r.json();
-            if ((j.items||[]).length > 0) location.reload();
-          }
-        }catch{}
-      }
-    })();
   </script>
 </body>
 </html>
