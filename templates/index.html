@@ -20,7 +20,10 @@
         onerror="this.onerror=null;this.src='/static/logo.png'"/>
       <div class="titles">
         <h1>Purdue Men's Basketball</h1>
-        <div class="updated">Updated: <span id="updatedText">{{ updated or "—" }}</span></div>
+        <!-- Updated time: now formatted to US-friendly text via JS -->
+        <div class="updated">Updated:
+          <span id="updatedText" data-iso="{{ updated or '' }}">—</span>
+        </div>
       </div>
     </div>
   </header>
@@ -41,7 +44,7 @@
     {% endfor %}
   </nav>
 
-  <!-- Sources + Search combined (unchanged) -->
+  <!-- Sources + Search combined -->
   <section class="sources-search">
     <details class="sources-details">
       <summary>Sources</summary>
@@ -94,6 +97,22 @@
   </footer>
 
   <script>
+    // --- Format the "Updated" timestamp into US-friendly style ---
+    (function(){
+      const el = document.getElementById('updatedText');
+      if (!el) return;
+      const iso = el.getAttribute('data-iso');
+      if (!iso) return;
+      const dt = new Date(iso);
+      if (!isNaN(dt)) {
+        const formatted = dt.toLocaleString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit'
+        });
+        el.textContent = formatted;
+      }
+    })();
+
     // Fight Song (no status text or pop-ups)
     const audio = document.getElementById('fightSong');
     const songBtn = document.getElementById('fightSongBtn');
@@ -105,11 +124,11 @@
       } catch {}
     });
 
-    // Friendly time labels
+    // Friendly time labels for each article card
     function fmt(dt){
       try{
-        const d = dt.toLocaleDateString(undefined, {month:'short', day:'numeric'});
-        const t = dt.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+        const d = dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+        const t = dt.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
         return d + " • " + t;
       }catch{return "";}
     }
@@ -123,7 +142,7 @@
     // SILENT auto-refresh (no banner/toast/alert)
     const baseline = {
       count: document.querySelectorAll('#feed .card').length || 0,
-      updated: document.getElementById('updatedText')?.textContent || ""
+      updated: document.getElementById('updatedText')?.getAttribute('data-iso') || ""
     };
     async function silentRefresh(){
       try{
@@ -139,7 +158,7 @@
     }
     setInterval(silentRefresh, 60000);
 
-    // Client-side search (unchanged)
+    // Client-side search (title + source + summary)
     const q = document.getElementById('searchInput');
     const cards = Array.from(document.querySelectorAll('#feed .card'));
     function filterCards(){
@@ -156,7 +175,7 @@
     }
     q?.addEventListener('input', () => { window.requestAnimationFrame(filterCards); });
 
-    // First-visit assist: reload once when items appear (silent)
+    // First-visit assist: if items appear after initial empty render, reload once
     (async ()=>{
       if ((document.querySelectorAll('#feed .card').length||0) === 0) {
         try{
