@@ -2,10 +2,14 @@
 # -*- coding: utf-8 -*-
 
 """
-Purdue collector — fail-open (show articles first, filter later)
+Purdue collector — safe filter + banner-friendly timestamps
 - Accepts FEEDS as list of dicts {"name","url"} or tuples (name, url)
-- Fetch all entries, sort newest→oldest, dedupe, cap at 50
-- Writes items.json at repo root
+- Fetch entries, apply a *gentle* filter:
+    • If text contains "football" (or fb) and has NO basketball cue → skip
+    • If text has "basketball"/MBB or Purdue cues → keep
+  (This blocks obvious football-only posts, but won’t zero your feed.)
+- Sort newest→oldest, dedupe, cap at 50
+- Writes items.json with updated timestamp
 """
 
 import os
@@ -20,13 +24,12 @@ import feedparser
 MAX_ITEMS = 50
 APP_DIR = os.path.dirname(__file__)
 ITEMS_PATH = os.path.join(APP_DIR, "items.json")
-# Common browser UA to avoid feed blocking
 USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
 
-# Import feeds list
+# ---- feeds ----
 try:
-    from feeds import FEEDS  # STATIC_LINKS used only by server
+    from feeds import FEEDS
 except Exception as e:
     raise SystemExit(f"[collect.py] Could not import feeds.py: {e}")
 
@@ -48,6 +51,40 @@ def _coerce_feeds(feeds_any: Any) -> List[Tuple[str, str]]:
 
 FEEDS_NORM: List[Tuple[str, str]] = _coerce_feeds(FEEDS)
 
+# ---- filter (gentle) ----
+BASKETBALL_CUES = [
+    "basketball", "mbb", "men's basketball", "mens basketball", "men’s basketball",
+    "painter", "matt painter",
+    "edey", "zach edey",
+    "braden smith", "fletcher loyer", "trey kaufman-renn", "kaufman-renn", "tkr",
+    "caleb furst", "mason gillis", "camden heide", "myles colvin", "oscar cluff",
+    "jack benter", "omer mayer", "gicarri harris", "raleigh burgess", "daniel jacobsen",
+    "liam murphy", "sam king", "aaron fine", "jace rayl", "jack lusk", "c.j. cox", "cj cox"
+]
+PURDUE_CUES = ["purdue", "boilermaker", "boilermakers", "boilers"]
+FOOTBALL_CUES = ["football", " fb "]  # keep minimal
+
+def _txt(*parts: str) -> str:
+    return " ".join(p or "" for p in parts).lower()
+
+def allow_item(title: str, summary: str) -> bool:
+    t = _txt(title, summary)
+    has_ball = any(k in t for k in BASKETBALL_CUES)
+    has_pu   = any(k in t for k in PURDUE_CUES)
+    has_foot = any(k in f" {t} " for k in FOOTBALL_CUES)
+
+    # If it's clearly football-only, skip.
+    if has_foot and not has_ball:
+        return False
+
+    # Keep if it has basketball cues or mentions Purdue.
+    if has_ball or has_pu:
+        return True
+
+    # Otherwise, drop it (neutral non-Purdue/non-basketball clutter).
+    return False
+
+# ---- helpers ----
 def parse_when(entry: Dict[str, Any]) -> datetime:
     for key in ("published_parsed", "updated_parsed"):
         dt = entry.get(key)
@@ -92,14 +129,19 @@ def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def fetch_feed(name: str, url: str) -> List[Dict[str, Any]]:
     parsed = feedparser.parse(url, request_headers={"User-Agent": USER_AGENT})
     entries = parsed.get("entries") or []
-    return [normalize_item(name, e) for e in entries]
+    items: List[Dict[str, Any]] = []
+    for e in entries:
+        item = normalize_item(name, e)
+        if allow_item(item["title"], item["summary"]):
+            items.append(item)
+    return items
 
 def collect() -> List[Dict[str, Any]]:
     all_items: List[Dict[str, Any]] = []
     for name, url in FEEDS_NORM:
         try:
             batch = fetch_feed(name, url)
-            print(f"[collect] {name}: {len(batch)} raw items")
+            print(f"[collect] {name}: kept {len(batch)}")
             all_items.extend(batch)
         except Exception as ex:
             print(f"[collect] Feed failed: {name} ({url}) -> {ex}")
