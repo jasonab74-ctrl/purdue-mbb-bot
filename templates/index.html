@@ -8,9 +8,15 @@
   <meta name="color-scheme" content="dark light">
 </head>
 <body>
+  <!-- Header with Purdue logo -->
   <header class="site-header">
-    <h1>Purdue Men's Basketball</h1>
-    <div class="updated">Updated: <span id="updatedText">{{ updated or "—" }}</span></div>
+    <div class="brand">
+      <img class="logo" src="/static/logo.png" alt="Purdue logo" width="28" height="28" />
+      <div class="titles">
+        <h1>Purdue Men's Basketball</h1>
+        <div class="updated">Updated: <span id="updatedText">{{ updated or "—" }}</span></div>
+      </div>
+    </div>
   </header>
 
   <!-- New items banner (sticky) -->
@@ -19,14 +25,16 @@
     <button id="updateRefresh" class="btn btn-dark">Refresh</button>
   </div>
 
-  <!-- Utility bar under banner: Fight Song on the left -->
+  <!-- Utility bar (Fight Song on the left under banner) -->
   <section class="utility-bar">
     <div class="left">
       <button id="fightSongBtn" class="btn btn-gold">Fight Song</button>
       <audio id="fightSong" preload="none" src="/static/fight-song.mp3"></audio>
       <span id="songStatus" class="song-status" aria-live="polite"></span>
     </div>
-    <div class="right"></div>
+    <div class="right">
+      <!-- reserved for future controls -->
+    </div>
   </section>
 
   <!-- Quick links row -->
@@ -84,33 +92,21 @@
   </footer>
 
   <script>
-    // --- Fight Song (button on the left under the banner) ---
+    // Fight Song (left under banner)
     const audio = document.getElementById('fightSong');
     const songBtn = document.getElementById('fightSongBtn');
     const songStatus = document.getElementById('songStatus');
-
-    function setStatus(msg){ if (songStatus) songStatus.textContent = msg || ""; }
-
+    function setStatus(m){ if(songStatus) songStatus.textContent = m || ""; }
     songBtn?.addEventListener('click', async () => {
       if (!audio) return;
       try {
-        if (audio.paused) {
-          audio.currentTime = 0;
-          await audio.play();
-          setStatus("Playing");
-        } else {
-          audio.pause();
-          audio.currentTime = 0;
-          setStatus("Stopped");
-        }
-      } catch (e) {
-        setStatus("Could not play (check /static/fight-song.mp3)");
-      }
+        if (audio.paused) { audio.currentTime = 0; await audio.play(); setStatus("Playing"); }
+        else { audio.pause(); audio.currentTime = 0; setStatus("Stopped"); }
+      } catch { setStatus("Could not play (check /static/fight-song.mp3)"); }
     });
-
     audio?.addEventListener('ended', ()=> setStatus(""));
 
-    // --- Friendly time labels like "Sep 4 • 3:40 PM" ---
+    // Friendly time labels like "Sep 4 • 3:40 PM"
     function fmt(dt){
       try{
         const d = dt.toLocaleDateString(undefined, {month:'short', day:'numeric'});
@@ -125,15 +121,13 @@
       if(!isNaN(dt)) el.textContent = fmt(dt);
     });
 
-    // --- New items banner logic (no surprise auto-reloads) ---
+    // New items banner: show when count grows OR updated stamp changes
     const banner = document.getElementById('newItemsBanner');
     const refreshBtn = document.getElementById('updateRefresh');
-
     const baseline = {
       count: document.querySelectorAll('#feed .card').length || 0,
       updated: document.getElementById('updatedText')?.textContent || ""
     };
-
     async function checkForNew(){
       try{
         const r = await fetch('/items.json', {cache:'no-store'});
@@ -141,21 +135,16 @@
         const j = await r.json();
         const latestCount = (j.items||[]).length;
         const latestUpdated = j.updated || "";
-
-        // Show banner if count grew OR updated timestamp changed
         if ((latestCount > baseline.count) || (baseline.updated && latestUpdated && baseline.updated !== latestUpdated)) {
           banner?.removeAttribute('hidden');
           banner?.classList.add('show');
         }
       }catch{}
     }
-
     refreshBtn?.addEventListener('click', ()=> location.reload());
-
-    // Poll every 60s for new items; no auto-reload elsewhere
     setInterval(checkForNew, 60000);
 
-    // Manual collect endpoint (only visible when empty)
+    // Manual collect when empty
     document.getElementById('collectNow')?.addEventListener('click', async ()=>{
       try{
         const r = await fetch('/collect-open', {method:'POST'});
@@ -167,4 +156,3 @@
   </script>
 </body>
 </html>
-
