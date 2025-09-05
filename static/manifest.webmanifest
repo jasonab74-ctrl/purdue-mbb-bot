@@ -1,10 +1,15 @@
 {
-  "name": "Purdue Men’s Basketball",
-  "short_name": "Purdue MBB",
+  "name": "Purdue Basketball — News and Feeds",
+  "short_name": "Purdue Hoops",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0b0b",
+  "theme_color": "#0b0b0b",
   "icons": [
     {
-      "src": "/static/apple-touch-icon.png",
-      "sizes": "180x180",
+      "src": "/static/favicon-16x16.png",
+      "sizes": "16x16",
       "type": "image/png"
     },
     {
@@ -13,12 +18,16 @@
       "type": "image/png"
     },
     {
-      "src": "/static/favicon-16x16.png",
-      "sizes": "16x16",
-      "type": "image/png"
+      "src": "/static/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
-  ],
-  "theme_color": "#000000",
-  "background_color": "#000000",
-  "display": "standalone"
+  ]
 }
