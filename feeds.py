@@ -69,6 +69,7 @@ STATIC_LINKS = [
     {"label": "Game Day",               "url": "https://www.google.com/search?q=Purdue+basketball+game+day"},
     {"label": "Odds — Purdue",          "url": "https://www.google.com/search?q=Purdue+Boilermakers+basketball+odds"},
     {"label": "KenPom Rankings",        "url": "https://kenpom.com/team/Purdue"},
+    {"label": "AP Poll",                "url": "https://apnews.com/hub/ap-top-25-college-basketball-poll"},
     {"label": "Purdue Official",        "url": "https://purduesports.com/sports/mens-basketball"},
     {"label": "Schedule",               "url": "https://purduesports.com/sports/mens-basketball/schedule"},
     {"label": "Roster",                 "url": "https://purduesports.com/sports/mens-basketball/roster"},
