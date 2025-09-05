@@ -45,7 +45,6 @@ FEEDS = [
     {"name": "Reddit — r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/.rss"},
     {"name": "Reddit — r/CollegeBasketball (Purdue search)",
      "url": "https://www.reddit.com/r/CollegeBasketball/search.rss?q=Purdue%20basketball&restrict_sr=on&sort=new"},
-    {"name": "Reddit — r/PurdueBasketball", "url": "https://www.reddit.com/r/PurdueBasketball/.rss"},
 
     # ===== Focus signals (coach/arena)
     {"name": "Matt Painter — news",
@@ -65,23 +64,24 @@ FEEDS = [
      )},
 ]
 
-# Quick links (top buttons). Order matters on the page.
+# Quick links (top buttons). Order & labels per request.
 STATIC_LINKS = [
-    {"label": "Game Day",              "url": "https://www.google.com/search?q=Purdue+Men%27s+Basketball+game+today"},
-    {"label": "Odds — Purdue",         "url": "https://www.google.com/search?q=Purdue+Boilermakers+basketball+odds"},
-    {"label": "Purdue Official",       "url": "https://purduesports.com/sports/mens-basketball"},
-    {"label": "Schedule",              "url": "https://purduesports.com/sports/mens-basketball/schedule"},
-    {"label": "Roster",                "url": "https://purduesports.com/sports/mens-basketball/roster"},
-    {"label": "ESPN",                  "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
-    {"label": "CBS Sports",            "url": "https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/"},
-    {"label": "Yahoo Sports",          "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
-    {"label": "Hammer & Rails",        "url": "https://www.hammerandrails.com/"},
-    {"label": "G&B",                   "url": "https://goldandblack.com/"},
-    {"label": "Barstool Sports",       "url": "https://www.barstoolsports.com/tag/purdue"},
-    {"label": "Reddit - Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/"},
-    {"label": "J&C",                   "url": "https://www.jconline.com/sports/boilermakers/"},
-    {"label": "Exponent",              "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
-    {"label": "YouTube - Field of 68", "url": "https://www.youtube.com/@Fieldof68"},
-    {"label": "YouTube - Sleepers",    "url": "https://www.youtube.com/@SleepersMedia"},
-    {"label": "YouTube - G&B",         "url": "https://www.youtube.com/@Goldandblackcom"}
+    {"label": "Game Day",               "url": "https://www.google.com/search?q=Purdue+basketball+game+day"},
+    {"label": "Odds — Purdue",          "url": "https://www.google.com/search?q=Purdue+Boilermakers+basketball+odds"},
+    {"label": "KenPom Rankings",        "url": "https://kenpom.com/team/Purdue"},
+    {"label": "Purdue Official",        "url": "https://purduesports.com/sports/mens-basketball"},
+    {"label": "Schedule",               "url": "https://purduesports.com/sports/mens-basketball/schedule"},
+    {"label": "Roster",                 "url": "https://purduesports.com/sports/mens-basketball/roster"},
+    {"label": "ESPN",                   "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
+    {"label": "CBS Sports",             "url": "https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/"},
+    {"label": "Yahoo Sports",           "url": "https://sports.yahoo.com/ncaab/teams/purdue/"},
+    {"label": "Hammer & Rails",         "url": "https://www.hammerandrails.com/"},
+    {"label": "G&B",                    "url": "https://goldandblack.com/"},
+    {"label": "Barstool Sports",        "url": "https://www.barstoolsports.com/tag/purdue"},
+    {"label": "Reddit - Boilermakers",  "url": "https://www.reddit.com/r/Boilermakers/"},
+    {"label": "J&C",                    "url": "https://www.jconline.com/sports/boilermakers/"},
+    {"label": "Exponent",               "url": "https://www.purdueexponent.org/sports/mens/basketball/"},
+    {"label": "YouTube - Field of 68",  "url": "https://www.youtube.com/@Fieldof68"},
+    {"label": "YouTube - Sleepers",     "url": "https://www.youtube.com/@SleepersMedia"},
+    {"label": "YouTube - G&B",          "url": "https://www.youtube.com/@Goldandblackcom"}
 ]
