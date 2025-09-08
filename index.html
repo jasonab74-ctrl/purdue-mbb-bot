@@ -3,143 +3,162 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <title>Purdue Boilermakers — Men’s Basketball</title>
-  <meta name="description" content="Live Purdue men's basketball feed with auto-updates." />
-
-  <!-- Icons: use relative paths so GitHub Pages subpaths work -->
+  <title>Purdue Boilermakers — Men's Basketball</title>
   <link rel="icon" href="static/logo.png" />
-  <link rel="apple-touch-icon" href="static/logo.png" />
-  <meta name="apple-mobile-web-app-title" content="Purdue Hoops" />
-  <meta name="theme-color" content="#000000" />
-
   <link rel="stylesheet" href="static/style.css" />
 </head>
 <body>
-  <header class="hero">
+  <header class="site-header">
     <div class="brand">
-      <img src="static/logo.png" alt="Purdue logo" class="brand-logo" />
+      <img class="brand-logo" src="static/logo.png" alt="Purdue P" />
       <div class="brand-text">
-        <h1>Purdue Boilermakers — <span>Men’s Basketball</span></h1>
+        <h1>Purdue Boilermakers — Men’s Basketball</h1>
         <div class="sub">Live team feed · auto-updates</div>
       </div>
     </div>
 
-    <!-- Fight song button (fixed width to prevent label “bounce”) -->
-    <button id="songBtn" class="pill cta" aria-label="Play Hail Purdue">
-      <span class="cta-dot" aria-hidden="true">▶</span>
-      Hail Purdue
+    <button id="fightBtn" class="fight-btn" aria-label="Play Hail Purdue">
+      <span class="fight-icon">▶</span>
+      <span>Hail Purdue</span>
     </button>
 
-    <!-- Song is standardized: static/fight-song.mp3 -->
-    <audio id="song" preload="auto">
+    <!-- Preload but don't autoplay (iOS requires user gesture) -->
+    <audio id="fightAudio" preload="none">
       <source src="static/fight-song.mp3" type="audio/mpeg" />
     </audio>
   </header>
 
-  <main class="wrap" id="app">
-    <section id="links" class="links-row"></section>
+  <nav class="quick-links">
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball" target="_blank" rel="noopener">Tickets</a>
+    <a class="pill" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
+    <a class="pill" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
+    <a class="pill" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
+    <a class="pill" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
+    <a class="pill" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
+    <a class="pill" href="https://apnews.com/hub/ap-top-25-college-basketball-poll" target="_blank" rel="noopener">AP Top 25</a>
+    <a class="pill" href="https://www.youtube.com/results?search_query=purdue+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
+    <a class="pill" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
+    <a class="pill" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
+    <a class="pill" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
+  </nav>
 
-    <div class="meta-row">
-      <label class="meta">Source:</label>
-      <select id="sourceSelect" class="select"></select>
-
-      <div class="updated">
-        <span>Updated:</span>
-        <time id="updatedTs">—</time>
-      </div>
+  <section class="controls">
+    <div class="control">
+      <label for="sourceSelect">Source:</label>
+      <select id="sourceSelect"></select>
     </div>
+    <div class="updated">
+      <span>Updated:</span>
+      <time id="updatedTime">—</time>
+    </div>
+  </section>
 
-    <section id="feed" class="feed"></section>
-  </main>
+  <main id="feed" class="feed"></main>
+
+  <template id="item-tpl">
+    <article class="card">
+      <a class="card-link" href="#" target="_blank" rel="noopener">
+        <h2 class="card-title"></h2>
+        <div class="meta">
+          <span class="card-source"></span>
+          <span class="dot">•</span>
+          <time class="card-time"></time>
+        </div>
+      </a>
+    </article>
+  </template>
 
   <script>
-    // ——— Fight song control (no new window) ———
+    // --- Fight song (no bouncing, stable width) ---
     (function () {
-      const btn = document.getElementById('songBtn');
-      const audio = document.getElementById('song');
+      const btn = document.getElementById('fightBtn');
+      const audio = document.getElementById('fightAudio');
+      const icon = btn.querySelector('.fight-icon');
+
       let playing = false;
-
-      function setBtnState(isPlaying) {
-        playing = isPlaying;
-        btn.classList.toggle('playing', playing);
-        btn.innerHTML = (playing ? '⏸' : '<span class="cta-dot">▶</span>') + ' Hail Purdue';
-      }
-
       btn.addEventListener('click', async () => {
         try {
           if (!playing) {
-            audio.currentTime = 0;
             await audio.play();
-            setBtnState(true);
+            playing = true;
+            icon.textContent = '⏸';
           } else {
             audio.pause();
-            setBtnState(false);
+            playing = false;
+            icon.textContent = '▶';
           }
-        } catch (err) {
-          // If autoplay is blocked until user gesture, clicking again will work.
-          console.error('Audio play failed:', err);
-          setBtnState(false);
+        } catch (e) {
+          console.log('Audio play failed (likely blocked until gesture):', e);
         }
       });
-
-      audio.addEventListener('ended', () => setBtnState(false));
-      audio.addEventListener('pause', () => setBtnState(false));
-      audio.addEventListener('play',  () => setBtnState(true));
+      audio.addEventListener('ended', () => {
+        playing = false;
+        icon.textContent = '▶';
+      });
     })();
 
-    // ——— Feed loader (hardened: UI reads items.json only) ———
-    async function loadFeed() {
-      try {
-        const res = await fetch('items.json', { cache: 'no-store' });
-        const data = await res.json();
+    // --- Load items.json and render ---
+    const FEED_EL = document.getElementById('feed');
+    const SRC_SELECT = document.getElementById('sourceSelect');
+    const UPDATED_EL = document.getElementById('updatedTime');
+    const ITEM_TPL = document.getElementById('item-tpl');
 
-        // Updated stamp (US style)
-        const ts = data.updated ? new Date(data.updated) : new Date();
-        document.getElementById('updatedTs').textContent =
-          ts.toLocaleString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+    const US_FMT = new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit'
+    });
 
-        // Quick-link pills
-        const links = document.getElementById('links');
-        links.innerHTML = (data.links || []).map(l => `
-          <a class="pill" href="${l.url}" target="_blank" rel="noopener">${l.label}</a>
-        `).join('');
+    let allItems = [];
+    let sources = new Set();
 
-        // Source dropdown
-        const sel = document.getElementById('sourceSelect');
-        const sources = ['All sources'].concat(data.sources || []);
-        sel.innerHTML = sources.map((s,i)=>`<option value="${i===0?'':s}">${s}</option>`).join('');
+    async function loadItems() {
+      const res = await fetch('items.json', { cache: 'no-store' });
+      const data = await res.json();
 
-        // Render list
-        const feed = document.getElementById('feed');
-        const render = (items) => {
-          feed.innerHTML = (items || []).map(it => `
-            <article class="card">
-              <a class="card-link" href="${it.link}" target="_blank" rel="noopener">
-                <h3 class="card-title">${it.title}</h3>
-                <div class="card-meta">
-                  <span class="src">${it.source || ''}</span>
-                  <span class="dot">•</span>
-                  <time class="ts">${new Date(it.published).toLocaleString('en-US')}</time>
-                </div>
-                ${it.summary ? `<p class="card-sum">${it.summary}</p>` : ``}
-              </a>
-            </article>
-          `).join('');
-        };
+      // Updated timestamp
+      const updated = data.updated || new Date().toISOString();
+      UPDATED_EL.textContent = US_FMT.format(new Date(updated));
 
-        render(data.items || []);
+      allItems = data.items || [];
+      sources = new Set(['All sources']);
+      allItems.forEach(it => sources.add(it.source));
 
-        sel.addEventListener('change', () => {
-          const v = sel.value;
-          if (!v) return render(data.items || []);
-          render((data.items || []).filter(it => (it.source || '').toLowerCase() === v.toLowerCase()));
-        });
-      } catch (e) {
-        console.error('loadFeed error', e);
+      // populate dropdown (stable order)
+      SRC_SELECT.innerHTML = '';
+      Array.from(sources).forEach(src => {
+        const opt = document.createElement('option');
+        opt.value = src;
+        opt.textContent = src;
+        SRC_SELECT.appendChild(opt);
+      });
+
+      render();
+    }
+
+    function render() {
+      const sel = SRC_SELECT.value || 'All sources';
+      FEED_EL.innerHTML = '';
+
+      const items = allItems.filter(it => sel === 'All sources' ? true : it.source === sel);
+
+      for (const it of items) {
+        const node = ITEM_TPL.content.cloneNode(true);
+        node.querySelector('.card-link').href = it.link;
+        node.querySelector('.card-title').textContent = it.title;
+        node.querySelector('.card-source').textContent = it.source;
+        node.querySelector('.card-time').textContent = US_FMT.format(new Date(it.published));
+        FEED_EL.appendChild(node);
       }
     }
-    loadFeed();
+
+    SRC_SELECT.addEventListener('change', render);
+
+    // Initial + periodic refresh (client-side)
+    loadItems();
+    // Check every 5 minutes; renders only if items.json changed on server
+    setInterval(loadItems, 5 * 60 * 1000);
   </script>
 </body>
 </html>
