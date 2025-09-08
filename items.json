@@ -1,15 +1,771 @@
 {
-  "updated": "2025-09-08T10:00:00-05:00",
-  "sources": ["PurdueSports.com","Journal & Courier","GoldandBlack.com","Hammer and Rails","The Athletic","ESPN","Yahoo Sports","Sports Illustrated","CBS Sports","Big Ten Network"],
-  "links": [
-    {"label":"Schedule","url":"https://purduesports.com/sports/mens-basketball/schedule"},
-    {"label":"Roster","url":"https://purduesports.com/sports/mens-basketball/roster"},
-    {"label":"Tickets","url":"https://purduesports.com/sports/2024/9/1/tickets.aspx"},
-    {"label":"Reddit — r/Boilermakers","url":"https://www.reddit.com/r/Boilermakers/"},
-    {"label":"ESPN Team","url":"https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
-    {"label":"KenPom","url":"https://kenpom.com/"},
-    {"label":"Sports-Reference","url":"https://www.sports-reference.com/cbb/schools/purdue/"},
-    {"label":"Big Ten Standings","url":"https://www.espn.com/mens-college-basketball/standings/_/group/7"}
+  "updated": "2025-09-08T21:29:13+00:00",
+  "items": [
+    {
+      "id": "ce3322b8bae0a13a",
+      "title": "The Three Point Stance: Purdue vs. SIU - Hammer and Rails",
+      "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQRlZ5ckYxekYxSFNvQ3pXOVoyU1J5R0xTaGNncmNfVEdhZ21vZ1I0eDcyZ0Mwc2FBeEZoTXZlNjc5dlZxTGtjVW9NczJ5NkRuUllMQ2pzaFl3NVVEaE10cWJ1ZVFRaWdISzdwYWZrMllrLUVfTkxKLURaNE9IZDFKbDJ0R3k3Q0o2akE",
+      "source": "Hammer and Rails",
+      "feed": "Hammer and Rails",
+      "published": "2025-09-06T18:05:11+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxQRlZ5ckYxekYxSFNvQ3pXOVoyU1J5R0xTaGNncmNfVEdhZ21vZ1I0eDcyZ0Mwc2FBeEZoTXZlNjc5dlZxTGtjVW9NczJ5NkRuUllMQ2pzaFl3NVVEaE10cWJ1ZVFRaWdISzdwYWZrMllrLUVfTkxKLURaNE9IZDFKbDJ0R3k3Q0o2akE?oc=5\" target=\"_blank\">The Three Point Stance: Purdue vs. SIU</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>"
+    },
+    {
+      "id": "429275682f1c83cb",
+      "title": "Purdue (1-0) vs. Southern Illinois (1-0) - Staff Predictions - Hammer and Rails",
+      "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPLS1aU1pVQnBmOUxXVThncnVXbVlMU1VRbVVqbVRYeW1pX1pyZVpDdW50RmdGbmtNV3QyeWVINVpfc0xVXzJGdmVDdG1LaTFvVU9xQmlrVHdZNFQ0TkR6MHh6UXpsTmw3aEZhaGpsRXhfVjJ5SXd4dmxEZlQ4T2ZGdnp2anNpZU00ZzdMWkpGNVhpQVF5bzRDR3BsRmNua1lh",
+      "source": "Hammer and Rails",
+      "feed": "Hammer and Rails",
+      "published": "2025-09-05T19:09:47+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxPLS1aU1pVQnBmOUxXVThncnVXbVlMU1VRbVVqbVRYeW1pX1pyZVpDdW50RmdGbmtNV3QyeWVINVpfc0xVXzJGdmVDdG1LaTFvVU9xQmlrVHdZNFQ0TkR6MHh6UXpsTmw3aEZhaGpsRXhfVjJ5SXd4dmxEZlQ4T2ZGdnp2anNpZU00ZzdMWkpGNVhpQVF5bzRDR3BsRmNua1lh?oc=5\" target=\"_blank\">Purdue (1-0) vs. Southern Illinois (1-0) - Staff Predictions</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>"
+    },
+    {
+      "id": "8fc9f1ad1b78d547",
+      "title": "Game 2 Prep: Purdue Welcomes SIU for Night Game at Ross-Ade - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxObUJRbEZSS25vQTNMN1BpSVhlenZIcHNBSUFUMjh4eWVleDlRMWlYWVFuNUgyT1U2MklrRldMNVVhMmx6MjlISjUtb2I2TWlybDU0ZEF2aVNWQ1JGb3Z3OGtzYkdQS25ObEJQVE9La2M4RE9fMDJqNkJ4NEZocVV1V1ZSTWRSZjRpNjM1Z1g3ZnNJV1JLS0JrTHA3ZFQzb3c",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-09-03T18:25:22+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMinwFBVV95cUxObUJRbEZSS25vQTNMN1BpSVhlenZIcHNBSUFUMjh4eWVleDlRMWlYWVFuNUgyT1U2MklrRldMNVVhMmx6MjlISjUtb2I2TWlybDU0ZEF2aVNWQ1JGb3Z3OGtzYkdQS25ObEJQVE9La2M4RE9fMDJqNkJ4NEZocVV1V1ZSTWRSZjRpNjM1Z1g3ZnNJV1JLS0JrTHA3ZFQzb3c?oc=5\" target=\"_blank\">Game 2 Prep: Purdue Welcomes SIU for Night Game at Ross-Ade</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "e792d060395a1a6f",
+      "title": "BoilersXTRA: Jacob Webber commits to Purdue s 2026 class - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOQkhjTHVUMFcwWVgyYVZINlJKdG16bTZRTTZDbl9YNkV3RHZJVnM0aG5HQmNrMElKdEg5MzluWm9QaUFyTEZpNXVJZUU5bG9TUVZZYm52cEJpMEoxdUxEVURLaGd0czhHZHFvMHR1WDhrZXBNSjJnNWpYMmZhOERMeHFBRGpmNE9uSGZjRnlPU0Vtby04REpLRDN6NGNkVHBsWi15QzdzTXZtWUptV1hid3lQVE43ZkNyUVZ4OFNodVA1V2t0VXp0S25Sa1A",
+      "source": "Journal & Courier",
+      "feed": "Journal & Courier",
+      "published": "2025-09-03T12:40:59+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMizAFBVV95cUxOQkhjTHVUMFcwWVgyYVZINlJKdG16bTZRTTZDbl9YNkV3RHZJVnM0aG5HQmNrMElKdEg5MzluWm9QaUFyTEZpNXVJZUU5bG9TUVZZYm52cEJpMEoxdUxEVURLaGd0czhHZHFvMHR1WDhrZXBNSjJnNWpYMmZhOERMeHFBRGpmNE9uSGZjRnlPU0Vtby04REpLRDN6NGNkVHBsWi15QzdzTXZtWUptV1hid3lQVE43ZkNyUVZ4OFNodVA1V2t0VXp0S25Sa1A?oc=5\" target=\"_blank\">BoilersXTRA: Jacob Webber commits to Purdue s 2026 class</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Journal & Courier</font>"
+    },
+    {
+      "id": "f86a0d919a2eadb9",
+      "title": "Purdue basketball lands 2026 recruit - Yahoo Sports",
+      "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxPMGVobXM4SExjdG9uREhHS0kzT0R4REhKUTAxRjdMWWU2Q3BiNUhRZlVScUxfQVVnbFMySzViS1FxZkZnOWZISmlDYWhRY2JTaDJvSE4yTmlubVRZeGF4MTdZT0IwWnVBZGxOaGhoOXBzNkVkNUxxMGpQdktBbVNuQ1V5X015UnRsc0U4Mg",
+      "source": "Yahoo Sports",
+      "feed": "Yahoo Sports",
+      "published": "2025-09-03T03:59:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxPMGVobXM4SExjdG9uREhHS0kzT0R4REhKUTAxRjdMWWU2Q3BiNUhRZlVScUxfQVVnbFMySzViS1FxZkZnOWZISmlDYWhRY2JTaDJvSE4yTmlubVRZeGF4MTdZT0IwWnVBZGxOaGhoOXBzNkVkNUxxMGpQdktBbVNuQ1V5X015UnRsc0U4Mg?oc=5\" target=\"_blank\">Purdue basketball lands 2026 recruit</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>"
+    },
+    {
+      "id": "8d1b03353f63d642",
+      "title": "Three Thoughts: Premier shooter Jacob Webber's commitment to Purdue - On3",
+      "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOX2JqSTJnZlFLcGdBVlNVX3dYdHZSYW5mT2xRTGJER09jR19kb0tBWmpzbl9jbmZtUG41TEJCLWVpaHlLUjl1S2dGSl9IdGVjXzV0NzdfNE5HM0xoN05CeFV6UGZOWXlyMHVRellFWUhNY1JMaDdNTVVhVWo5LTA4Nl9FT0s3UTh2Vk5uY2tvY0JoclpQWkkzSlJTczZ3LTNXNEZQdUxGcFJPUkVSbGZvSEJrNmxFVGkt",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-09-02T20:50:15+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxOX2JqSTJnZlFLcGdBVlNVX3dYdHZSYW5mT2xRTGJER09jR19kb0tBWmpzbl9jbmZtUG41TEJCLWVpaHlLUjl1S2dGSl9IdGVjXzV0NzdfNE5HM0xoN05CeFV6UGZOWXlyMHVRellFWUhNY1JMaDdNTVVhVWo5LTA4Nl9FT0s3UTh2Vk5uY2tvY0JoclpQWkkzSlJTczZ3LTNXNEZQdUxGcFJPUkVSbGZvSEJrNmxFVGkt?oc=5\" target=\"_blank\">Three Thoughts: Premier shooter Jacob Webber's commitment to Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "34d22d9d8ce30a19",
+      "title": "Four-star SG Jacob Webber commits to Purdue - On3",
+      "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOREpwYkFqMFpZYVh5TGlXYjVzbEx2ZU00LUNsSkZZQndVOHh3Rl9zcEJVMHgwdUNaYTFmVTNPbExqVDNaU3RBV3dRS1AwMGV2YXdMdW1sTGhFMzRaUmF0SWstRlkyTURuVWxtMDBwcjVGT3pKaXlLcVhSQkdJcWlpN0RjSXNLVWM4N2RaaklHaWFkY2F4eUxKUE1YYw",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-09-02T13:56:07+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMimwFBVV95cUxOREpwYkFqMFpZYVh5TGlXYjVzbEx2ZU00LUNsSkZZQndVOHh3Rl9zcEJVMHgwdUNaYTFmVTNPbExqVDNaU3RBV3dRS1AwMGV2YXdMdW1sTGhFMzRaUmF0SWstRlkyTURuVWxtMDBwcjVGT3pKaXlLcVhSQkdJcWlpN0RjSXNLVWM4N2RaaklHaWFkY2F4eUxKUE1YYw?oc=5\" target=\"_blank\">Four-star SG Jacob Webber commits to Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "ae7d094ec2cdc71a",
+      "title": "Boiler Alert - Purdue 1-0 and a Look at the Big Ten - Hammer and Rails",
+      "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNTFI4UTlibURFYk53ek9nczlPSDlCOHAtWlNENjVjdWVsZEJFZkVLVVYtNWJUQkcyYzhrWURTZXJXSUpaYVJhcXdKckFXTlB0RUVOSThKNmliaG1jRmJaTXVVWXlwV3NYSTBOSEhUM0tZeUxMbC02VENoZlpteXBmcVQ4S1B4THotV0pNQkY4dUpZd3VIV2U4Rk1vTQ",
+      "source": "Hammer and Rails",
+      "feed": "Hammer and Rails",
+      "published": "2025-09-02T12:05:05+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMimwFBVV95cUxNTFI4UTlibURFYk53ek9nczlPSDlCOHAtWlNENjVjdWVsZEJFZkVLVVYtNWJUQkcyYzhrWURTZXJXSUpaYVJhcXdKckFXTlB0RUVOSThKNmliaG1jRmJaTXVVWXlwV3NYSTBOSEhUM0tZeUxMbC02VENoZlpteXBmcVQ4S1B4THotV0pNQkY4dUpZd3VIV2U4Rk1vTQ?oc=5\" target=\"_blank\">Boiler Alert - Purdue 1-0 and a Look at the Big Ten</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>"
+    },
+    {
+      "id": "23ba85459b148474",
+      "title": "Purdue University Men's Basketball :: Official Athletic Site - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxOY05LMDd1NlVRQm5BMlZwU0JaSVVxY3JiNnE1cS10TTlpRnR3S2xydXg2X1JIT041MENWWVhwRTlROWZaN2tYRjRVdGwxY3RwWHcwVnpja0xndDZ1YU1kVk01VUJGY1BnbmNBdHNkZDhfb1p4R19mT2NQbU5qSGd1Qmx0R0ZhVGN1Umt2WjJR",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-08-31T00:53:13+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijgFBVV95cUxOY05LMDd1NlVRQm5BMlZwU0JaSVVxY3JiNnE1cS10TTlpRnR3S2xydXg2X1JIT041MENWWVhwRTlROWZaN2tYRjRVdGwxY3RwWHcwVnpja0xndDZ1YU1kVk01VUJGY1BnbmNBdHNkZDhfb1p4R19mT2NQbU5qSGd1Qmx0R0ZhVGN1Umt2WjJR?oc=5\" target=\"_blank\">Purdue University Men's Basketball :: Official Athletic Site</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "348bb2664a86f959",
+      "title": "Purdue Boilermakers News - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxOcGI5c01UTGc5bnhkSXhPek9FVUIzazM4eFZSeDRZNkxDYlBPcXJ3ampYLUdfLXhzaTAydTl5SDRIR0VYVTZPU3ROOGo5TF9ENGNWYTA4SjVxYlBld25tOE5tNUlTVV9rN0YxQWxWSDJBWVBKdUdjSHpMTzlMZ2VNaTJuM0Vkdw",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-25T10:47:14+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMihgFBVV95cUxOcGI5c01UTGc5bnhkSXhPek9FVUIzazM4eFZSeDRZNkxDYlBPcXJ3ampYLUdfLXhzaTAydTl5SDRIR0VYVTZPU3ROOGo5TF9ENGNWYTA4SjVxYlBld25tOE5tNUlTVV9rN0YxQWxWSDJBWVBKdUdjSHpMTzlMZ2VNaTJuM0Vkdw?oc=5\" target=\"_blank\">Purdue Boilermakers News</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "ccc7eaf2bf0962a9",
+      "title": "Column: One Trait Helped Purdue Basketball Assemble Championship-Caliber Roster - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPcFlackdZd2EwN2RJcnFxMEZMSHVKWmVXMGdkWXd6Wm52NUo4Wk95czBuOTltUTM3TGFxRS1CemlQT3F4WkVsQ0tZdnpRNlNHeS15b1o5ckF0T2Q5cmpkZTc5VkZPQ1BkZW1OcHNBcGROR1lTaGJhc3Nja2JzZGRWVDlDd0tuVTJNTnVfLVFRdEEyczZULXdUdlBtMXdsektINWlReXAzUl9maWFtckNxYnZvYWlSVlVEMy02NF9FWmROMERlcW5rOVI0TVU3QzdQZlcxbjRzY1U",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-24T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2AFBVV95cUxPcFlackdZd2EwN2RJcnFxMEZMSHVKWmVXMGdkWXd6Wm52NUo4Wk95czBuOTltUTM3TGFxRS1CemlQT3F4WkVsQ0tZdnpRNlNHeS15b1o5ckF0T2Q5cmpkZTc5VkZPQ1BkZW1OcHNBcGROR1lTaGJhc3Nja2JzZGRWVDlDd0tuVTJNTnVfLVFRdEEyczZULXdUdlBtMXdsektINWlReXAzUl9maWFtckNxYnZvYWlSVlVEMy02NF9FWmROMERlcW5rOVI0TVU3QzdQZlcxbjRzY1U?oc=5\" target=\"_blank\">Column: One Trait Helped Purdue Basketball Assemble Championship-Caliber Roster</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "56e4a3c823722a29",
+      "title": "Purdue basketball's Omer Mayer said Braden Smith, Carsen Edwards helped make him a Boiler - Yahoo Sports",
+      "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxNckpIUzZaLU5WR2F3a3JuRjU2bjNXVnY1NVFNVVV6UUEtSThnZWRDS3BvbzctVDVQT3hKYkgyT1ZBTDhzU1BvMWQtd0l2d0dpTU9yZVdlY3FNOUFuYkVpamlfQVB6TzM2WUVtZDNvSVRHc1lDNGQyZmRlTWlJUlBmc3oydTRBNXNGT1E",
+      "source": "Yahoo Sports",
+      "feed": "Yahoo Sports",
+      "published": "2025-08-21T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxNckpIUzZaLU5WR2F3a3JuRjU2bjNXVnY1NVFNVVV6UUEtSThnZWRDS3BvbzctVDVQT3hKYkgyT1ZBTDhzU1BvMWQtd0l2d0dpTU9yZVdlY3FNOUFuYkVpamlfQVB6TzM2WUVtZDNvSVRHc1lDNGQyZmRlTWlJUlBmc3oydTRBNXNGT1E?oc=5\" target=\"_blank\">Purdue basketball's Omer Mayer said Braden Smith, Carsen Edwards helped make him a Boiler</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>"
+    },
+    {
+      "id": "ea196706c0d4a026",
+      "title": "Nation's Top Point Guard in 2026 Class Cuts Purdue From Group of Finalists - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxNNUhqdjFBblYySFc1VHdkOFNaYVdqWEZMY3Nvb19QenVhZHRmWk1HZ2VzSVJ1c2FHUFR0Y1pGQVRZNEpfbGxxNTljTUg2djY2c1kzUkpON2tHWWUyU2hPZDBfa3NaU2tJVlJFU1V1X2ZNNHhPejdjUVZueDFOR1BXeGtOVTZtRFFyMHVkdVh1elNTc2lZdE1OWXFnR1ZuRHBaWnV5cE9TVGFGbHFKbHN5emJLZ0sxa291SHR6dDl2LXNwcXVsYkFFQjFMenFNMF8tNFBNQXlXRVhVQUJmTWxaYUxTNVJobUFDbkk4di1Zaw",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-21T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi7wFBVV95cUxNNUhqdjFBblYySFc1VHdkOFNaYVdqWEZMY3Nvb19QenVhZHRmWk1HZ2VzSVJ1c2FHUFR0Y1pGQVRZNEpfbGxxNTljTUg2djY2c1kzUkpON2tHWWUyU2hPZDBfa3NaU2tJVlJFU1V1X2ZNNHhPejdjUVZueDFOR1BXeGtOVTZtRFFyMHVkdVh1elNTc2lZdE1OWXFnR1ZuRHBaWnV5cE9TVGFGbHFKbHN5emJLZ0sxa291SHR6dDl2LXNwcXVsYkFFQjFMenFNMF8tNFBNQXlXRVhVQUJmTWxaYUxTNVJobUFDbkk4di1Zaw?oc=5\" target=\"_blank\">Nation's Top Point Guard in 2026 Class Cuts Purdue From Group of Finalists</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "2fb85adfc817f6ec",
+      "title": "The Butterfly Effect for Purdue Basketball: Purdue's decommitments - On3",
+      "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNMERmenE4NlNXdzBCeGx4RkJtOWR4XzA4RlZyQWFlWVhFbUI4X1kxWTJ5VUJkTS02eVhwNERUTnRoWTRlWlN0VjJqdnZJcEZrX1BNX3RRWm90RkhkcFdrM2o1VUtBR2ZhZ0hLZVktQ3NMQXI0RnFaYXRWNDlRZmpwNlhSU0x1cmxaVGRCUVNKc0pRVkQ5LTlLNFJBbGYzMXVPVnM4NDNjYnYzMXdRTGtkMVNFREt5TUhyaWJn",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-08-20T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuwFBVV95cUxNMERmenE4NlNXdzBCeGx4RkJtOWR4XzA4RlZyQWFlWVhFbUI4X1kxWTJ5VUJkTS02eVhwNERUTnRoWTRlWlN0VjJqdnZJcEZrX1BNX3RRWm90RkhkcFdrM2o1VUtBR2ZhZ0hLZVktQ3NMQXI0RnFaYXRWNDlRZmpwNlhSU0x1cmxaVGRCUVNKc0pRVkQ5LTlLNFJBbGYzMXVPVnM4NDNjYnYzMXdRTGtkMVNFREt5TUhyaWJn?oc=5\" target=\"_blank\">The Butterfly Effect for Purdue Basketball: Purdue's decommitments</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "a54b9440a789a496",
+      "title": "2026 4-Star Forward Quinn Costello Sets Official Visit Date to Purdue - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxPNldsYlBGWVdiM2dPX3RkdDZsSUFCa0d6N0FyNklDSng4cGRtWmtfNTVaTHdNY2dyeFFHWDRqWmtuYXNTeEZfRW9KUTk2NkVqcDJOYzRDdHFkc0lZb0xZV2U3b05jUldWbnJrell5c1BKazd5YzBKdUxPeDZEYVJFMlhhZXllQXFyUzVMLUJqbDIxZEdLenpVeUFHdnBUX0tfSzNPRGhURl9DQlBIVjRqTlJqYm5tckYxTXBWd0g3VzlvLWRYeUdSQmFtU2Q2RFlqRU9BVzlxUGIxcWs3dUJNUEdzVm56TlJBODRfMjFn",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-20T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi7gFBVV95cUxPNldsYlBGWVdiM2dPX3RkdDZsSUFCa0d6N0FyNklDSng4cGRtWmtfNTVaTHdNY2dyeFFHWDRqWmtuYXNTeEZfRW9KUTk2NkVqcDJOYzRDdHFkc0lZb0xZV2U3b05jUldWbnJrell5c1BKazd5YzBKdUxPeDZEYVJFMlhhZXllQXFyUzVMLUJqbDIxZEdLenpVeUFHdnBUX0tfSzNPRGhURl9DQlBIVjRqTlJqYm5tckYxTXBWd0g3VzlvLWRYeUdSQmFtU2Q2RFlqRU9BVzlxUGIxcWs3dUJNUEdzVm56TlJBODRfMjFn?oc=5\" target=\"_blank\">2026 4-Star Forward Quinn Costello Sets Official Visit Date to Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "a3647eec1ed37560",
+      "title": "New Center Oscar Cluff Pays Major Compliment to Purdue's 'Big Three' - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi-gFBVV95cUxPNGE4SWNJbWtJYWtnZXU5LWpLUHRqVnFmWmNzYWhXa2lqb2ZuSF9fd1hQWVNzcHhPOEZ5TkxYVWxHd21fdDVESW1VZVNnVXRYZU41REpHd3FYelM4Rmc3cTl6bFpiaHRaZVVJR1hwM21XN0ZBY2dJUzBEY1llc1pfaWNTY21ZcEdUQUU2ai00S0VtdFRTV0RBRndfd3JDQ0xpeEozalJkekphUnBhd1YyLWJ5azQ5aGJRM19mOGlPMHVQc1lxNW9OOERwamlUVWREWXJPZXlrNGJEWGN4LVQ5MnNHNTVwYzBiSUNKS3JpNkdIejVoREdKSEx3",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-20T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi-gFBVV95cUxPNGE4SWNJbWtJYWtnZXU5LWpLUHRqVnFmWmNzYWhXa2lqb2ZuSF9fd1hQWVNzcHhPOEZ5TkxYVWxHd21fdDVESW1VZVNnVXRYZU41REpHd3FYelM4Rmc3cTl6bFpiaHRaZVVJR1hwM21XN0ZBY2dJUzBEY1llc1pfaWNTY21ZcEdUQUU2ai00S0VtdFRTV0RBRndfd3JDQ0xpeEozalJkekphUnBhd1YyLWJ5azQ5aGJRM19mOGlPMHVQc1lxNW9OOERwamlUVWREWXJPZXlrNGJEWGN4LVQ5MnNHNTVwYzBiSUNKS3JpNkdIejVoREdKSEx3?oc=5\" target=\"_blank\">New Center Oscar Cluff Pays Major Compliment to Purdue's 'Big Three'</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "0dcc3bac433a4241",
+      "title": "Post-July Breakdown: Purdue recruiting target Bo Ogden - On3",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOTnlNaC1lSndJWDB3WThYa3hkdVB0UUU3c0tEb3JTNVVUM2QzR3psVUtlOHd5S2pEclN4eDRBYjc3M1hzaU54dDJwcllVSExyQnlILTNPYktkVnBkS05hWFUxSm9PTjdyMHQyS2U5MGNGX2V5Qkhtd2o1TldaTUNFM2R6UUFWYWUyckIzMGYzNzMtakdzTUpqcjZ6bmF6NWhrdFRQOXZDdmw",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-08-19T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxOTnlNaC1lSndJWDB3WThYa3hkdVB0UUU3c0tEb3JTNVVUM2QzR3psVUtlOHd5S2pEclN4eDRBYjc3M1hzaU54dDJwcllVSExyQnlILTNPYktkVnBkS05hWFUxSm9PTjdyMHQyS2U5MGNGX2V5Qkhtd2o1TldaTUNFM2R6UUFWYWUyckIzMGYzNzMtakdzTUpqcjZ6bmF6NWhrdFRQOXZDdmw?oc=5\" target=\"_blank\">Post-July Breakdown: Purdue recruiting target Bo Ogden</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "0451110fd4c29409",
+      "title": "Purdue Basketball Alum Sings Praises of New Boilermakers Omer Mayer, Oscar Cluff - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPZzhUanBQcXpIdF9BSzB5OTNlT2VuUkNoT3l6bEVseHRaXzFSMjFBeXFqME1lTVZzSnZiRTd4aXU0cnRtS0J2ZUt3RFpFOEdpQlQ5anY2S2p0a2J2VlVvam1WUnZia18tTnJXZExPaGtCLWFEQVdDZkxkbG43NllPVzk4OFh2YUU3UEdHOTNZc25hTE0yMmpFcGNWQmVhejVWQzJyX3dRZkVYS0k2Z1k0d1Q2WUpqNWxnV0ExNGtkOGMyUQ",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-17T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwgFBVV95cUxPZzhUanBQcXpIdF9BSzB5OTNlT2VuUkNoT3l6bEVseHRaXzFSMjFBeXFqME1lTVZzSnZiRTd4aXU0cnRtS0J2ZUt3RFpFOEdpQlQ5anY2S2p0a2J2VlVvam1WUnZia18tTnJXZExPaGtCLWFEQVdDZkxkbG43NllPVzk4OFh2YUU3UEdHOTNZc25hTE0yMmpFcGNWQmVhejVWQzJyX3dRZkVYS0k2Z1k0d1Q2WUpqNWxnV0ExNGtkOGMyUQ?oc=5\" target=\"_blank\">Purdue Basketball Alum Sings Praises of New Boilermakers Omer Mayer, Oscar Cluff</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "3159ae814e67a383",
+      "title": "Purdue forward on transfer, expectations in final NCAA season: ‘Pressure makes diamonds’ - ca.sports.yahoo.com",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQSG5OYUM1dmRXYlVha0FxZlBFaXVlcWs0eHQ4bVByY1hrbUd3WDV2YXRqaXdHM18teEx3OVM0enlxS0I0Y0JUWUJaNEhxYW9ZT1Nsai14aFJ0bmxJTVlmV0szSEJCdWE4aVRDVFBMNkVXencyWFk1SmpMTWZhUWRTWl8zZUgtcWNaTmRER09QQWJlWmpN",
+      "source": "Yahoo Sports",
+      "feed": "Yahoo Sports",
+      "published": "2025-08-16T15:49:24+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMilAFBVV95cUxQSG5OYUM1dmRXYlVha0FxZlBFaXVlcWs0eHQ4bVByY1hrbUd3WDV2YXRqaXdHM18teEx3OVM0enlxS0I0Y0JUWUJaNEhxYW9ZT1Nsai14aFJ0bmxJTVlmV0szSEJCdWE4aVRDVFBMNkVXencyWFk1SmpMTWZhUWRTWl8zZUgtcWNaTmRER09QQWJlWmpN?oc=5\" target=\"_blank\">Purdue forward on transfer, expectations in final NCAA season: ‘Pressure makes diamonds’</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ca.sports.yahoo.com</font>"
+    },
+    {
+      "id": "de42f3d038e8014d",
+      "title": "Fall Camp Report - August 15 - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE1CNk1KTWM3MURhU25RX2hYSlZONnRCaXBqbWtVX0szbmF3a3JfUnlXVVpkVkRaUkJWTEZFLWVzWTBqdnFvOEphQXY2UHFqelhZenQyaFo3YmNMSDVoT1VaeWp4c2doTHVkTm9vZU5BX1ZzYnMxZUE",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-08-15T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMidkFVX3lxTE1CNk1KTWM3MURhU25RX2hYSlZONnRCaXBqbWtVX0szbmF3a3JfUnlXVVpkVkRaUkJWTEZFLWVzWTBqdnFvOEphQXY2UHFqelhZenQyaFo3YmNMSDVoT1VaeWp4c2doTHVkTm9vZU5BX1ZzYnMxZUE?oc=5\" target=\"_blank\">Fall Camp Report - August 15</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "5ab68717c7108246",
+      "title": "Men's Basketball at Providence 12/27/1998 - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTFBDcmVOU0RacWNvQ1VNU1BqU0xsN1RtWmtieHlnelJXamNqSGVrNzh4Um5zUFZMSkhNdkV1cDgzVVQzajFxOFBMd2QzS0UzNlk",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-08-14T09:46:22+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTFBDcmVOU0RacWNvQ1VNU1BqU0xsN1RtWmtieHlnelJXamNqSGVrNzh4Um5zUFZMSkhNdkV1cDgzVVQzajFxOFBMd2QzS0UzNlk?oc=5\" target=\"_blank\">Men's Basketball at Providence 12/27/1998</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "a8ea9427c73d5388",
+      "title": "The Butterfly Effect for Purdue Basketball: Jon Octeus saves the day - On3",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNZkp1V3lQeVhMVUZlVkM4NUNHaUdyOFNVTlRzSXZadk5yRkZNbzBzRDMtMThzVmZZRmxENFYwbzd0OXR5QkJzYmgxS2ZpQTFXS1dIM3hSNnRkc0hYU0ZiMl96ZTJfMHBreUhIRjhickYtSVBHRjFDQXVMR0s2ZDk2SGhZTTZJNFFEdHNaNDRsd1NpTnNFS1NlcEZXNGlfQWI5aVZ2V1BkMmU",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-08-14T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxNZkp1V3lQeVhMVUZlVkM4NUNHaUdyOFNVTlRzSXZadk5yRkZNbzBzRDMtMThzVmZZRmxENFYwbzd0OXR5QkJzYmgxS2ZpQTFXS1dIM3hSNnRkc0hYU0ZiMl96ZTJfMHBreUhIRjhickYtSVBHRjFDQXVMR0s2ZDk2SGhZTTZJNFFEdHNaNDRsd1NpTnNFS1NlcEZXNGlfQWI5aVZ2V1BkMmU?oc=5\" target=\"_blank\">The Butterfly Effect for Purdue Basketball: Jon Octeus saves the day</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "8db9664555a0f456",
+      "title": "ESPN Continues to Show Major Respect to 2026 Purdue Commit Luke Ertel - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPalE0ZldNUDJ5NndMSjQ4a3hoRFM2UWFTWjE5TlFvc3M2VzViT3ppX0hHUUFhWjNBMnBJOC1JWGU2eEluVE1WZGlfMU5nWHo3cmpEZndIUDloRGRDcThfSG41MDJONllva3BXY2M2bUR3TkNfWDhtMnVPUW9NWElwRVJGMWRjcXlCZ0JCTmdEOGdBSV9hMmcwMWFFekRzV0VZa052OS1FclRtQjg5eHp5NkZzcGc5dFFjbVdvYXN2eVUtVDRzdk9jbkh3S3hmVHFTcFlEM0xxNy1Rbk1z",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-14T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi3AFBVV95cUxPalE0ZldNUDJ5NndMSjQ4a3hoRFM2UWFTWjE5TlFvc3M2VzViT3ppX0hHUUFhWjNBMnBJOC1JWGU2eEluVE1WZGlfMU5nWHo3cmpEZndIUDloRGRDcThfSG41MDJONllva3BXY2M2bUR3TkNfWDhtMnVPUW9NWElwRVJGMWRjcXlCZ0JCTmdEOGdBSV9hMmcwMWFFekRzV0VZa052OS1FclRtQjg5eHp5NkZzcGc5dFFjbVdvYXN2eVUtVDRzdk9jbkh3S3hmVHFTcFlEM0xxNy1Rbk1z?oc=5\" target=\"_blank\">ESPN Continues to Show Major Respect to 2026 Purdue Commit Luke Ertel</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "f4990c92887b9f1a",
+      "title": "Where Purdue's Omer Mayer Ranks Among Incoming Big Ten Basketball International Players - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNQWZ2M2NjTW5MWHhiclppVFRvRkloWVlpTFM3dXpCV3dqdU9yaE1sQjV4d2lUTE5ueF90MjJkZVkwbXlITUFjRlIzSDJxdHphcjFfTG1wbjVDT1NvREVyek9WdDlOdEVvMHdEX0FyemJJS21FajNBSDBQZTMzem5VOEQxN1FIcG9rQ2Y4VWROZmpheHcwUWlnWndpakFxUnAwZ1pFcUlDeS1mX0prdUdaUGVza1RYUENsZFZnVlFjS1B6V2VXZ1c1YlBjcXFyWTF4YkE",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-14T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0gFBVV95cUxNQWZ2M2NjTW5MWHhiclppVFRvRkloWVlpTFM3dXpCV3dqdU9yaE1sQjV4d2lUTE5ueF90MjJkZVkwbXlITUFjRlIzSDJxdHphcjFfTG1wbjVDT1NvREVyek9WdDlOdEVvMHdEX0FyemJJS21FajNBSDBQZTMzem5VOEQxN1FIcG9rQ2Y4VWROZmpheHcwUWlnWndpakFxUnAwZ1pFcUlDeS1mX0prdUdaUGVza1RYUENsZFZnVlFjS1B6V2VXZ1c1YlBjcXFyWTF4YkE?oc=5\" target=\"_blank\">Where Purdue's Omer Mayer Ranks Among Incoming Big Ten Basketball International Players</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "5aad02507c3ae351",
+      "title": "Boilermakers Add Carley Barrett to Roster - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPak1hVTZIeXFvWE9ndUd1VkJPR0ljNFNNYkpSdEFnVG1XZk1HREVVZnVtVE5FRlJDelVHa0p6dkdtYnFZY1JaN3NCYlY1dUpSdXo2bDlHSTBRS2h0dGpvaENIV0RmNl9wUndnUENpMlFZWmdyZDF3OVMwTERNUTNqY1Rqc19GcXRkN2c",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-08-13T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPak1hVTZIeXFvWE9ndUd1VkJPR0ljNFNNYkpSdEFnVG1XZk1HREVVZnVtVE5FRlJDelVHa0p6dkdtYnFZY1JaN3NCYlY1dUpSdXo2bDlHSTBRS2h0dGpvaENIV0RmNl9wUndnUENpMlFZWmdyZDF3OVMwTERNUTNqY1Rqc19GcXRkN2c?oc=5\" target=\"_blank\">Boilermakers Add Carley Barrett to Roster</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "d26db0f5dc69904a",
+      "title": "Ticket Sale Information For Purdue's Appearance in the 2025 Indy Classic - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxNQkdndjJTS0lIYWhWRmY4TW5jWXhwb3JJNXpTMExwNGU1ZVprclAzYU9wam1fTm9lRzd3Yk9lY3pCQTZkYVFBT0lmRjEydTJGVlpVSWxKX3BiemVsbklCT2piMzVYeXd6am9MX3d2enh3LW44b0dhMDFqazA4THphSEdvU1JnQm12SGNMUHlYTWlodTI1RXlfaGM4c2NhQXl0TjZOV0VWNmFWZFJib0M3UkE3akNwMkk4Mk1kbHlsSVFwVm5Fdmw4WlJOeWVHWUhhOWZpVThSNk1TaE96OXlCSHRDU1ZVQ0kxdkZZ",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-13T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi6wFBVV95cUxNQkdndjJTS0lIYWhWRmY4TW5jWXhwb3JJNXpTMExwNGU1ZVprclAzYU9wam1fTm9lRzd3Yk9lY3pCQTZkYVFBT0lmRjEydTJGVlpVSWxKX3BiemVsbklCT2piMzVYeXd6am9MX3d2enh3LW44b0dhMDFqazA4THphSEdvU1JnQm12SGNMUHlYTWlodTI1RXlfaGM4c2NhQXl0TjZOV0VWNmFWZFJib0M3UkE3akNwMkk4Mk1kbHlsSVFwVm5Fdmw4WlJOeWVHWUhhOWZpVThSNk1TaE96OXlCSHRDU1ZVQ0kxdkZZ?oc=5\" target=\"_blank\">Ticket Sale Information For Purdue's Appearance in the 2025 Indy Classic</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "a1d9c5c45422a9b8",
+      "title": "Who Purdue Basketball Has Offered in the 2027 Recruiting Class - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxQRl8xZG52bE0tSjZIWkxYcmlKOFhnYi1fUWhKcFZCVGtic0hXaUF2Q1Q0clJUWThwRFJ2NkxRTWV0WXNMcndIV0VlUy1TWkpfeW42Rkg5cF9wVUtzaUJyaWJaMl9vQ3hVYlZxOGpEZUwxOHVHYV81RWNaVGpFSWFyZk5PR0kwT0I0blhOUmY5YzBUbjBRdC1DbnBmbmU3U2RHSE1VMTlWWGI3SXdYV1lwOUtkNEZRS3J3YWtXcw",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-11T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMivAFBVV95cUxQRl8xZG52bE0tSjZIWkxYcmlKOFhnYi1fUWhKcFZCVGtic0hXaUF2Q1Q0clJUWThwRFJ2NkxRTWV0WXNMcndIV0VlUy1TWkpfeW42Rkg5cF9wVUtzaUJyaWJaMl9vQ3hVYlZxOGpEZUwxOHVHYV81RWNaVGpFSWFyZk5PR0kwT0I0blhOUmY5YzBUbjBRdC1DbnBmbmU3U2RHSE1VMTlWWGI3SXdYV1lwOUtkNEZRS3J3YWtXcw?oc=5\" target=\"_blank\">Who Purdue Basketball Has Offered in the 2027 Recruiting Class</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "c375a712803ae65a",
+      "title": "GoldandBlack Saturday Simulcast: Purdue basketball's summer and the season ahead - On3",
+      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQQlc0bENwcjNtUkNsRFdJeGE5bGdMcTlwNHpTaVRlOE9DOGdsbmFYV2FJZmw5QTJfcGItSGhCdENiUEVjWldNX1UwaVU4V3AxblFvU0xEeEdCOC1lSUdDajhHRVctVHg3N0JHOHZTOTdiWGtIMG4wVnlodEswUzN1UGFoOUNHdi1rS202U1NTQWFMWmI1bExvUE41RHVLRnE2RHlJUHJiTFh2NjNHWFo5MjZ3YXczdw",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-08-08T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitgFBVV95cUxQQlc0bENwcjNtUkNsRFdJeGE5bGdMcTlwNHpTaVRlOE9DOGdsbmFYV2FJZmw5QTJfcGItSGhCdENiUEVjWldNX1UwaVU4V3AxblFvU0xEeEdCOC1lSUdDajhHRVctVHg3N0JHOHZTOTdiWGtIMG4wVnlodEswUzN1UGFoOUNHdi1rS202U1NTQWFMWmI1bExvUE41RHVLRnE2RHlJUHJiTFh2NjNHWFo5MjZ3YXczdw?oc=5\" target=\"_blank\">GoldandBlack Saturday Simulcast: Purdue basketball's summer and the season ahead</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "db7751493dfb7d6e",
+      "title": "Purdue basketball alum finds way back to NBA with Dallas Mavericks - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxQTXFxY2VRWGV2VFVFSHpLWmc0el93dm84alFpQlMzM2tTZGFHN0NjMXJ0VFZ4NXVmbGhuQWlkN09FT3BpSUdyd2prbUkzaUc5NnRtZHdaV3dkQTBndUxhUlh6SkJ0QkVQc2dTcThsT3U2TUt6Qnoza2tIdXZ2Tkg0QVBLOHhid1FEWkNtLXpoTlB0Z0RzU2RYMXd2YmI1LWhKc216TzNKT0FFbDdaVEJDQ2pDRXFwOWdXVGg4UHJwVnVtbWpncHJlakQ4d3hMWUw2cGd1SHdzaTNiY0MyWENxdjJTd29EVDZiSUZr",
+      "source": "Journal & Courier",
+      "feed": "Journal & Courier",
+      "published": "2025-08-07T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi6wFBVV95cUxQTXFxY2VRWGV2VFVFSHpLWmc0el93dm84alFpQlMzM2tTZGFHN0NjMXJ0VFZ4NXVmbGhuQWlkN09FT3BpSUdyd2prbUkzaUc5NnRtZHdaV3dkQTBndUxhUlh6SkJ0QkVQc2dTcThsT3U2TUt6Qnoza2tIdXZ2Tkg0QVBLOHhid1FEWkNtLXpoTlB0Z0RzU2RYMXd2YmI1LWhKc216TzNKT0FFbDdaVEJDQ2pDRXFwOWdXVGg4UHJwVnVtbWpncHJlakQ4d3hMWUw2cGd1SHdzaTNiY0MyWENxdjJTd29EVDZiSUZr?oc=5\" target=\"_blank\">Purdue basketball alum finds way back to NBA with Dallas Mavericks</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Journal & Courier</font>"
+    },
+    {
+      "id": "1e470847321e7a8e",
+      "title": "Lack of size cost Purdue basketball last season. Daniel Jacobsen, Oscar Cluff solve issue - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxQSlpBWU53eFRyQU5YLXNkeTZFVmo3d2Q0SExZT2psN1NTdGQ5UWs1eVF1SkxPZnZnQkk0ZWlqRjQxQ3VhcDJLYWJQVXdrU3pobmh4YW9FVW9ieHYyOEEzNUE3cWZSZVJUM2MtWjdrU3RCV0JYblp1OXdjNmFOdlVNMEZyWFpnUlNnYVFIOUZ0dDB5a2Z3TURCRFRhQnlwakYyQ0EzYS03TUZ5SUkyNzdsNDQwM1VjNFVIZ3RNMkhkd0d1UTF6bWFsVnhFWVNzQQ",
+      "source": "Journal & Courier",
+      "feed": "Journal & Courier",
+      "published": "2025-08-05T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMizgFBVV95cUxQSlpBWU53eFRyQU5YLXNkeTZFVmo3d2Q0SExZT2psN1NTdGQ5UWs1eVF1SkxPZnZnQkk0ZWlqRjQxQ3VhcDJLYWJQVXdrU3pobmh4YW9FVW9ieHYyOEEzNUE3cWZSZVJUM2MtWjdrU3RCV0JYblp1OXdjNmFOdlVNMEZyWFpnUlNnYVFIOUZ0dDB5a2Z3TURCRFRhQnlwakYyQ0EzYS03TUZ5SUkyNzdsNDQwM1VjNFVIZ3RNMkhkd0d1UTF6bWFsVnhFWVNzQQ?oc=5\" target=\"_blank\">Lack of size cost Purdue basketball last season. Daniel Jacobsen, Oscar Cluff solve issue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Journal & Courier</font>"
+    },
+    {
+      "id": "cf5c62b61121c347",
+      "title": "Gold and Black Radio: Purdue basketball summer practice - On3",
+      "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOUVM4RHc5VDF4YnZBNjRESWdOaDZvUXctUG9hZzJFN0lweVRqT2ZmaXdPVWJSbGp6cDU5aHpjV18tM0NZcjBWZk9iNzAxaXhmdEtOVlZQQ3ZlS1VzZ2lLcXVJVHcwTDgtUV9zXzFaTno3Y05JMHR4aGxxWkxrVk1FN2plNVlpek9HeFZIU2g3QWtNRWs0MHliNWxnRDR3RlpVbnFxTHRmQmR4ZnA2",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-08-05T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMirAFBVV95cUxOUVM4RHc5VDF4YnZBNjRESWdOaDZvUXctUG9hZzJFN0lweVRqT2ZmaXdPVWJSbGp6cDU5aHpjV18tM0NZcjBWZk9iNzAxaXhmdEtOVlZQQ3ZlS1VzZ2lLcXVJVHcwTDgtUV9zXzFaTno3Y05JMHR4aGxxWkxrVk1FN2plNVlpek9HeFZIU2g3QWtNRWs0MHliNWxnRDR3RlpVbnFxTHRmQmR4ZnA2?oc=5\" target=\"_blank\">Gold and Black Radio: Purdue basketball summer practice</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "be887c1bfd0521f6",
+      "title": "Matt Painter Details Unique Path to Recruiting Guard Braden Smith to Purdue - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxPTmN3M09GRVVteGk5OTVtMjFGMnZpVnV1THhRYkpDU2k5ZXNLREgyNWRsamZGd2FObmJfUmlTc3Q2Zi1SNzlUTFlybVc0S0ZrZGRfRndwSk90cXoxOU5XMGR4LVYtSGpKS05vQ3dDeVR5UFZmT1VpSjRVRzcyZU5nRU9heGxnc3gzclVadk9NOW50c01ORzFfMGNjVU5QVC1sVlVPLURXMnNoLUV0WVpYR0ZaS3pmY2sxSkQ0MUJUNktzTkJDcUEwcEd2bnFtNnpTTnhvYTB3",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-05T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1gFBVV95cUxPTmN3M09GRVVteGk5OTVtMjFGMnZpVnV1THhRYkpDU2k5ZXNLREgyNWRsamZGd2FObmJfUmlTc3Q2Zi1SNzlUTFlybVc0S0ZrZGRfRndwSk90cXoxOU5XMGR4LVYtSGpKS05vQ3dDeVR5UFZmT1VpSjRVRzcyZU5nRU9heGxnc3gzclVadk9NOW50c01ORzFfMGNjVU5QVC1sVlVPLURXMnNoLUV0WVpYR0ZaS3pmY2sxSkQ0MUJUNktzTkJDcUEwcEd2bnFtNnpTTnhvYTB3?oc=5\" target=\"_blank\">Matt Painter Details Unique Path to Recruiting Guard Braden Smith to Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "635ae63cabe71783",
+      "title": "Takeaways: Purdue basketball's summer season winds down - On3",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOdTU0Uml6Vm8wekp3cmJjV3hCbjlBeVNXWTVuaVlGVkRfZkl0SWdndXktZGRnNGt1UTY4ZVlPaVRUcUZ2Z0NEeEdUcVRIWEFWR2ZxU2E4VG9TemtBaC00Mk9kMWo4bWtoMnhhOGVyaXhuZ01qZE8zUnl3X1gtWmtLZU16R2ZySFliYTU3Q0J0Wmo5R19jNGZHc19oaEo4NDZuVTRWMkNINnE",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-08-04T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxOdTU0Uml6Vm8wekp3cmJjV3hCbjlBeVNXWTVuaVlGVkRfZkl0SWdndXktZGRnNGt1UTY4ZVlPaVRUcUZ2Z0NEeEdUcVRIWEFWR2ZxU2E4VG9TemtBaC00Mk9kMWo4bWtoMnhhOGVyaXhuZ01qZE8zUnl3X1gtWmtLZU16R2ZySFliYTU3Q0J0Wmo5R19jNGZHc19oaEo4NDZuVTRWMkNINnE?oc=5\" target=\"_blank\">Takeaways: Purdue basketball's summer season winds down</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "9362f30c29b0b828",
+      "title": "Purdue's Matt Painter beats defending Big Ten champion, Tom Izzo in preseason coaching rankings - ca.sports.yahoo.com",
+      "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQRnpSbm15Mk1YY0syVDkySlZlM0syaUZkSWEzOGhxMHBaTHd2YWJMZFJLOFJUU3BWQzJMWm9tanVEdnp2SlRQbXBKelQxT083ZkdQMDEzMG5MRmFNN2FoZ2xFSFRQWVQ0c2JZR3dVSVgxd3hYUTk0QWYtNmxCSVpkTGJPbHBvTFQxdms0bQ",
+      "source": "Yahoo Sports",
+      "feed": "Yahoo Sports",
+      "published": "2025-08-04T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxQRnpSbm15Mk1YY0syVDkySlZlM0syaUZkSWEzOGhxMHBaTHd2YWJMZFJLOFJUU3BWQzJMWm9tanVEdnp2SlRQbXBKelQxT083ZkdQMDEzMG5MRmFNN2FoZ2xFSFRQWVQ0c2JZR3dVSVgxd3hYUTk0QWYtNmxCSVpkTGJPbHBvTFQxdms0bQ?oc=5\" target=\"_blank\">Purdue's Matt Painter beats defending Big Ten champion, Tom Izzo in preseason coaching rankings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ca.sports.yahoo.com</font>"
+    },
+    {
+      "id": "4da64f4494238905",
+      "title": "Where Media Outlet Ranks Purdue's Matt Painter Among Big Ten Basketball Coaches - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNbEpJQ2Nmcy1IZXhUVEN5OHJfUXRjelU1S3NMaXBBdkx4SFp1NUlkTVhnNnRlUkhNUEV6ZXBfTkJRMG1NZDJ1dnVLOFZaQVIwX2FKbGNSdWR4QUhzc3pNbTJ4aEtqNU55Sk1vbEpmZG1ObTZ6eXUyOUlqRldWdkdkNVZXSzZnVmZsdDA2dGtGblgyc0o1bEdtU01uZnp1c1NseTdzMVUwZEJlbnJXUmZjQlpOUUNTMDQwaHZQZWJfeHBPVWpjY280",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-04T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMixwFBVV95cUxNbEpJQ2Nmcy1IZXhUVEN5OHJfUXRjelU1S3NMaXBBdkx4SFp1NUlkTVhnNnRlUkhNUEV6ZXBfTkJRMG1NZDJ1dnVLOFZaQVIwX2FKbGNSdWR4QUhzc3pNbTJ4aEtqNU55Sk1vbEpmZG1ObTZ6eXUyOUlqRldWdkdkNVZXSzZnVmZsdDA2dGtGblgyc0o1bEdtU01uZnp1c1NseTdzMVUwZEJlbnJXUmZjQlpOUUNTMDQwaHZQZWJfeHBPVWpjY280?oc=5\" target=\"_blank\">Where Media Outlet Ranks Purdue's Matt Painter Among Big Ten Basketball Coaches</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "0eb2a445e95146a8",
+      "title": "Matt Painter Talks About Purdue's Goal for 2025-26 College Basketball Season - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNajR2SHBXYUNFOHpueXZObGR4a0djbHp1emlNRmlQOUVQTnBEdUpWVF9fZU43VWNsUnJKZ080S25hS1NtVE4tc3lxM3FMWEFQRDFVZnlaZEs1ZWc4TXhwWFM1VkNKZmhkM0xDekZRRmIwYm12WkpKX2tQeXZQTVR6QmdsU0wxWHhXRWlHZ2pZTldGcTVZbHBnMFJBdnYxVUVhUWlxR0VzWHppLU00aFBzeWVTSG01bGl6R2J2WXpvX1pMaXo1VjJiT01R",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-08-04T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiygFBVV95cUxNajR2SHBXYUNFOHpueXZObGR4a0djbHp1emlNRmlQOUVQTnBEdUpWVF9fZU43VWNsUnJKZ080S25hS1NtVE4tc3lxM3FMWEFQRDFVZnlaZEs1ZWc4TXhwWFM1VkNKZmhkM0xDekZRRmIwYm12WkpKX2tQeXZQTVR6QmdsU0wxWHhXRWlHZ2pZTldGcTVZbHBnMFJBdnYxVUVhUWlxR0VzWHppLU00aFBzeWVTSG01bGl6R2J2WXpvX1pMaXo1VjJiT01R?oc=5\" target=\"_blank\">Matt Painter Talks About Purdue's Goal for 2025-26 College Basketball Season</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "bd6c84414f5f9ce4",
+      "title": "Purdue basketball roster, predicting starting lineup: Boilermakers bring back key pieces of Sweet 16 team - CBS Sports",
+      "link": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxNTXRWNE1OQ1NtQlctVWdrWHpMSW1pX2RENnJNOVNOeEJVaXgwWW1fZk1aNld2U2NWa2tuMEdoMjBHbTZpdV9BbGZyWFR1VmlleXVXQVJiajZkMzlxTU9CVHlhcXh3QV9xdE9wdGtRTkJDQ2FsRDU4LU9leFZzakNud1ZIaVVuaHIwWC1VWVVDWGQtdm5VNkk5Y0NGeC1nRmRTaVhramJzMUpWckhSWTZkSDhMelY2UVc4cFVQbkc3YzdzUTdhUE5henRvRmV2S2QzVUZPZnFuZF9aa193MTY3Vm9CSngtTHRnbXc",
+      "source": "CBS Sports",
+      "feed": "CBS Sports",
+      "published": "2025-08-04T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi6gFBVV95cUxNTXRWNE1OQ1NtQlctVWdrWHpMSW1pX2RENnJNOVNOeEJVaXgwWW1fZk1aNld2U2NWa2tuMEdoMjBHbTZpdV9BbGZyWFR1VmlleXVXQVJiajZkMzlxTU9CVHlhcXh3QV9xdE9wdGtRTkJDQ2FsRDU4LU9leFZzakNud1ZIaVVuaHIwWC1VWVVDWGQtdm5VNkk5Y0NGeC1nRmRTaVhramJzMUpWckhSWTZkSDhMelY2UVc4cFVQbkc3YzdzUTdhUE5henRvRmV2S2QzVUZPZnFuZF9aa193MTY3Vm9CSngtTHRnbXc?oc=5\" target=\"_blank\">Purdue basketball roster, predicting starting lineup: Boilermakers bring back key pieces of Sweet 16 team</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">CBS Sports</font>"
+    },
+    {
+      "id": "28aa4bdb8b3a5892",
+      "title": "GoldandBlack.com video: Purdue coach Matt Painter discusses the summer, big men and more - On3",
+      "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxOWnlHSkJKQjNjY251bHJJaUZlOVF5bmp6bHBwWmlQVHNwNDBIdGNwbWFrdDdhVFVoVXdHV3B3RlV6T0FWNV9iY1BKeTFhUUN6eF94Q19lYXZtakxoaVJlSkZ3US1XT0hCaWp1NTVmUnVoYUZtWGt2Ml9TYmY4Q0VkcGFnNmJ0RFBMV0ljajdZWHdtOTBUZ1NwYU9KTkJMSW1KVzg2YXc0OXdOVWdlcHNtZ1lseXlVcmo3M1Zta1J1S3M4Y2RtakQtaUdZUDk5SGJiNzdWWg",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-08-03T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1AFBVV95cUxOWnlHSkJKQjNjY251bHJJaUZlOVF5bmp6bHBwWmlQVHNwNDBIdGNwbWFrdDdhVFVoVXdHV3B3RlV6T0FWNV9iY1BKeTFhUUN6eF94Q19lYXZtakxoaVJlSkZ3US1XT0hCaWp1NTVmUnVoYUZtWGt2Ml9TYmY4Q0VkcGFnNmJ0RFBMV0ljajdZWHdtOTBUZ1NwYU9KTkJMSW1KVzg2YXc0OXdOVWdlcHNtZ1lseXlVcmo3M1Zta1J1S3M4Y2RtakQtaUdZUDk5SGJiNzdWWg?oc=5\" target=\"_blank\">GoldandBlack.com video: Purdue coach Matt Painter discusses the summer, big men and more</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "6815c9f7423db322",
+      "title": "Purdue Hosts Fan Day - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMibEFVX3lxTFAzVVBQb1YzakNBd0RBSkx5cjRqRmpOdDZvYlBEdDVoLUZEdm0zSUE4VGZqUkNONVRJb0hSNllfd1JKbDUyOWVOdXhnWnV4eHR0MnNfRHJkeU9SajJfZzF0SjlDZVhDbEkxa2hkWQ",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-08-02T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMibEFVX3lxTFAzVVBQb1YzakNBd0RBSkx5cjRqRmpOdDZvYlBEdDVoLUZEdm0zSUE4VGZqUkNONVRJb0hSNllfd1JKbDUyOWVOdXhnWnV4eHR0MnNfRHJkeU9SajJfZzF0SjlDZVhDbEkxa2hkWQ?oc=5\" target=\"_blank\">Purdue Hosts Fan Day</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "745720b95b4d8c64",
+      "title": "Purdue Men’s Basketball Announces 2025 Alumni Game Participants - Hammer and Rails",
+      "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQR2lHb2dwYzc0MTc5QnZMbDRSajdrVF81a3RMWUdLbFAxZTFoMVdwQWtPY1ZPZ1hYSVN1T19MaGNzM090VkY3a0tUQVVIRUJCZTRLajRSMmdrNWI3UHhhNm0zRzFHS2F2YmY5R2kxbHdUMkhUdDUyNU5IVTNRb0hTNlpfRlVjM0VfbXhNTF9aajBnUWZpYzJ0Wnl0S21fd2xxLVNqOVJNUHd5bFBCNEdZUThn",
+      "source": "Hammer and Rails",
+      "feed": "Hammer and Rails",
+      "published": "2025-07-31T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMisgFBVV95cUxQR2lHb2dwYzc0MTc5QnZMbDRSajdrVF81a3RMWUdLbFAxZTFoMVdwQWtPY1ZPZ1hYSVN1T19MaGNzM090VkY3a0tUQVVIRUJCZTRLajRSMmdrNWI3UHhhNm0zRzFHS2F2YmY5R2kxbHdUMkhUdDUyNU5IVTNRb0hTNlpfRlVjM0VfbXhNTF9aajBnUWZpYzJ0Wnl0S21fd2xxLVNqOVJNUHd5bFBCNEdZUThn?oc=5\" target=\"_blank\">Purdue Men’s Basketball Announces 2025 Alumni Game Participants</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>"
+    },
+    {
+      "id": "e54251476a602bae",
+      "title": "2026 college basketball national championship odds: Purdue takes over as favorite as Duke slips - CBS Sports",
+      "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxNMll0VmR2Z1RBT3VSNU11WnJhbVkxMDVWSEpjeWFqRi1uZ1dMdkRybWJpS2xiZENxa3JCQ2xNWkszLVVXMS1saXQxVTN4N2NKMmR4LWgwMGI5djhybGYzQXVXMmV1V0VHYWdyTzhuMzNBMTQ5bkhJenFSVkFtTlVocjBMWkdPM2U5UDd2ZTY5bDBoVVZNWDJjOWphcG83d0czdS1SU2hBazBrb0FGaVZuZ2xyamMyWTB0M2JCbnlySENZU3V4ZGZCZXVQUjdxSThtZ2YtOG5ZS1BwM3RPaXc",
+      "source": "CBS Sports",
+      "feed": "CBS Sports",
+      "published": "2025-07-28T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi3gFBVV95cUxNMll0VmR2Z1RBT3VSNU11WnJhbVkxMDVWSEpjeWFqRi1uZ1dMdkRybWJpS2xiZENxa3JCQ2xNWkszLVVXMS1saXQxVTN4N2NKMmR4LWgwMGI5djhybGYzQXVXMmV1V0VHYWdyTzhuMzNBMTQ5bkhJenFSVkFtTlVocjBMWkdPM2U5UDd2ZTY5bDBoVVZNWDJjOWphcG83d0czdS1SU2hBazBrb0FGaVZuZ2xyamMyWTB0M2JCbnlySENZU3V4ZGZCZXVQUjdxSThtZ2YtOG5ZS1BwM3RPaXc?oc=5\" target=\"_blank\">2026 college basketball national championship odds: Purdue takes over as favorite as Duke slips</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">CBS Sports</font>"
+    },
+    {
+      "id": "8bc235e50e98e747",
+      "title": "Men's Basketball vs Evansville 11/4/2025 - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTFBzYkZLM0tLNlo0YXM1NWZmVEVmQWZFcU4xa2phRUJmSFR6RUoza2pfSXJRc19XMVU3dkRSd2FldmdCUEpHWU1qaUNWZzhza0E",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-27T07:37:57+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTFBzYkZLM0tLNlo0YXM1NWZmVEVmQWZFcU4xa2phRUJmSFR6RUoza2pfSXJRc19XMVU3dkRSd2FldmdCUEpHWU1qaUNWZzhza0E?oc=5\" target=\"_blank\">Men's Basketball vs Evansville 11/4/2025</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "1117b6b7cf1c006d",
+      "title": "Men's Basketball vs Eastern Illinois 11/28/2025 - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE9BTWNUV1hZV1F3UU95Nm9KdFF5UXJ6R0Y0Zm9WclVabG9MQm5Qdmx4YzFPU1daVHpUem11MHQ2NHZrYjFZWDREVl9WX2Vab1U",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-27T07:33:42+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTE9BTWNUV1hZV1F3UU95Nm9KdFF5UXJ6R0Y0Zm9WclVabG9MQm5Qdmx4YzFPU1daVHpUem11MHQ2NHZrYjFZWDREVl9WX2Vab1U?oc=5\" target=\"_blank\">Men's Basketball vs Eastern Illinois 11/28/2025</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "55b2b505c4374ab9",
+      "title": "Purdue Basketball Countdown: 100 Days Until Regular Season Starts - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQYlFnY3NIeG8zTDg5WTNqQTJMZUFDNDNpSjktQ1JkdDlWbVhDeHpNVHNEYzR2dkgzT2pSM0FiSlloXzVmVXN4N2w3MWt2TmN5TFl5YjN1cl9tam5Ya3owQ3J4Nm1iOGxRU21CVkRWVk1HMXBPNU5fckFXenNKWk9qR3NoQ2pBWno5ampWS1R5aGw2YnBZUmtPYjNacXJtMGQ5bk9JcThVTUpISE5EbGU1ZHBkbnVESEZkeHZrV3pTWQ",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-07-27T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQYlFnY3NIeG8zTDg5WTNqQTJMZUFDNDNpSjktQ1JkdDlWbVhDeHpNVHNEYzR2dkgzT2pSM0FiSlloXzVmVXN4N2w3MWt2TmN5TFl5YjN1cl9tam5Ya3owQ3J4Nm1iOGxRU21CVkRWVk1HMXBPNU5fckFXenNKWk9qR3NoQ2pBWno5ampWS1R5aGw2YnBZUmtPYjNacXJtMGQ5bk9JcThVTUpISE5EbGU1ZHBkbnVESEZkeHZrV3pTWQ?oc=5\" target=\"_blank\">Purdue Basketball Countdown: 100 Days Until Regular Season Starts</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "be5746e52f9a26f0",
+      "title": "Purdue Boilermakers - Official Athletics Website - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFA0dXlmRlNkTTVQV18wRndkN0lSNHpoS1FEelhTQ3Ztdlpvck5zLXM2LTFMd01waWtVS1Nkdmh6OHRPVDQxSXctSFFpaFMwQXhzQUFr",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-26T13:12:41+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiU0FVX3lxTFA0dXlmRlNkTTVQV18wRndkN0lSNHpoS1FEelhTQ3Ztdlpvck5zLXM2LTFMd01waWtVS1Nkdmh6OHRPVDQxSXctSFFpaFMwQXhzQUFr?oc=5\" target=\"_blank\">Purdue Boilermakers - Official Athletics Website</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "ddcb104b299992df",
+      "title": "Purdue Boilermakers - Official Athletics Website - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE9ndUhXb1VxSzl0djJNTDk0QnVDWUs2blgwZnFOMmg3b0ZuRGpaUFNKQTJRYTBVVFJTaFpqRVZ0bjYta29UQldqUDUzVXZZdXRLem16QlNuZFY",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-26T12:58:25+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiWEFVX3lxTE9ndUhXb1VxSzl0djJNTDk0QnVDWUs2blgwZnFOMmg3b0ZuRGpaUFNKQTJRYTBVVFJTaFpqRVZ0bjYta29UQldqUDUzVXZZdXRLem16QlNuZFY?oc=5\" target=\"_blank\">Purdue Boilermakers - Official Athletics Website</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "eb8ab598be7046d1",
+      "title": "Devin Mockobee’s last lap: History within reach for Purdue’s star RB - On3",
+      "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQUWtWWlZDT1Z4VGtBYUMwMFJKVlY1SlE1cUJ2amxkUEpBci03dnkwUW9rbkFSZThubkpoajVlWDNfZTdlaUxmeEdqZk5YTGRrcksxQ2RSUHl0a2psdjQ4dDNRVUZWdE91Z2ZQQ0VYcDZVTjFWYzBBb3FEb2ZJZzZXelQwenlVT3lVSWlfbG95ck9aN2VPTnYzdUZ2d28wZmRFUlJER2RuOV9VR1VXWlhVNDg3Z0xiVzlS",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-25T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxQUWtWWlZDT1Z4VGtBYUMwMFJKVlY1SlE1cUJ2amxkUEpBci03dnkwUW9rbkFSZThubkpoajVlWDNfZTdlaUxmeEdqZk5YTGRrcksxQ2RSUHl0a2psdjQ4dDNRVUZWdE91Z2ZQQ0VYcDZVTjFWYzBBb3FEb2ZJZzZXelQwenlVT3lVSWlfbG95ck9aN2VPTnYzdUZ2d28wZmRFUlJER2RuOV9VR1VXWlhVNDg3Z0xiVzlS?oc=5\" target=\"_blank\">Devin Mockobee’s last lap: History within reach for Purdue’s star RB</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "105090626b26d97b",
+      "title": "Post-July Breakdown: Purdue commitment Luke Ertel - On3",
+      "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQR0ZuOWZWeVVJd3d2d01DdGNKdVM0U2I3T0wydWtDQVVMLUVkNzFQbzNpaHZ1OG00NDhYcktqNXlyNVRyNHNRRnQtN2tiRjN6b3N0RlByYnVzbG5kZ1hlbjFibHdPU1Z3N01zcUxKajVCMl9TakJtbFRnWUdvQ2ZySHdhdWNwZWgzTjhvS2hkUFRFV0lKLXp2TVhHR0dwRTA1eGc",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-23T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiogFBVV95cUxQR0ZuOWZWeVVJd3d2d01DdGNKdVM0U2I3T0wydWtDQVVMLUVkNzFQbzNpaHZ1OG00NDhYcktqNXlyNVRyNHNRRnQtN2tiRjN6b3N0RlByYnVzbG5kZ1hlbjFibHdPU1Z3N01zcUxKajVCMl9TakJtbFRnWUdvQ2ZySHdhdWNwZWgzTjhvS2hkUFRFV0lKLXp2TVhHR0dwRTA1eGc?oc=5\" target=\"_blank\">Post-July Breakdown: Purdue commitment Luke Ertel</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "3877eec9cb9c70d6",
+      "title": "Purdue Among Contenders to Land Nation's Top-Ranked Point Guard in 2026 Class - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMiiAJBVV95cUxNc0NBZHpxclE3Yl9JOUpabWxvMThUSmtzRlNjdGdESjBKVk5iM2FMYnEtN3BFT0p3c0x4MGZzS0gwdm9INUw5Rjc1UHgyaWlRZ2IwbmV6RFJKVkI4X1ZmX1dFREZuSTZ0bEJfa2FrWGJ4VVRZVEo5b3ROdXVtNm54aDJOTXZyZVpINllXQkExRFRiZHp3UkF0ZjYxemtNaGxyNzdOQWRTZk1EYVM0NkJJbGlDUnoxMUdRR2FFQ245YjEyVDVKNGFyN09FNmlPQmJ1ZU1nbFRncGNZWm5MdUFMRWp5T0xuUmhOckxBRGJyaXBEMDR3RmtjTTN0dUtRTEVmWG9ja2xkdUs",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-07-22T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiAJBVV95cUxNc0NBZHpxclE3Yl9JOUpabWxvMThUSmtzRlNjdGdESjBKVk5iM2FMYnEtN3BFT0p3c0x4MGZzS0gwdm9INUw5Rjc1UHgyaWlRZ2IwbmV6RFJKVkI4X1ZmX1dFREZuSTZ0bEJfa2FrWGJ4VVRZVEo5b3ROdXVtNm54aDJOTXZyZVpINllXQkExRFRiZHp3UkF0ZjYxemtNaGxyNzdOQWRTZk1EYVM0NkJJbGlDUnoxMUdRR2FFQ245YjEyVDVKNGFyN09FNmlPQmJ1ZU1nbFRncGNZWm5MdUFMRWp5T0xuUmhOckxBRGJyaXBEMDR3RmtjTTN0dUtRTEVmWG9ja2xkdUs?oc=5\" target=\"_blank\">Purdue Among Contenders to Land Nation's Top-Ranked Point Guard in 2026 Class</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "506ee7ba492bdd4d",
+      "title": "Purdue Basketball Receives Academic Achievement Award - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPaDBRaHE3clFyLXBEcmFlYWJGT29fQ25ZdF96dDFZa0txbTRBSnZJbFhYT0J2NjlnSnU3T1NUSUZFdklhX2JjNUZZeTd1QVJ3bnJpRXRQbmprTzM5dVhmTmJzMHV3dW40NWxCeG1LT3phZUF2NWlzMzhXWmRqSEthUnRjemF2aTh1TDlBOE14TkVNSkotRnpxYUxlanZYV3FheTRNdEtn",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-07-18T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipgFBVV95cUxPaDBRaHE3clFyLXBEcmFlYWJGT29fQ25ZdF96dDFZa0txbTRBSnZJbFhYT0J2NjlnSnU3T1NUSUZFdklhX2JjNUZZeTd1QVJ3bnJpRXRQbmprTzM5dVhmTmJzMHV3dW40NWxCeG1LT3phZUF2NWlzMzhXWmRqSEthUnRjemF2aTh1TDlBOE14TkVNSkotRnpxYUxlanZYV3FheTRNdEtn?oc=5\" target=\"_blank\">Purdue Basketball Receives Academic Achievement Award</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "eed94fda18f1667e",
+      "title": "Men's Basketball All Americans - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE5jUURCd2xpcGtyam9LYi0zcFBsNlJ5QkNnc2dsZTdyRGZjRlI5Q0lRRUJWOFh3eE1hR0xteEFYcDhXdW81MkpoZ0NVUlU5NU5wUUlLZ3hoendrSFBRSVdDMGJjaGU",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-15T19:38:24+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiZEFVX3lxTE5jUURCd2xpcGtyam9LYi0zcFBsNlJ5QkNnc2dsZTdyRGZjRlI5Q0lRRUJWOFh3eE1hR0xteEFYcDhXdW81MkpoZ0NVUlU5NU5wUUlLZ3hoendrSFBRSVdDMGJjaGU?oc=5\" target=\"_blank\">Men's Basketball All Americans</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "482432f879053ede",
+      "title": "Men's Basketball - Purdue in the Top 25 - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1mZWgwYnE3blJOSFQzS2FkQkxBTkRKWDFSdjFWLVNTaWdMel9JcVR4UU1UcUlfWk5fS3NsTy12bWViWWIwRGVzQS00UExLZjl4TkFIQ1ZEOWZ5dnpyWXp3eTBhQk5Yb0FGckRQamxR",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-15T15:46:33+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMibkFVX3lxTE1mZWgwYnE3blJOSFQzS2FkQkxBTkRKWDFSdjFWLVNTaWdMel9JcVR4UU1UcUlfWk5fS3NsTy12bWViWWIwRGVzQS00UExLZjl4TkFIQ1ZEOWZ5dnpyWXp3eTBhQk5Yb0FGckRQamxR?oc=5\" target=\"_blank\">Men's Basketball - Purdue in the Top 25</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "95a92a9cbb440318",
+      "title": "Takeaways: Purdue basketball recruiting during the July evaluation period - On3",
+      "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPNHNFbEdXTzBVRVlMcUw0RlhfbUZwZ1lfME83ZlZlMlpqTVpzTDZwb0pDUVBQR3d2RWZxRnpaZ3RWaEQyV2hBbXBwZ2ZzQ24xWjFTX1BrbkRFdTBTRUtOcUxMZ1BkRklkTWN4RFNKMU1JRWlUdTNGRkRsWHFGZ3hYeUxBOHdidlRZZEZWdVNYZ0xEZkxIOUF4TDRhNXBMOG9zbFltNVNCTEhlSVFyX2NQVERlOVNqU2o3bldiOUI3ZXo3QQ",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-15T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwgFBVV95cUxPNHNFbEdXTzBVRVlMcUw0RlhfbUZwZ1lfME83ZlZlMlpqTVpzTDZwb0pDUVBQR3d2RWZxRnpaZ3RWaEQyV2hBbXBwZ2ZzQ24xWjFTX1BrbkRFdTBTRUtOcUxMZ1BkRklkTWN4RFNKMU1JRWlUdTNGRkRsWHFGZ3hYeUxBOHdidlRZZEZWdVNYZ0xEZkxIOUF4TDRhNXBMOG9zbFltNVNCTEhlSVFyX2NQVERlOVNqU2o3bldiOUI3ZXo3QQ?oc=5\" target=\"_blank\">Takeaways: Purdue basketball recruiting during the July evaluation period</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "0677bc97cdfbc9ce",
+      "title": "Mahri Petree - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNYW9DUFk1am05dHF1dGRQaGZLbTZKeWdQT2UyaGNzbGl2UjFPekpseVYwMDRzN0ZQQnNaZmZJUVFLcjRFQUxpWXdPcmtDaG1Rei1mTmUxOTFhVWxqamNReFJsUzZZNm9xVWN2SE5ZSTF1LTM5WDhCekZNcVRIbTVtbUh3",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-14T15:26:58+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiggFBVV95cUxNYW9DUFk1am05dHF1dGRQaGZLbTZKeWdQT2UyaGNzbGl2UjFPekpseVYwMDRzN0ZQQnNaZmZJUVFLcjRFQUxpWXdPcmtDaG1Rei1mTmUxOTFhVWxqamNReFJsUzZZNm9xVWN2SE5ZSTF1LTM5WDhCekZNcVRIbTVtbUh3?oc=5\" target=\"_blank\">Mahri Petree</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "79eebcf4985d36a0",
+      "title": "July Evaluation Period Day 3: Purdue recruit Luke Ertel's week in Rock Hill and more - On3",
+      "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxPUHJxUmNoMS1INzVMV2cwLU5kdVlBNjVIdkFRajBDb0Q1OWlNOUx1QWUwOFhoeUpRRlkyNzlpY21MeXFaVHpkWi0yajVHQ25hdW56QTV4MGxvUVB4M1RXVXk3bUpqREwyeWtzcDRaTXFmTTg1VlVzR1RFNVBKd2tQM0RKZXNYTHZCRkRsUXdkT29HbUpYaG5qMzRCLURHaE1ySGpxUEtkZDdXcENnd2V2cnpCZlFFSS15aEJlRk81TlRUcEk4aUtrTVVIdnVRUFpL",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-14T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0AFBVV95cUxPUHJxUmNoMS1INzVMV2cwLU5kdVlBNjVIdkFRajBDb0Q1OWlNOUx1QWUwOFhoeUpRRlkyNzlpY21MeXFaVHpkWi0yajVHQ25hdW56QTV4MGxvUVB4M1RXVXk3bUpqREwyeWtzcDRaTXFmTTg1VlVzR1RFNVBKd2tQM0RKZXNYTHZCRkRsUXdkT29HbUpYaG5qMzRCLURHaE1ySGpxUEtkZDdXcENnd2V2cnpCZlFFSS15aEJlRk81TlRUcEk4aUtrTVVIdnVRUFpL?oc=5\" target=\"_blank\">July Evaluation Period Day 3: Purdue recruit Luke Ertel's week in Rock Hill and more</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "ece5df40f75c1b11",
+      "title": "Purdue's Matt Painter urges coaches against tampering: ‘You can’t become one of those people’ - Yahoo Sports",
+      "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPTGxqbUxicDB3ZnJVN0N3WkllWEZoVXJLa05ndE1MbFZUUTdOYjNzcWtxQ2tuazdwR3VvWkRHZy1UZDRxZWdHLWhqTHZsRk9fdWJwRkFUN0FTaExod0hfelctdDI2dWR3Z3RjSE5aTnFqX3owajFFMjMtVTRtMjA1eEgtS0xGbGk0ZlE",
+      "source": "Yahoo Sports",
+      "feed": "Yahoo Sports",
+      "published": "2025-07-13T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPTGxqbUxicDB3ZnJVN0N3WkllWEZoVXJLa05ndE1MbFZUUTdOYjNzcWtxQ2tuazdwR3VvWkRHZy1UZDRxZWdHLWhqTHZsRk9fdWJwRkFUN0FTaExod0hfelctdDI2dWR3Z3RjSE5aTnFqX3owajFFMjMtVTRtMjA1eEgtS0xGbGk0ZlE?oc=5\" target=\"_blank\">Purdue's Matt Painter urges coaches against tampering: ‘You can’t become one of those people’</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>"
+    },
+    {
+      "id": "4174c44c75af0ab7",
+      "title": "Men's Basketball at Michigan State 2/19/2025 - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE9BRmJVU2wzRTJucm5adGlSM0ljSWhvOEVkb0lMUVJCWmYxZWdBZVExMjlZUHZLZEtJSkFIdW9BQVpubFYweHRaUVVHZ1U1Q0k",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-12T22:26:52+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTE9BRmJVU2wzRTJucm5adGlSM0ljSWhvOEVkb0lMUVJCWmYxZWdBZVExMjlZUHZLZEtJSkFIdW9BQVpubFYweHRaUVVHZ1U1Q0k?oc=5\" target=\"_blank\">Men's Basketball at Michigan State 2/19/2025</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "a1c9f2a178500d86",
+      "title": "Top-50 guard Junior County remains a Purdue priority - On3",
+      "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOMWM4RjBsM3k5b05EanJYN1gxWDF1QllINXZhSGVsM25CQ0tTRkNlbWh4WUZ6RjhneWFRYmpoV0RRYlZyMG51T0x4a1JrTnQ2MWJOb1k1ejg3bVdXeTJVXzloNkswbGNvX0JvQWtmbGFFaGxobWw1bUQ4cHdoeUpmNnhuVHZDTk14OGQ3SVBybGJkR211OEhOd0hhaEFDTGlEQjZkWk5kRQ",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-12T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipwFBVV95cUxOMWM4RjBsM3k5b05EanJYN1gxWDF1QllINXZhSGVsM25CQ0tTRkNlbWh4WUZ6RjhneWFRYmpoV0RRYlZyMG51T0x4a1JrTnQ2MWJOb1k1ejg3bVdXeTJVXzloNkswbGNvX0JvQWtmbGFFaGxobWw1bUQ4cHdoeUpmNnhuVHZDTk14OGQ3SVBybGJkR211OEhOd0hhaEFDTGlEQjZkWk5kRQ?oc=5\" target=\"_blank\">Top-50 guard Junior County remains a Purdue priority</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "05e3c885a9d4e4f9",
+      "title": "GoldandBlack.com Saturday Simulcast: Purdue's July evaluation period talk and more - On3",
+      "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPUXFMWk9KOGNRMld4S25nU1NBM1hnU2ZRM3R5a2l5dWRYQ3gwVk55STlSRTlySU8wZDNtaDBKYUJUOFdUNjBXNUtPTjlHU2R6bkxkNlhQRE5ucVpUM0VnWGdQQzFDMG5tUmUzUUtnLTJnVHY4WlJtZkNqS1EyMHRKd2lQYmpGRnVpSENUS1Itck9ZRGhCRWctM3g1QzFlQXB5ejE0Z1k1dHk3NmhkaWJ2T3Y1aTVNMFdYRUJ4RHJ2dDlJaEhucm5BUjNQZVM",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-12T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMizAFBVV95cUxPUXFMWk9KOGNRMld4S25nU1NBM1hnU2ZRM3R5a2l5dWRYQ3gwVk55STlSRTlySU8wZDNtaDBKYUJUOFdUNjBXNUtPTjlHU2R6bkxkNlhQRE5ucVpUM0VnWGdQQzFDMG5tUmUzUUtnLTJnVHY4WlJtZkNqS1EyMHRKd2lQYmpGRnVpSENUS1Itck9ZRGhCRWctM3g1QzFlQXB5ejE0Z1k1dHk3NmhkaWJ2T3Y1aTVNMFdYRUJ4RHJ2dDlJaEhucm5BUjNQZVM?oc=5\" target=\"_blank\">GoldandBlack.com Saturday Simulcast: Purdue's July evaluation period talk and more</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "462ec394dd64f3b4",
+      "title": "Spike Albrecht - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOREwyRG1EeENFRmpxbGVqUGIzTXVpaUNQbi01WUVJdTUySzN5TXNNTDBVQk9mVXJpb3RjNkVmVHZGMTFTYTRRNVBhLUduM1ZtMk5iTEhNMjVvVmRHeVc1ZVdjQkszODNlOV9jUlQwMXphT0R6S0ZnQkc1dGR3NFR6ODhR",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-12T05:34:02+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiggFBVV95cUxOREwyRG1EeENFRmpxbGVqUGIzTXVpaUNQbi01WUVJdTUySzN5TXNNTDBVQk9mVXJpb3RjNkVmVHZGMTFTYTRRNVBhLUduM1ZtMk5iTEhNMjVvVmRHeVc1ZVdjQkszODNlOV9jUlQwMXphT0R6S0ZnQkc1dGR3NFR6ODhR?oc=5\" target=\"_blank\">Spike Albrecht</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "675eaf5e96e477f3",
+      "title": "Sterling Carter - 2013-14 Men's Basketball Roster - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPd0RQTEJGNmlWMmRHbW9oRmlkRTZvbk92QmJSc21jdUtSeThrN09JMlRwQkwzdHYwTDRydXd6UXJsUzJZMEUtY3RjbFd5ZDJ3NXh1ZGRPWkZKWE9EbDZRN25qVzFpaFJEN1JRODRBWERNU2hGS2M3YzNvVGQweldiby0tYw",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-11T21:41:09+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMigwFBVV95cUxPd0RQTEJGNmlWMmRHbW9oRmlkRTZvbk92QmJSc21jdUtSeThrN09JMlRwQkwzdHYwTDRydXd6UXJsUzJZMEUtY3RjbFd5ZDJ3NXh1ZGRPWkZKWE9EbDZRN25qVzFpaFJEN1JRODRBWERNU2hGS2M3YzNvVGQweldiby0tYw?oc=5\" target=\"_blank\">Sterling Carter - 2013-14 Men's Basketball Roster</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "8ce78b7d612c7470",
+      "title": "Purdue Men’s Basketball Alumni Game Update - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQRFFfT2k5ZjE2N195b1JINHgxR0k3TDhDc09lRExBVmR0OU1mNUZ1ZTgyU0ttOGZUYXhtUFFsVEdFbi03TFVyRi1xS2xZQ3JDX2lPU01vMGstRXNXVGNfNUFwa21WejBXMUxYWXVqYlgwWmNPM1dGZC1tRW1UaFFhQzFGSnRCVG4zVUE",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-11T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxQRFFfT2k5ZjE2N195b1JINHgxR0k3TDhDc09lRExBVmR0OU1mNUZ1ZTgyU0ttOGZUYXhtUFFsVEdFbi03TFVyRi1xS2xZQ3JDX2lPU01vMGstRXNXVGNfNUFwa21WejBXMUxYWXVqYlgwWmNPM1dGZC1tRW1UaFFhQzFGSnRCVG4zVUE?oc=5\" target=\"_blank\">Purdue Men’s Basketball Alumni Game Update</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "980dbd8979fc73d4",
+      "title": "Purdue recruiting target Jamyn Sondrup may decide 'more sooner than later' - On3",
+      "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOVUVoTF9KbE13c19aQkxYSnNiMDk5TXFPUUNDcmlmNmthT0pmX2h6cmg1VlpjcGpjczdoRTdORERzelZxcXV1R196TFRfRWFkSWR3c2xWanhpa1FtTFFhMnExRXJNaUpldmFzRTVQQ1lxODVrR1kzSXN3RzFob2F0UV8wblFQQzYtcC1CNklzLWxhYVpySFdWakZIb0djRExhN0ZpRGhta1djRjVvd3JHSjBFOERNazlPell4U0VvWk5oQQ",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-11T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwgFBVV95cUxOVUVoTF9KbE13c19aQkxYSnNiMDk5TXFPUUNDcmlmNmthT0pmX2h6cmg1VlpjcGpjczdoRTdORERzelZxcXV1R196TFRfRWFkSWR3c2xWanhpa1FtTFFhMnExRXJNaUpldmFzRTVQQ1lxODVrR1kzSXN3RzFob2F0UV8wblFQQzYtcC1CNklzLWxhYVpySFdWakZIb0djRExhN0ZpRGhta1djRjVvd3JHSjBFOERNazlPell4U0VvWk5oQQ?oc=5\" target=\"_blank\">Purdue recruiting target Jamyn Sondrup may decide 'more sooner than later'</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "7566125c02b4431a",
+      "title": "Men's Basketball at Boston College 11/27/2008 - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE9zUjllY1VOUFljOWlVMjRjaDloVm9MSmFtYU5mcGlRNC1rVVBxTnFhRzcwRHNuRzc5X2lleTRWRUJ0aGhYemJ6eDVqd01Dems",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-10T22:43:13+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTE9zUjllY1VOUFljOWlVMjRjaDloVm9MSmFtYU5mcGlRNC1rVVBxTnFhRzcwRHNuRzc5X2lleTRWRUJ0aGhYemJ6eDVqd01Dems?oc=5\" target=\"_blank\">Men's Basketball at Boston College 11/27/2008</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "4ff7f73bda3e676e",
+      "title": "July Evaluation Period Day 0: Purdue basketball recruits in Rock Hill Wednesday - On3",
+      "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPa0s0RUpNN05Oc2FhQmNNa1RHQklUcWhLQnVzck1tMVZpbXg1MnZKVWtIMUZCaGxROG96SmR1bEN2NGF0ZVFkLXFEX0pLQWRaREl1UTBvQUFtN3ZrN3JjaUdCaktuLVRFZmNfU2hjZzEyVDJzdC1CNlRmNjE1MmRVYkdadzJxTHpWN3RRMGNzOHVXVTVHbjZaREtjZi11ZUczaFpseXVpYU1aTVZIY05faEpVY3ZkV2t5UDBsUldQR3FPRXkxUDJ5Vm9B",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-10T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiygFBVV95cUxPa0s0RUpNN05Oc2FhQmNNa1RHQklUcWhLQnVzck1tMVZpbXg1MnZKVWtIMUZCaGxROG96SmR1bEN2NGF0ZVFkLXFEX0pLQWRaREl1UTBvQUFtN3ZrN3JjaUdCaktuLVRFZmNfU2hjZzEyVDJzdC1CNlRmNjE1MmRVYkdadzJxTHpWN3RRMGNzOHVXVTVHbjZaREtjZi11ZUczaFpseXVpYU1aTVZIY05faEpVY3ZkV2t5UDBsUldQR3FPRXkxUDJ5Vm9B?oc=5\" target=\"_blank\">July Evaluation Period Day 0: Purdue basketball recruits in Rock Hill Wednesday</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "57fe18c72e7fe8bf",
+      "title": "Bubba Day - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE9aamJTd0JTS0F0a1duaGpJYnEzT3pRczNYa0k1R3Bob3RncjNHNlJHaWNadXlYSnV6eG85X2hJNHB4UmdZZDNpUWdlLUNYT1Z3cWZnaHpqMU5lcmIweWxnbFdkNjRrUmc1Q0ZrMlYtS2ZRc3FxaDFkSTFaMA",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-10T06:19:49+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMie0FVX3lxTE9aamJTd0JTS0F0a1duaGpJYnEzT3pRczNYa0k1R3Bob3RncjNHNlJHaWNadXlYSnV6eG85X2hJNHB4UmdZZDNpUWdlLUNYT1Z3cWZnaHpqMU5lcmIweWxnbFdkNjRrUmc1Q0ZrMlYtS2ZRc3FxaDFkSTFaMA?oc=5\" target=\"_blank\">Bubba Day</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "de5888ef459c36bf",
+      "title": "Hot Buttons: Purdue basketball recruiting during the July evaluation period - On3",
+      "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNdkF5UURTX1I1ZkZJT3AzbW5rYTB1bmFhLTJLRllxaEJqdGptUFZNekI5MGhCcmNqaU9hc01WdzByRFBUVVJCNWI4cG1sb0N2c2pIemFBRmRKX2RrSEo2eDh3OVRCSy1YOUprSmhRWUJMNnB4Rm1KeFZSV3lxMTVIWVJYV2VudFpKRjNPTkg2S1RkUXhwbHNvLUp3Y0F1NkR2OGR2cmZsQUxEMHFBaWhMaEQ1WmU3eHB2RDZia1c1SUdBaExT",
+      "source": "GoldandBlack.com",
+      "feed": "GoldandBlack.com",
+      "published": "2025-07-09T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMixAFBVV95cUxNdkF5UURTX1I1ZkZJT3AzbW5rYTB1bmFhLTJLRllxaEJqdGptUFZNekI5MGhCcmNqaU9hc01WdzByRFBUVVJCNWI4cG1sb0N2c2pIemFBRmRKX2RrSEo2eDh3OVRCSy1YOUprSmhRWUJMNnB4Rm1KeFZSV3lxMTVIWVJYV2VudFpKRjNPTkg2S1RkUXhwbHNvLUp3Y0F1NkR2OGR2cmZsQUxEMHFBaWhMaEQ1WmU3eHB2RDZia1c1SUdBaExT?oc=5\" target=\"_blank\">Hot Buttons: Purdue basketball recruiting during the July evaluation period</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>"
+    },
+    {
+      "id": "398e38942791452d",
+      "title": "Purdue Coach Matt Painter Weighs in on Idea of NCAA Tournament Expansion - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxQLUYwSC1mSVp3NGpNdVBBS0hRTzUzOHoyNWN5M2pfUGgyZFd3LWhrR05HSG9nLS1pUVZkZzV6T2R4R3VaM0RBTUMtWlRGV2xyUTBCM3hzZl8wN2F3V21QY3pUY1BzMk9QUEZCTEtsTk9JQWRuNjhZTGJFV1hUR2N0SGdudWhDTVdwbTlZSW03RV9MbHdIZ2phQlp6WTB1UV81b0xxZGF5dzBlVHQxSWRCdVpickVta1RyU3RVVHRPMlhncFVJaVlTcUdGUExPTzhDZWMyTEgtc1ZuMk1xUWpJSFdSeWY",
+      "source": "Sports Illustrated",
+      "feed": "Sports Illustrated",
+      "published": "2025-07-09T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxQLUYwSC1mSVp3NGpNdVBBS0hRTzUzOHoyNWN5M2pfUGgyZFd3LWhrR05HSG9nLS1pUVZkZzV6T2R4R3VaM0RBTUMtWlRGV2xyUTBCM3hzZl8wN2F3V21QY3pUY1BzMk9QUEZCTEtsTk9JQWRuNjhZTGJFV1hUR2N0SGdudWhDTVdwbTlZSW03RV9MbHdIZ2phQlp6WTB1UV81b0xxZGF5dzBlVHQxSWRCdVpickVta1RyU3RVVHRPMlhncFVJaVlTcUdGUExPTzhDZWMyTEgtc1ZuMk1xUWpJSFdSeWY?oc=5\" target=\"_blank\">Purdue Coach Matt Painter Weighs in on Idea of NCAA Tournament Expansion</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>"
+    },
+    {
+      "id": "495feae0cb961eb5",
+      "title": "2018-19 Men's Basketball Roster Cumulative Statistics - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE85aHd4THd2X2pwUXVfblZMT0VrdVJpTmxnMlpNNERzbGZ1SUk0LU4yZGZvZUhPdFlsWHVrM0tvVkpsYmNSd3AzNHRjYmN0T2Z4R1VRVFVFcDFqV1A0bV9XQVI1ZmtlZ2RwZWJoYkI3S0xBeDc5X29J",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-08T16:23:55+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMid0FVX3lxTE85aHd4THd2X2pwUXVfblZMT0VrdVJpTmxnMlpNNERzbGZ1SUk0LU4yZGZvZUhPdFlsWHVrM0tvVkpsYmNSd3AzNHRjYmN0T2Z4R1VRVFVFcDFqV1A0bV9XQVI1ZmtlZ2RwZWJoYkI3S0xBeDc5X29J?oc=5\" target=\"_blank\">2018-19 Men's Basketball Roster Cumulative Statistics</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "5f3fd61a2a3fa191",
+      "title": "Kyle Coleman - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTFBjbXJWMTZWLW9NOFptVFRWbXpLNzhFZUFBTzBQTnBrOUwxSm1IdU16Ymx2b2FLU3huenpCWElYQVdCV3ZOSmIycE8zZ0dBZkY2OVJ3Z082RHM5M2VrcGxnWkhmSkNxVkw2TUVzVnZRRHVfZi1scTFyN3kyWjk3QXc",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-08T11:10:44+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMif0FVX3lxTFBjbXJWMTZWLW9NOFptVFRWbXpLNzhFZUFBTzBQTnBrOUwxSm1IdU16Ymx2b2FLU3huenpCWElYQVdCV3ZOSmIycE8zZ0dBZkY2OVJ3Z082RHM5M2VrcGxnWkhmSkNxVkw2TUVzVnZRRHVfZi1scTFyN3kyWjk3QXc?oc=5\" target=\"_blank\">Kyle Coleman</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "48cdc458be733cf9",
+      "title": "John Hart - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE80MnozZXozamYwc18zeXZzN3VpNzJlcktZcFRRSkJvS1NDbC1CSHNsWUF2ZVJXUGpUYkQ4QUVlcy1nc09WMVNRVUFXVVlKdXdvMEw2UzhfTzJybDRzMzBJSjd5NElDN3doeEhGcGZEbXZGWDRJa3lKaFV0Yw",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-07T13:32:24+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMie0FVX3lxTE80MnozZXozamYwc18zeXZzN3VpNzJlcktZcFRRSkJvS1NDbC1CSHNsWUF2ZVJXUGpUYkQ4QUVlcy1nc09WMVNRVUFXVVlKdXdvMEw2UzhfTzJybDRzMzBJSjd5NElDN3doeEhGcGZEbXZGWDRJa3lKaFV0Yw?oc=5\" target=\"_blank\">John Hart</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "19e19181ab8e0909",
+      "title": "Purdue Men's Basketball Practice - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPQjVkeFZDeHNoV1pXQjFmai11UUhzcXdTRnA0a3NDNTRjMEZVeUhhTktpTEhpSGcydGhlZXh1OGREWVJWNkxXX0hHSlZTbTE4dVdtdDQwRldqSEZhaGJDUC1ITjJsSGlIbDR2Tll4SHNKbHZVc2RGMU93Z0xkWVBJLTVEZw",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-07T07:00:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMigwFBVV95cUxPQjVkeFZDeHNoV1pXQjFmai11UUhzcXdTRnA0a3NDNTRjMEZVeUhhTktpTEhpSGcydGhlZXh1OGREWVJWNkxXX0hHSlZTbTE4dVdtdDQwRldqSEZhaGJDUC1ITjJsSGlIbDR2Tll4SHNKbHZVc2RGMU93Z0xkWVBJLTVEZw?oc=5\" target=\"_blank\">Purdue Men's Basketball Practice</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "7e9f16c1874384c5",
+      "title": "Trevion Williams - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQMDBlN2V0LXJLUVhFMEZweEt3UThzaFI0WnhrX1k4RG5pLXR0RndtOUg1RVY4TDc4UHpjbXVfenkyNThsVVVtbHptTWlnTHh4dnNMaVoyUkp3ZUdIV05ZMmc1LUxSbFhJTVlGeEw4aTJqTlhPemRNU0duOFFxeGw2MGVhNjQ",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-06T20:31:40+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMihAFBVV95cUxQMDBlN2V0LXJLUVhFMEZweEt3UThzaFI0WnhrX1k4RG5pLXR0RndtOUg1RVY4TDc4UHpjbXVfenkyNThsVVVtbHptTWlnTHh4dnNMaVoyUkp3ZUdIV05ZMmc1LUxSbFhJTVlGeEw4aTJqTlhPemRNU0duOFFxeGw2MGVhNjQ?oc=5\" target=\"_blank\">Trevion Williams</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "4e62ba36a8ea7554",
+      "title": "Bryson Scott - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE93TmVsZjVpNExTOXhuRnVwbEk4VGtXSzFZa0VwclEyZEJHeG9hczNiLTRYUEhiOTdXZFhiamxtREYtNy1hVUNlUUZ0clFWUVJXVEl1UjFvd0JwTVc3ZFY0N3pnTWx0RUVTT2JKZk5oRzlPaS1TWS1BUnZLQzZYNlE",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-06T11:49:51+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMif0FVX3lxTE93TmVsZjVpNExTOXhuRnVwbEk4VGtXSzFZa0VwclEyZEJHeG9hczNiLTRYUEhiOTdXZFhiamxtREYtNy1hVUNlUUZ0clFWUVJXVEl1UjFvd0JwTVc3ZFY0N3pnTWx0RUVTT2JKZk5oRzlPaS1TWS1BUnZLQzZYNlE?oc=5\" target=\"_blank\">Bryson Scott</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "fb20c057a5e50f3b",
+      "title": "Men's Basketball vs Illinois 3/3/2004 - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTFBLOHBZakpzMlZpd2x1TEJZUlh6SWNsSkxOUENLYUpWVE9xOTNyZjFMT2kyZWVBNnVxa2x1aFR3bG5qNWJhaHJDV3UzR0J6dGc",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-05T13:13:02+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTFBLOHBZakpzMlZpd2x1TEJZUlh6SWNsSkxOUENLYUpWVE9xOTNyZjFMT2kyZWVBNnVxa2x1aFR3bG5qNWJhaHJDV3UzR0J6dGc?oc=5\" target=\"_blank\">Men's Basketball vs Illinois 3/3/2004</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "b283e3046045c8ea",
+      "title": "Purdue University Men's Basketball :: Official Athletic Site - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxOTk9BM1F2U2NaNUpnTE9LT0tITm1kM1lqX3dSWEpERG9Wdnl2dER3ODlhTXVIdHZMQnl2cnROS0hRTHlfd2Z5ZlNWMGNsbktYVm54UEZUVjZ0ZzF5RW5aZ2htWWVERnZnNVp2QzV0WXFSX2dKWk4xUmFqLTFoeHhmSWRBNjE3WV93WVNV",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-04T18:37:14+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxOTk9BM1F2U2NaNUpnTE9LT0tITm1kM1lqX3dSWEpERG9Wdnl2dER3ODlhTXVIdHZMQnl2cnROS0hRTHlfd2Z5ZlNWMGNsbktYVm54UEZUVjZ0ZzF5RW5aZ2htWWVERnZnNVp2QzV0WXFSX2dKWk4xUmFqLTFoeHhmSWRBNjE3WV93WVNV?oc=5\" target=\"_blank\">Purdue University Men's Basketball :: Official Athletic Site</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "1dca67285b47a0b4",
+      "title": "Purdue Boilermakers - Official Athletics Website - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFBNQnF4VHZHNmllSDBXZUxxY2xjUGlOUGotUjhBRkctMG1DR2pHOHNISHplU080R1NXeDctdjlmWDMya3RpZmJobGFjY0lOcFFfeXNWRlhB",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-04T17:35:56+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiVkFVX3lxTFBNQnF4VHZHNmllSDBXZUxxY2xjUGlOUGotUjhBRkctMG1DR2pHOHNISHplU080R1NXeDctdjlmWDMya3RpZmJobGFjY0lOcFFfeXNWRlhB?oc=5\" target=\"_blank\">Purdue Boilermakers - Official Athletics Website</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "dea4f5f3165ec66c",
+      "title": "Former Boilermaker Honored into Hall of Fame - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9tZUE4WmFreWZBcU5vd2duNjk4eFV3Y3p3ODMyZDQ4QWFJZlF4VjRoc1FBQUNvbG5EWFpPaXMzQVRyNFpjb19NaUxMUE0xRkJEeTRwM2NxWXlUTU9vR29GLWVBTm9Zekdob2NNd3VFcVhSc2l1YkxSMg",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-04T15:59:23+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMieEFVX3lxTE9tZUE4WmFreWZBcU5vd2duNjk4eFV3Y3p3ODMyZDQ4QWFJZlF4VjRoc1FBQUNvbG5EWFpPaXMzQVRyNFpjb19NaUxMUE0xRkJEeTRwM2NxWXlUTU9vR29GLWVBTm9Zekdob2NNd3VFcVhSc2l1YkxSMg?oc=5\" target=\"_blank\">Former Boilermaker Honored into Hall of Fame</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "06b2a8dfb6da48a4",
+      "title": "BB - Shuttles - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMiTEFVX3lxTE1qMC0tc3lHR3l1YjZzNTRqWFpWVXlhTENfRDlTajJDZlk4QVIyVEU1VnB1eW1HNG13X2FybkRBZkJzTXNSdTJQRGQ4YlU",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-04T06:41:21+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiTEFVX3lxTE1qMC0tc3lHR3l1YjZzNTRqWFpWVXlhTENfRDlTajJDZlk4QVIyVEU1VnB1eW1HNG13X2FybkRBZkJzTXNSdTJQRGQ4YlU?oc=5\" target=\"_blank\">BB - Shuttles</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    },
+    {
+      "id": "1163effe4e3ea262",
+      "title": "Neal Beshears - Purdue Boilermakers",
+      "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxOODlHQmswWWZfLW52S0pXal9hdF9tWGx1bEVTeUpqd1FWRktyWVRHUjhzWGRPSkU4MHZ1alRtV2o5SWdhTjBRV1ZRVmt6cGhmNDZEU05fRVpycml1TmIzM1YzNGpfVGdISXBwUm5OYmkxT1I1YjlERHVJUTlLc2RLeg",
+      "source": "PurdueSports.com",
+      "feed": "PurdueSports.com",
+      "published": "2025-07-04T02:11:00+0000",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMigAFBVV95cUxOODlHQmswWWZfLW52S0pXal9hdF9tWGx1bEVTeUpqd1FWRktyWVRHUjhzWGRPSkU4MHZ1alRtV2o5SWdhTjBRV1ZRVmt6cGhmNDZEU05fRVpycml1TmIzM1YzNGpfVGdISXBwUm5OYmkxT1I1YjlERHVJUTlLc2RLeg?oc=5\" target=\"_blank\">Neal Beshears</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Purdue Boilermakers</font>"
+    }
   ],
-  "items": []
+  "links": [
+    {
+      "label": "Schedule",
+      "url": "https://purduesports.com/sports/mens-basketball/schedule"
+    },
+    {
+      "label": "Roster",
+      "url": "https://purduesports.com/sports/mens-basketball/roster"
+    },
+    {
+      "label": "Tickets",
+      "url": "https://purduesports.com/sports/2024/9/1/tickets.aspx"
+    },
+    {
+      "label": "Reddit — r/Boilermakers",
+      "url": "https://www.reddit.com/r/Boilermakers/"
+    },
+    {
+      "label": "ESPN Team",
+      "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"
+    },
+    {
+      "label": "KenPom",
+      "url": "https://kenpom.com/"
+    },
+    {
+      "label": "Sports-Reference",
+      "url": "https://www.sports-reference.com/cbb/schools/purdue/"
+    },
+    {
+      "label": "Big Ten Standings",
+      "url": "https://www.espn.com/mens-college-basketball/standings/_/group/7"
+    }
+  ],
+  "sources": [
+    "PurdueSports.com",
+    "Journal & Courier",
+    "GoldandBlack.com",
+    "Hammer and Rails",
+    "The Athletic",
+    "ESPN",
+    "Yahoo Sports",
+    "Sports Illustrated",
+    "CBS Sports",
+    "Big Ten Network"
+  ]
 }
