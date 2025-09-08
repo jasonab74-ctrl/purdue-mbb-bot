@@ -1,26 +1,15 @@
 {
-  "updated": "2025-09-08T00:00:00-05:00",
-  "sources": [
-    "PurdueSports.com",
-    "Journal & Courier",
-    "GoldandBlack.com",
-    "Hammer and Rails",
-    "The Athletic",
-    "ESPN",
-    "Yahoo Sports",
-    "Sports Illustrated",
-    "CBS Sports",
-    "Big Ten Network"
-  ],
+  "updated": "2025-09-08T10:00:00-05:00",
+  "sources": ["PurdueSports.com","Journal & Courier","GoldandBlack.com","Hammer and Rails","The Athletic","ESPN","Yahoo Sports","Sports Illustrated","CBS Sports","Big Ten Network"],
   "links": [
-    { "label": "Schedule", "url": "https://purduesports.com/sports/mens-basketball/schedule" },
-    { "label": "Roster", "url": "https://purduesports.com/sports/mens-basketball/roster" },
-    { "label": "Tickets", "url": "https://purduesports.com/sports/2024/9/1/tickets.aspx" },
-    { "label": "Reddit — r/Boilermakers", "url": "https://www.reddit.com/r/Boilermakers/" },
-    { "label": "ESPN Team", "url": "https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" },
-    { "label": "KenPom", "url": "https://kenpom.com/" },
-    { "label": "Sports-Reference", "url": "https://www.sports-reference.com/cbb/schools/purdue/" },
-    { "label": "Big Ten Standings", "url": "https://www.espn.com/mens-college-basketball/standings/_/group/7" }
+    {"label":"Schedule","url":"https://purduesports.com/sports/mens-basketball/schedule"},
+    {"label":"Roster","url":"https://purduesports.com/sports/mens-basketball/roster"},
+    {"label":"Tickets","url":"https://purduesports.com/sports/2024/9/1/tickets.aspx"},
+    {"label":"Reddit — r/Boilermakers","url":"https://www.reddit.com/r/Boilermakers/"},
+    {"label":"ESPN Team","url":"https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
+    {"label":"KenPom","url":"https://kenpom.com/"},
+    {"label":"Sports-Reference","url":"https://www.sports-reference.com/cbb/schools/purdue/"},
+    {"label":"Big Ten Standings","url":"https://www.espn.com/mens-college-basketball/standings/_/group/7"}
   ],
   "items": []
 }
