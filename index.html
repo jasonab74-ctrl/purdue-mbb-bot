@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Purdue Boilermakers — MBB News</title>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#000000">
+
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="logo-box">
+      <img src="static/purdue.png" alt="Purdue logo" />
+    </div>
+    <div class="hero-titles">
+      <h1>Purdue Boilermakers — Men’s Basketball</h1>
+      <div class="sub">Live team feed · auto-updates</div>
+    </div>
+    <a class="fight-btn" href="static/fight-song.mp3" target="_blank" rel="noopener">
+      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5z"></path></svg>
+      <span>Hail Purdue</span>
+    </a>
+  </header>
+
+  <!-- Quick links (buttons) -->
+  <div id="links" class="pill-row"></div>
+
+  <section class="controls">
+    <div class="control">
+      <label>Source:</label>
+      <select id="sourceSelect"></select>
+    </div>
+    <div class="control right">
+      <label>Updated:</label>
+      <span id="updated">—</span>
+    </div>
+  </section>
+
+  <main id="feed"></main>
+
+  <script>
+    const feedEl = document.getElementById('feed');
+    const updatedEl = document.getElementById('updated');
+    const sourceSelect = document.getElementById('sourceSelect');
+    const linksEl = document.getElementById('links');
+
+    const fmtLocal = iso => {
+      try{
+        const d = new Date(iso);
+        return d.toLocaleString([], {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+      }catch{ return iso || ''; }
+    };
+
+    function renderLinks(links){
+      linksEl.innerHTML = '';
+      (links||[]).forEach(l=>{
+        const a = document.createElement('a');
+        a.className = 'pill';
+        a.href = l.url; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = l.label;
+        linksEl.appendChild(a);
+      });
+    }
+
+    function buildSourceDropdown(items, curated){
+      sourceSelect.innerHTML = '';
+      const base = Array.isArray(curated) && curated.length ? curated
+                 : Array.from(new Set((items||[]).map(i => i.source || i.feed).filter(Boolean))).sort();
+      const optAll = document.createElement('option');
+      optAll.value=''; optAll.textContent='All sources';
+      sourceSelect.appendChild(optAll);
+      base.forEach(s=>{
+        const o=document.createElement('option');
+        o.value=s; o.textContent=s;
+        sourceSelect.appendChild(o);
+      });
+    }
+
+    function renderItems(items){
+      feedEl.innerHTML = '';
+      (items||[]).forEach(it=>{
+        const card = document.createElement('article');
+        card.className='card';
+
+        const a=document.createElement('a');
+        a.href=it.link; a.target='_blank'; a.rel='noopener';
+        a.className='title';
+        a.textContent=it.title || '(no title)';
+
+        const meta=document.createElement('div');
+        meta.className='meta';
+        meta.textContent=`${it.source || it.feed || ''} • ${fmtLocal(it.published || it.updated)}`;
+
+        card.appendChild(a);
+        card.appendChild(meta);
+        feedEl.appendChild(card);
+      });
+    }
+
+    function applyFilter(all){
+      const src = sourceSelect.value;
+      const list = src ? all.filter(i => (i.source || i.feed) === src) : all;
+      renderItems(list);
+    }
+
+    async function loadAndRender(initial=false){
+      try{
+        const r = await fetch('items.json?ts='+Date.now(), {cache:'no-store'});
+        const data = await r.json();
+        renderLinks(data.links || []);
+        buildSourceDropdown(data.items || [], data.sources || []);
+        updatedEl.textContent = (data.updated ? fmtLocal(data.updated) : '—');
+        renderItems(data.items || []);
+        if (initial) sourceSelect.addEventListener('change', () => applyFilter(data.items || []));
+      }catch(e){
+        updatedEl.textContent = 'load failed';
+      }
+    }
+
+    loadAndRender(true);
+    setInterval(() => loadAndRender(false), 5*60*1000);
+  </script>
+</body>
+</html>
