@@ -1,5 +1,5 @@
 {
-  "updated": "2025-09-08T10:00:00-05:00",
+  "updated": "2025-09-08T00:00:00-05:00",
   "sources": [
     "PurdueSports.com",
     "Journal & Courier",
@@ -22,33 +22,5 @@
     { "label": "Sports-Reference", "url": "https://www.sports-reference.com/cbb/schools/purdue/" },
     { "label": "Big Ten Standings", "url": "https://www.espn.com/mens-college-basketball/standings/_/group/7" }
   ],
-  "items": [
-    {
-      "id": "ex1",
-      "title": "Purdue unveils non-conference schedule; marquee games set for December",
-      "link": "https://purduesports.com/news/example-1",
-      "source": "PurdueSports.com",
-      "feed": "PurdueSports.com",
-      "published": "2025-09-07T09:00:00-05:00",
-      "summary": "Official release with dates and TV windows."
-    },
-    {
-      "id": "ex2",
-      "title": "How Purdue’s backcourt rotation could evolve early in the season",
-      "link": "https://theathletic.com/example-2",
-      "source": "The Athletic",
-      "feed": "The Athletic",
-      "published": "2025-09-06T14:30:00-05:00",
-      "summary": "Deep dive on guard play and spacing."
-    },
-    {
-      "id": "ex3",
-      "title": "3 takeaways from Purdue’s first week of practice",
-      "link": "https://www.jconline.com/example-3",
-      "source": "Journal & Courier",
-      "feed": "Journal & Courier",
-      "published": "2025-09-05T08:15:00-05:00",
-      "summary": "Notes on tempo, lineups, and newcomers."
-    }
-  ]
+  "items": []
 }
