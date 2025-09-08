@@ -1,212 +1,139 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Purdue Boilermakers — Men’s Basketball</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <title>Purdue Boilermakers — Men’s Basketball</title>
+  <meta name="description" content="Live Purdue men's basketball feed with auto-updates." />
+
+  <!-- Favicon / touch icon (use relative paths so GitHub Pages subpaths work) -->
+  <link rel="icon" href="static/logo.png" />
+  <link rel="apple-touch-icon" href="static/logo.png" />
+  <meta name="apple-mobile-web-app-title" content="Purdue Hoops" />
   <meta name="theme-color" content="#000000" />
-  <link rel="preload" href="static/fight-song.mp3" as="audio" />
-  <link rel="stylesheet" href="static/style.css?v=2025-09-08-hardened" />
+
+  <link rel="stylesheet" href="static/style.css" />
 </head>
 <body>
-  <!-- ===== HERO / HEADER ===== -->
-  <header class="hero" role="banner">
-    <div class="logo-box" aria-hidden="true">
-      <!-- Keep space reserved; fallback prevents layout shift -->
-      <img src="static/purdue.png" alt="Purdue logo"
-           onerror="this.onerror=null;this.src='static/logo.png';" />
+  <header class="hero">
+    <div class="brand">
+      <img src="static/logo.png" alt="Purdue logo" class="brand-logo" />
+      <div class="brand-text">
+        <h1>Purdue Boilermakers — <span>Men’s Basketball</span></h1>
+        <div class="sub">Live team feed · auto-updates</div>
+      </div>
     </div>
 
-    <div class="hero-titles">
-      <h1>Purdue Boilermakers — Men’s Basketball</h1>
-      <div class="sub">Live team feed · auto-updates</div>
-    </div>
-
-    <!-- Fight song: label never changes (no width bounce). Only icon toggles. -->
-    <button id="songBtn" class="song-btn" type="button" aria-pressed="false">
-      <span class="icon" aria-hidden="true">▶</span>
-      <span class="label">Hail Purdue</span>
+    <!-- Fight song button; fixed width to avoid “bouncing” -->
+    <button id="songBtn" class="pill cta" aria-label="Play Hail Purdue">
+      <span class="cta-dot" aria-hidden="true">▶</span>
+      Hail Purdue
     </button>
-    <audio id="song" src="static/fight-song.mp3" preload="auto"></audio>
+
+    <!-- The audio lives in /static; use a stable relative path -->
+    <audio id="song" preload="auto">
+      <source src="static/hail-purdue.mp3" type="audio/mpeg" />
+    </audio>
   </header>
 
-  <!-- ===== QUICK LINKS (buttons) ===== -->
-  <nav id="links" class="pill-row" aria-label="Quick links"></nav>
+  <main class="wrap" id="app">
+    <!-- your existing pills/filters/date row -->
+    <section id="links" class="links-row"></section>
 
-  <!-- ===== CONTROLS ===== -->
-  <section class="controls" aria-label="Feed controls">
-    <div class="control">
-      <label for="sourceSelect">Source:</label>
-      <select id="sourceSelect" aria-label="Choose a source"></select>
-    </div>
-    <div class="control right">
-      <label>Updated:</label>
-      <span id="updated">—</span>
-    </div>
-  </section>
+    <div class="meta-row">
+      <label class="meta">Source:</label>
+      <select id="sourceSelect" class="select"></select>
 
-  <!-- ===== FEED ===== -->
-  <main id="feed" aria-live="polite" aria-busy="true"></main>
-
-  <!-- Empty state -->
-  <template id="emptyTpl">
-    <div class="empty">
-      <div class="empty-title">No articles yet</div>
-      <div class="empty-sub">
-        The GitHub Action writes <code>items.json</code> every ~30 minutes.
-        You can also seed it once manually.
+      <div class="updated">
+        <span>Updated:</span>
+        <time id="updatedTs">—</time>
       </div>
-      <a class="pill" href="items.json" target="_blank" rel="noopener">View items.json</a>
     </div>
-  </template>
+
+    <section id="feed" class="feed"></section>
+  </main>
 
   <script>
-    /* ---------- Fight Song (no bounce) ---------- */
-    const song = document.getElementById('song');
-    const songBtn = document.getElementById('songBtn');
-    const iconSpan = songBtn.querySelector('.icon');
+    // ---- fight song (no new window; no bounce) ----
+    (function () {
+      const btn = document.getElementById('songBtn');
+      const audio = document.getElementById('song');
+      let playing = false;
 
-    songBtn.addEventListener('click', async () => {
-      try {
-        if (song.paused) {
-          await song.play();
-          songBtn.setAttribute('aria-pressed', 'true');
-          iconSpan.textContent = '⏸';
+      const setState = (isPlaying) => {
+        playing = isPlaying;
+        btn.classList.toggle('playing', playing);
+        btn.innerHTML = (playing ? '⏸' : '<span class="cta-dot">▶</span>') + ' Hail Purdue';
+      };
+
+      btn.addEventListener('click', () => {
+        if (!playing) {
+          audio.currentTime = 0;
+          audio.play().then(() => setState(true))
+                      .catch(() => setState(false));
         } else {
-          song.pause(); song.currentTime = 0;
-          songBtn.setAttribute('aria-pressed', 'false');
-          iconSpan.textContent = '▶';
+          audio.pause();
+          setState(false);
         }
-      } catch {}
-    });
-
-    /* ---------- Feed Rendering ---------- */
-    const feedEl = document.getElementById('feed');
-    const updatedEl = document.getElementById('updated');
-    const sourceSelect = document.getElementById('sourceSelect');
-    const linksEl = document.getElementById('links');
-
-    const fmtUS = iso => {
-      try {
-        const d = new Date(iso);
-        return d.toLocaleString('en-US', {
-          year:'numeric', month:'short', day:'numeric',
-          hour:'numeric', minute:'2-digit'
-        });
-      } catch { return iso || ''; }
-    };
-
-    function renderLinks(links){
-      // Extra buttons we always keep so the row never “thins out”
-      const defaults = [
-        {label:"Schedule", url:"https://purduesports.com/sports/mens-basketball/schedule"},
-        {label:"Roster", url:"https://purduesports.com/sports/mens-basketball/roster"},
-        {label:"Tickets", url:"https://purduesports.com/sports/2024/9/1/tickets.aspx"},
-        {label:"Reddit — r/Boilermakers", url:"https://www.reddit.com/r/Boilermakers/"},
-        {label:"ESPN Team", url:"https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
-        {label:"KenPom", url:"https://kenpom.com/"},
-        {label:"Sports-Reference", url:"https://www.sports-reference.com/cbb/schools/purdue/"},
-        {label:"Big Ten Standings", url:"https://www.espn.com/mens-college-basketball/standings/_/group/7"},
-        {label:"AP Top 25", url:"https://apnews.com/hub/ap-top-25-mens-college-basketball-poll"},
-        {label:"Bracketology", url:"https://www.espn.com/mens-college-basketball/bracketology"},
-        {label:"Highlights", url:"https://www.youtube.com/results?search_query=Purdue+men%27s+basketball+highlights"},
-        {label:"247Sports", url:"https://247sports.com/college/purdue/"},
-        {label:"Rivals", url:"https://purdue.rivals.com/"},
-        {label:"CBS Purdue", url:"https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"}
-      ];
-
-      const seen = new Set();
-      const list = [...(links || []), ...defaults].filter(x => {
-        const k = (x.label || '').toLowerCase().trim();
-        if (!k || seen.has(k)) return false; seen.add(k); return true;
       });
 
-      linksEl.innerHTML = '';
-      for (const l of list) {
-        const a = document.createElement('a');
-        a.className = 'pill';
-        a.href = l.url; a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = l.label;
-        linksEl.appendChild(a);
+      audio.addEventListener('ended', () => setState(false));
+      audio.addEventListener('pause', () => setState(false));
+      audio.addEventListener('play', () => setState(true));
+    })();
+
+    // ---- items.json loader (unchanged; hardened site reads only items.json) ----
+    async function load() {
+      try {
+        const res = await fetch('items.json', { cache: 'no-store' });
+        const data = await res.json();
+
+        // Updated timestamp
+        document.getElementById('updatedTs').textContent =
+          new Date(data.updated).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', month: 'short', day: 'numeric', year: 'numeric' });
+
+        // Links row
+        const links = document.getElementById('links');
+        links.innerHTML = (data.links || []).map(l => `
+          <a class="pill" href="${l.url}" target="_blank" rel="noopener">${l.label}</a>
+        `).join('');
+
+        // Source dropdown (stable curated list from items.json)
+        const sel = document.getElementById('sourceSelect');
+        const sources = ['All sources'].concat(data.sources || []);
+        sel.innerHTML = sources.map((s, i) => `<option value="${i === 0 ? '' : s}">${s}</option>`).join('');
+
+        // Feed
+        const feed = document.getElementById('feed');
+        const render = (list) => {
+          feed.innerHTML = list.map(it => `
+            <article class="card">
+              <a class="card-link" href="${it.link}" target="_blank" rel="noopener">
+                <h3 class="card-title">${it.title}</h3>
+                <div class="card-meta">
+                  <span class="src">${it.source || ''}</span>
+                  <span class="dot">•</span>
+                  <time class="ts">${new Date(it.published).toLocaleString('en-US')}</time>
+                </div>
+                ${it.summary ? `<p class="card-sum">${it.summary}</p>` : ``}
+              </a>
+            </article>
+          `).join('');
+        };
+
+        render(data.items || []);
+
+        sel.addEventListener('change', () => {
+          const v = sel.value;
+          if (!v) return render(data.items || []);
+          render((data.items || []).filter(it => (it.source || '').toLowerCase() === v.toLowerCase()));
+        });
+      } catch (e) {
+        console.error(e);
       }
     }
-
-    const normSource = s => {
-      if (typeof s === 'string') return s;
-      if (s && typeof s === 'object') return s.label || s.name || s.id || String(s);
-      return String(s || '');
-    };
-
-    function buildSourceDropdown(items, curated){
-      sourceSelect.innerHTML = '';
-      const optAll = document.createElement('option');
-      optAll.value = ''; optAll.textContent = 'All sources';
-      sourceSelect.appendChild(optAll);
-
-      const curatedList = (curated || []).map(normSource).filter(Boolean);
-      const derived = Array.from(new Set((items || []).map(i => normSource(i.source || i.feed)).filter(Boolean))).sort();
-      const list = curatedList.length ? curatedList : derived;
-
-      for (const label of list) {
-        const o = document.createElement('option');
-        o.value = label; o.textContent = label;
-        sourceSelect.appendChild(o);
-      }
-    }
-
-    function renderItems(items){
-      feedEl.setAttribute('aria-busy', 'false');
-      feedEl.innerHTML = '';
-
-      if (!items || !items.length) {
-        const tpl = document.getElementById('emptyTpl');
-        feedEl.appendChild(tpl.content.cloneNode(true));
-        return;
-      }
-
-      for (const it of items) {
-        const card = document.createElement('article'); card.className = 'card';
-        const a = document.createElement('a'); a.className = 'title';
-        a.href = it.link; a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = it.title || '(untitled)';
-
-        const meta = document.createElement('div'); meta.className = 'meta';
-        const src = normSource(it.source || it.feed);
-        meta.textContent = `${src} • ${fmtUS(it.published || it.updated)}`;
-
-        card.appendChild(a);
-        card.appendChild(meta);
-        feedEl.appendChild(card);
-      }
-    }
-
-    function applyFilter(all){
-      const src = sourceSelect.value;
-      const list = src ? all.filter(i => normSource(i.source||i.feed) === src) : all;
-      renderItems(list);
-    }
-
-    async function loadAndRender(initial=false){
-      try{
-        const r = await fetch('items.json?ts=' + Date.now(), { cache: 'no-store' });
-        const data = await r.json();
-
-        renderLinks(data.links || []);
-        buildSourceDropdown(data.items || [], data.sources || []);
-        updatedEl.textContent = data.updated ? fmtUS(data.updated) : '—';
-        renderItems(data.items || []);
-
-        if (initial) sourceSelect.addEventListener('change', () => applyFilter(data.items || []));
-      } catch {
-        updatedEl.textContent = 'load failed';
-        feedEl.setAttribute('aria-busy', 'false');
-      }
-    }
-
-    loadAndRender(true);
-    // Auto-check every 10 minutes without touching layout.
-    setInterval(() => loadAndRender(false), 10 * 60 * 1000);
+    load();
   </script>
 </body>
 </html>
