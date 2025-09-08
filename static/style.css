@@ -1,55 +1,85 @@
-/* Purdue theme — Old Gold cards, dark text */
+/* ===== Purdue hardened theme ===== */
 :root{
-  --primary:#000;          /* header bar */
-  --accent:#CEB888;        /* old gold */
-  --bg:#0e0f10;            /* page background (very dark) */
-  --card:#F6EED6;          /* light gold for articles */
-  --text:#1a1a1a;          /* dark text on cards */
-  --muted:#52555b;         /* subtle meta text */
-  --pill:#f3ead6;          /* quick link bubbles */
+  --primary:#000000;     /* header */
+  --accent:#CEB888;      /* old gold rule + buttons */
+  --bg:#0e0f10;          /* page background (dark charcoal) */
+  --card:#F6EED6;        /* article cards: light gold */
+  --text:#1a1a1a;        /* dark text on cards */
+  --muted:#52555b;       /* meta line */
+  --pill:#e9dcc1;        /* quick-link bubbles */
+  --pill-text:#2b2414;
 }
 
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:#e9eef6;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+body{
+  background:var(--bg);
+  color:#e9eef6;
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
 
-/* HEADER */
-.hero{display:flex;align-items:center;gap:14px;padding:14px;background:var(--primary);border-bottom:4px solid var(--accent)}
-.logo-box{width:56px;height:56px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* ===== Header ===== */
+.hero{
+  display:flex; align-items:center; gap:14px;
+  padding:14px 12px;
+  background:var(--primary);
+  border-bottom:4px solid var(--accent);
+}
+.logo-box{
+  width:56px; height:56px; border-radius:12px;
+  background:#ffffff; display:flex; align-items:center; justify-content:center;
+  overflow:hidden; flex:0 0 56px;            /* reserve space; no jitter */
+}
 .logo-box img{max-width:100%;max-height:100%;object-fit:contain}
-.hero-titles h1{margin:0;color:#fff;font-size:1.6rem;line-height:1.08}
-.hero-titles .sub{color:#cfd7e6;font-size:.9rem;opacity:.92}
-.song-btn{margin-left:auto;border:0;border-radius:999px;padding:.55rem .9rem;font-weight:800;background:var(--accent);color:#111;cursor:pointer}
+.hero-titles h1{margin:0;color:#fff;font-size:1.6rem;line-height:1.08;font-weight:900}
+.hero-titles .sub{color:#cfd7e6;font-size:.92rem;opacity:.95}
 
-/* QUICK LINKS */
-.pill-row{display:flex;flex-wrap:wrap;gap:.6rem;padding:10px 12px}
-.pill{display:inline-block;padding:.5rem .85rem;border-radius:999px;background:var(--pill);color:#3a2b12;text-decoration:none;font-weight:800}
+/* Fight-song button: fixed width via padding; label never changes */
+.song-btn{
+  margin-left:auto; display:inline-flex; align-items:center; gap:.5rem;
+  border:0; border-radius:999px; padding:.55rem .9rem;
+  background:var(--accent); color:#111; font-weight:800; cursor:pointer;
+  user-select:none;
+}
+.song-btn .icon{width:1em; text-align:center; display:inline-block}
 
-/* CONTROLS */
+/* ===== Quick Links ===== */
+.pill-row{display:flex;flex-wrap:wrap;gap:.6rem;padding:12px}
+.pill{
+  display:inline-block; padding:.5rem .85rem; border-radius:999px;
+  background:var(--pill); color:var(--pill-text); text-decoration:none; font-weight:800;
+  box-shadow:0 1px 0 rgba(0,0,0,.25) inset;
+}
+.pill:hover{opacity:.92}
+
+/* ===== Controls ===== */
 .controls{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 12px}
 .controls label{font-weight:800;margin-right:.4rem}
-#sourceSelect{padding:.45rem .6rem;border-radius:.6rem;border:1px solid #8e96a8;background:#14161b;color:#e9eef6}
+#sourceSelect{
+  padding:.45rem .6rem;border-radius:.6rem;border:1px solid #8e96a8;
+  background:#14161b;color:#e9eef6
+}
 .control.right{margin-left:auto;color:#cfd7e6}
 
-/* FEED */
+/* ===== Feed ===== */
 main{padding:6px 12px 44px}
 .card{
-  background:var(--card);
-  color:var(--text);
-  border-radius:16px;
-  padding:14px 16px;
-  margin:10px 0;
+  background:var(--card); color:var(--text);
+  border-radius:16px; padding:14px 16px; margin:10px 0;
   box-shadow:0 1px 2px rgba(0,0,0,.14);
 }
 .title{
-  font-weight:900;
-  text-decoration:none;             /* no underline */
-  color:var(--text);
-  display:block;
+  display:block; font-weight:900; color:var(--text);
+  text-decoration:none;                  /* no underlines */
 }
 .title:hover{opacity:.9}
 .meta{color:var(--muted);margin-top:6px;font-size:.92rem}
-.empty{background:#15171c;border:1px dashed #3b404d;border-radius:12px;padding:18px;margin:14px 0;color:#cfd7e6;text-align:center}
+
+/* Empty */
+.empty{
+  background:#15171c;border:1px dashed #3b404d;border-radius:12px;
+  padding:18px;margin:14px 0;color:#cfd7e6;text-align:center
+}
 .empty .pill{margin-top:10px}
 
 @media(min-width:768px){
