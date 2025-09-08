@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-# Purdue Boilermakers MBB — collector (HARDENED: curated sources + guaranteed links/dates)
+# Purdue Men's Basketball — hardened collector
+# - Curated source list (strings only) for stable dropdown
+# - Strict Purdue MBB filters (drops football, WBB, other sports, other schools)
+# - Always writes 'updated', 'links', and 'sources' so UI never rolls back
+# - Canonical links + de-dupe to keep items clean
 
 import json, time, re, hashlib
 from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
@@ -9,23 +13,19 @@ from feeds import FEEDS, STATIC_LINKS
 
 MAX_ITEMS = 60
 
-# ---- Curated dropdown (8–10 reliable sources) ----
 CURATED_SOURCES = [
+    "PurdueSports.com",
+    "Journal & Courier",
+    "GoldandBlack.com",
     "Hammer and Rails",
+    "The Athletic",
     "ESPN",
     "Yahoo Sports",
     "Sports Illustrated",
-    "IndyStar",
-    "Journal & Courier",
-    "Purdue Exponent",
-    "AP News",
-    "SB Nation",
-    "The Athletic",
+    "CBS Sports",
+    "Big Ten Network",
 ]
-
 ALLOWED_SOURCES = set(CURATED_SOURCES)
-
-# --------------- utils ----------------
 
 def now_iso():
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
@@ -54,25 +54,33 @@ def hid(s: str) -> str:
     return hashlib.sha1(s.encode("utf-8")).hexdigest()[:16]
 
 ALIASES = {
-    # locals / team
-    "hammerandrails.com": "Hammer and Rails",
-    "indystar.com":       "IndyStar",
-    "jconline.com":       "Journal & Courier",
-    "purdueexponent.org": "Purdue Exponent",
-    # nationals (mapped so dropdown stays clean)
-    "espn.com":           "ESPN",
-    "sports.yahoo.com":   "Yahoo Sports",
-    "si.com":             "Sports Illustrated",
-    "apnews.com":         "AP News",
-    "sbnation.com":       "SB Nation",
-    "theathletic.com":    "The Athletic",
-    # Google News articles will be normalized by target hostname,
-    # so no separate alias is needed here.
+    "purduesports.com":     "PurdueSports.com",
+    "jconline.com":         "Journal & Courier",
+    "on3.com":              "GoldandBlack.com",
+    "goldandblack.com":     "GoldandBlack.com",
+    "hammerandrails.com":   "Hammer and Rails",
+    "theathletic.com":      "The Athletic",
+    "espn.com":             "ESPN",
+    "sports.yahoo.com":     "Yahoo Sports",
+    "si.com":               "Sports Illustrated",
+    "cbssports.com":        "CBS Sports",
+    "btn.com":              "Big Ten Network",
+    "btn.plus":             "Big Ten Network",
 }
 
-# require Purdue + hoops; exclude non-MBB sports
-KEEP = [r"\bPurdue\b", r"\bBoilermakers?\b", r"\bBoilers?\b", r"\bbasketball\b"]
-DROP = [r"\bfootball\b", r"\bvolleyball\b", r"\bbaseball\b", r"\bwomen'?s\b", r"\bwbb\b"]
+# ---- filters ----
+KEEP = [
+    r"\bPurdue\b", r"\bBoilermakers?\b",
+    r"\bmen'?s?\s*basketball\b", r"\bMBB\b", r"\bcollege basketball\b",
+    r"\bMatt Painter\b", r"\bBraden Smith\b", r"\bFletcher Loyer\b", r"\bMason Gillis\b",
+    r"\bMyles Colvin\b", r"\bTrey Kaufman-?Renn\b",
+]
+DROP = [
+    r"\bfootball\b", r"\bvolleyball\b", r"\bbaseball\b", r"\bsoftball\b", r"\bwrestling\b",
+    r"\btrack\b", r"\bsoccer\b", r"\bhockey\b",
+    r"\bwomen'?s\b", r"\bWBB\b", r"\bWNIT\b", r"\bWNBA\b",
+    r"\bNotre Dame\b", r"\bIndiana\b", r"\bIU\b", r"\bButler\b",
+]
 
 def text_ok(title: str, summary: str) -> bool:
     t = f"{title} {summary}"
@@ -87,13 +95,10 @@ def parse_time(entry):
                 return time.strftime("%Y-%m-%dT%H:%M:%S%z", entry[key])
             except Exception:
                 pass
-    return now_iso()  # fallback → dates always render
+    return now_iso()
 
 def source_label(link: str, feed_name: str) -> str:
-    # Prefer normalized domain label; otherwise use feed name
     return ALIASES.get(_host(link), feed_name.strip())
-
-# --------------- pipeline ----------------
 
 def fetch_all():
     items, seen = [], set()
@@ -103,7 +108,7 @@ def fetch_all():
             parsed = feedparser.parse(furl)
         except Exception:
             continue
-        for e in parsed.entries[:120]:
+        for e in parsed.entries[:140]:
             link = canonical((e.get("link") or e.get("id") or "").strip())
             if not link: continue
             key = hid(link)
@@ -111,7 +116,7 @@ def fetch_all():
 
             src = source_label(link, fname)
             if src not in ALLOWED_SOURCES:
-                continue  # dropdown remains curated/clean
+                continue  # keep dropdown tight and predictable
 
             title = (e.get("title") or "").strip()
             summary = (e.get("summary") or e.get("description") or "").strip()
@@ -121,9 +126,9 @@ def fetch_all():
                 "id": key,
                 "title": title or "(untitled)",
                 "link": link,
-                "source": src,
+                "source": src,         # STRING — prevents [object Object]
                 "feed": fname,
-                "published": parse_time(e),   # always present (ISO)
+                "published": parse_time(e),
                 "summary": summary,
             })
             seen.add(key)
@@ -135,8 +140,8 @@ def write_items(items):
     payload = {
         "updated": now_iso(),
         "items": items,
-        "links": STATIC_LINKS,       # buttons always present
-        "sources": CURATED_SOURCES,  # dropdown never disappears
+        "links": STATIC_LINKS,            # buttons always rendered
+        "sources": list(CURATED_SOURCES)  # frozen curated list (strings)
     }
     with open("items.json", "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
