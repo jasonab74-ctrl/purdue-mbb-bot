@@ -1,31 +1,136 @@
-# Purdue MBB — curated sources (10) and quick link buttons
+#!/usr/bin/env python3
+import json, time, re, os
+from datetime import datetime, timezone
+import feedparser
 
-FEEDS = [
-    {"name":"PurdueSports.com",   "url":"https://news.google.com/rss/search?q=Purdue+Boilermakers+men%27s+basketball+site%3Apurduesports.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"Journal & Courier",  "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Ajconline.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"GoldandBlack.com",   "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Agoldandblack.com+OR+site%3Aon3.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"Hammer and Rails",   "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Ahammerandrails.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"The Athletic",       "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Atheathletic.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"ESPN",               "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Aespn.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"Yahoo Sports",       "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Asports.yahoo.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"Sports Illustrated", "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Asi.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"CBS Sports",         "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Acbssports.com&hl=en-US&gl=US&ceid=US:en"},
-    {"name":"Big Ten Network",    "url":"https://news.google.com/rss/search?q=Purdue+men%27s+basketball+site%3Abtn.com+OR+site%3Abtn.plus&hl=en-US&gl=US&ceid=US:en"},
-]
+from feeds import FEEDS, STATIC_LINKS, CURATED_SOURCES, TRUSTED_DOMAINS
 
-STATIC_LINKS = [
-    {"label":"Schedule","url":"https://purduesports.com/sports/mens-basketball/schedule"},
-    {"label":"Roster","url":"https://purduesports.com/sports/mens-basketball/roster"},
-    {"label":"Tickets","url":"https://purduesports.com/sports/2024/9/1/tickets.aspx"},
-    {"label":"Reddit — r/Boilermakers","url":"https://www.reddit.com/r/Boilermakers/"},
-    {"label":"ESPN Team","url":"https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers"},
-    {"label":"KenPom","url":"https://kenpom.com/"},
-    {"label":"Sports-Reference","url":"https://www.sports-reference.com/cbb/schools/purdue/"},
-    {"label":"Big Ten Standings","url":"https://www.espn.com/mens-college-basketball/standings/_/group/7"},
-    {"label":"AP Top 25","url":"https://apnews.com/hub/ap-top-25-mens-college-basketball-poll"},
-    {"label":"Bracketology","url":"https://www.espn.com/mens-college-basketball/bracketology"},
-    {"label":"Highlights","url":"https://www.youtube.com/results?search_query=Purdue+men%27s+basketball+highlights"},
-    {"label":"247Sports","url":"https://247sports.com/college/purdue/"},
-    {"label":"Rivals","url":"https://purdue.rivals.com/"},
-    {"label":"CBS Purdue","url":"https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/"}
-]
+# ---------- helpers ----------
+NOW = datetime.now(timezone.utc)
+
+def iso_now():
+    return NOW.isoformat()
+
+def to_iso(dt_struct):
+    try:
+        return datetime.fromtimestamp(time.mktime(dt_struct), tz=timezone.utc).isoformat()
+    except Exception:
+        return iso_now()
+
+def clean_text(s):
+    return (s or "").replace("\u200b", "").strip()
+
+def domain_of(href):
+    try:
+        return re.sub(r"^https?://(www\.)?", "", href).split("/")[0].lower()
+    except Exception:
+        return ""
+
+# ---------- Purdue MBB filter ----------
+NEGATIVE = re.compile(
+    r"\b(football|nfl|volleyball|softball|baseball|women'?s|wbb|soccer|hockey)\b",
+    re.I,
+)
+MBB_POSITIVE = re.compile(
+    r"\b(basketball|mbb|men'?s\s+basketball|boilermakers)\b",
+    re.I,
+)
+PURDUE = re.compile(r"\bpurdue\b", re.I)
+
+def is_trusted(href):
+    d = domain_of(href)
+    return any(d.endswith(t) for t in TRUSTED_DOMAINS)
+
+def allow_item(title, summary, href):
+    """Strict Purdue MBB allow-list with sport excludes."""
+    text = f"{title} {summary}"
+    if NEGATIVE.search(text):
+        return False
+    if not PURDUE.search(text):
+        # If the domain is trusted, allow even without explicit 'Purdue' (some headlines omit)
+        if not is_trusted(href):
+            return False
+    # Must look like men's basketball
+    if not MBB_POSITIVE.search(text):
+        # For trusted domains, be lenient if it’s clearly a team page/recap path
+        if not is_trusted(href):
+            return False
+    return True
+
+# ---------- fetch ----------
+def fetch_feed(url, limit=60):
+    d = feedparser.parse(url)
+    items = []
+    for e in d.entries[:limit]:
+        title = clean_text(getattr(e, "title", ""))
+        link = getattr(e, "link", "")
+        summary = clean_text(getattr(e, "summary", "") or getattr(e, "description", ""))
+        src = clean_text(getattr(e, "source", {}).get("title", "") if hasattr(e, "source") else "")
+        if not src:
+            src = clean_text(getattr(d.feed, "title", "")) or domain_of(link)
+
+        if not link or not title:
+            continue
+        if not allow_item(title, summary, link):
+            continue
+
+        published = None
+        if hasattr(e, "published_parsed") and e.published_parsed:
+            published = to_iso(e.published_parsed)
+        elif hasattr(e, "updated_parsed") and e.updated_parsed:
+            published = to_iso(e.updated_parsed)
+        else:
+            published = iso_now()
+
+        items.append({
+            "title": title,
+            "link": link,
+            "summary": summary,
+            "source": src,
+            "published": published,
+        })
+    return items
+
+def dedupe(items):
+    seen = set()
+    out = []
+    for it in items:
+        k = (it["title"].lower(), it["link"])
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(it)
+    return out
+
+def sort_items(items):
+    def key(it):
+        return it.get("published", "")
+    return sorted(items, key=key, reverse=True)
+
+# ---------- main ----------
+def main():
+    all_items = []
+    for url in FEEDS:
+        try:
+            all_items.extend(fetch_feed(url))
+        except Exception:
+            continue
+
+    all_items = dedupe(all_items)
+    all_items = sort_items(all_items)[:120]
+
+    # Harden the dropdown by ALWAYS shipping curated sources,
+    # even if a given run produced zero stories from one of them.
+    data = {
+        "updated": iso_now(),
+        "sources": CURATED_SOURCES,
+        "links": STATIC_LINKS,
+        "items": all_items,
+    }
+    with open("items.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print(f"Wrote items.json with {len(all_items)} items at {data['updated']}")
+
+if __name__ == "__main__":
+    main()
