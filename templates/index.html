@@ -1,170 +1,130 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Purdue Basketball — News and Feeds</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Purdue Boilermakers — MBB News</title>
 
-  <!-- Favicon / Touch Icons -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
-  <link rel="shortcut icon" href="/static/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
-  <link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#cfb87c">
-  <meta name="theme-color" content="#0b0b0b">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#000000">
 
-  <!-- iOS PWA hints (lets iOS use your icon + nicer standalone title) -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Purdue Hoops">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-
-  <!-- Web App Manifest (Android/Chrome + some iOS helpers) -->
-  <link rel="manifest" href="/static/manifest.webmanifest">
-
-  <link rel="stylesheet" href="/static/style.css"/>
-  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
-  <!-- Header with Purdue logo + wordmark -->
-  <header class="site-header">
-    <div class="brand">
-      <img
-        class="logo"
-        src="/static/purdue-logo.png"
-        alt="Purdue logo"
-        width="44"
-        height="44"
-        onerror="this.onerror=null;this.src='/static/logo.png'"/>
-      <div class="titles">
-        <h1>Purdue Basketball — News and Feeds</h1>
-        <div class="updated">
-          Updated: <span id="updatedText" data-iso="{{ updated or '' }}">—</span>
-        </div>
-      </div>
+  <header class="hero">
+    <div class="logo-box">
+      <img src="static/purdue.png" alt="Purdue logo" />
     </div>
+    <div class="hero-titles">
+      <h1>Purdue Boilermakers — Men’s Basketball</h1>
+      <div class="sub">Live team feed · auto-updates</div>
+    </div>
+    <a class="fight-btn" href="static/fight-song.mp3" target="_blank" rel="noopener">
+      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5z"></path></svg>
+      <span>Hail Purdue</span>
+    </a>
   </header>
 
-  <!-- Utility bar: Fight Song -->
-  <section class="utility-bar">
-    <div class="left">
-      <button id="fightSongBtn" class="btn btn-gold btn-large">Fight Song</button>
-      <audio id="fightSong" preload="none" src="/static/fight-song.mp3"></audio>
+  <!-- Quick links (buttons) -->
+  <div id="links" class="pill-row"></div>
+
+  <section class="controls">
+    <div class="control">
+      <label>Source:</label>
+      <select id="sourceSelect"></select>
     </div>
-    <div class="right"></div>
+    <div class="control right">
+      <label>Updated:</label>
+      <span id="updated">—</span>
+    </div>
   </section>
 
-  <!-- Quick links -->
-  <nav class="pills">
-    {% for link in static_links %}
-      <a class="pill" href="{{link.url}}" target="_blank" rel="noopener">{{link.label}}</a>
-    {% endfor %}
-  </nav>
-
-  <!-- News Sources -->
-  <section class="sources-search">
-    <details class="sources-details">
-      <summary>News Sources</summary>
-      <ul class="sources">
-        {% for s in sources %}
-          <li><a href="{{s.url}}" target="_blank" rel="noopener">{{s.name}}</a></li>
-        {% endfor %}
-      </ul>
-    </details>
-  </section>
-
-  <!-- Feed -->
-  <main id="feed">
-    {% if items and items|length > 0 %}
-      {% for it in items %}
-        <article class="card" data-title="{{ it.title|e }}" data-src="{{ it.source|e }}">
-          <div class="card-top">
-            <span class="src">{{ it.source }}</span>
-            <time class="time" data-iso="{{ it.published or '' }}">
-              {{ it.published[:16].replace('T',' ') if it.published }}
-            </time>
-          </div>
-
-          <h3 class="title">
-            <a class="title-link" href="{{ it.link }}" target="_blank" rel="noopener">
-              {{ it.title }}
-            </a>
-          </h3>
-
-          {% if it.summary %}
-            <p class="summary">{{ it.summary|striptags }}</p>
-          {% endif %}
-        </article>
-      {% endfor %}
-    {% else %}
-      <p class="empty">No items yet. Checking for updates…</p>
-    {% endif %}
-  </main>
-
-  <footer class="site-footer">
-    <span>Auto-checks for updates every minute</span>
-  </footer>
+  <main id="feed"></main>
 
   <script>
-    // Format "Updated" to US-friendly text
-    (function(){
-      const el = document.getElementById('updatedText');
-      if (!el) return;
-      const iso = el.getAttribute('data-iso');
-      if (!iso) return;
-      const dt = new Date(iso);
-      if (!isNaN(dt)) {
-        const formatted = dt.toLocaleString('en-US', {
-          month: 'short', day: 'numeric', year: 'numeric',
-          hour: 'numeric', minute: '2-digit'
-        });
-        el.textContent = formatted;
-      }
-    })();
+    const feedEl = document.getElementById('feed');
+    const updatedEl = document.getElementById('updated');
+    const sourceSelect = document.getElementById('sourceSelect');
+    const linksEl = document.getElementById('links');
 
-    // Fight Song
-    const audio = document.getElementById('fightSong');
-    const songBtn = document.getElementById('fightSongBtn');
-    songBtn?.addEventListener('click', async () => {
-      if (!audio) return;
-      try {
-        if (audio.paused) { audio.currentTime = 0; await audio.play(); }
-        else { audio.pause(); audio.currentTime = 0; }
-      } catch {}
-    });
-
-    // Short, single-line time per card
-    function fmt(dt){
+    const fmtLocal = iso => {
       try{
-        const d = dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
-        const t = dt.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
-        return d + " • " + t;
-      }catch{return "";}
-    }
-    document.querySelectorAll('.time[data-iso]').forEach(el=>{
-      const iso = el.getAttribute('data-iso');
-      if(!iso) return;
-      const dt = new Date(iso);
-      if(!isNaN(dt)) el.textContent = fmt(dt);
-    });
-
-    // Silent auto-refresh
-    const baseline = {
-      count: document.querySelectorAll('#feed .card').length || 0,
-      updated: document.getElementById('updatedText')?.getAttribute('data-iso') || ""
+        const d = new Date(iso);
+        return d.toLocaleString([], {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+      }catch{ return iso || ''; }
     };
-    async function silentRefresh(){
-      try{
-        const r = await fetch('/items.json', {cache:'no-store'});
-        if(!r.ok) return;
-        const j = await r.json();
-        const latestCount = (j.items||[]).length;
-        const latestUpdated = j.updated || "";
-        if ((latestCount > baseline.count) || (baseline.updated && latestUpdated && baseline.updated !== latestUpdated)) {
-          location.reload();
-        }
-      }catch{}
+
+    function renderLinks(links){
+      linksEl.innerHTML = '';
+      (links||[]).forEach(l=>{
+        const a = document.createElement('a');
+        a.className = 'pill';
+        a.href = l.url; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = l.label;
+        linksEl.appendChild(a);
+      });
     }
-    setInterval(silentRefresh, 60000);
+
+    function buildSourceDropdown(items, curated){
+      sourceSelect.innerHTML = '';
+      const base = Array.isArray(curated) && curated.length ? curated
+                 : Array.from(new Set((items||[]).map(i => i.source || i.feed).filter(Boolean))).sort();
+      const optAll = document.createElement('option');
+      optAll.value=''; optAll.textContent='All sources';
+      sourceSelect.appendChild(optAll);
+      base.forEach(s=>{
+        const o=document.createElement('option');
+        o.value=s; o.textContent=s;
+        sourceSelect.appendChild(o);
+      });
+    }
+
+    function renderItems(items){
+      feedEl.innerHTML = '';
+      (items||[]).forEach(it=>{
+        const card = document.createElement('article');
+        card.className='card';
+
+        const a=document.createElement('a');
+        a.href=it.link; a.target='_blank'; a.rel='noopener';
+        a.className='title';
+        a.textContent=it.title || '(no title)';
+
+        const meta=document.createElement('div');
+        meta.className='meta';
+        meta.textContent=`${it.source || it.feed || ''} • ${fmtLocal(it.published || it.updated)}`;
+
+        card.appendChild(a);
+        card.appendChild(meta);
+        feedEl.appendChild(card);
+      });
+    }
+
+    function applyFilter(all){
+      const src = sourceSelect.value;
+      const list = src ? all.filter(i => (i.source || i.feed) === src) : all;
+      renderItems(list);
+    }
+
+    async function loadAndRender(initial=false){
+      try{
+        const r = await fetch('items.json?ts='+Date.now(), {cache:'no-store'});
+        const data = await r.json();
+        renderLinks(data.links || []);
+        buildSourceDropdown(data.items || [], data.sources || []);
+        updatedEl.textContent = (data.updated ? fmtLocal(data.updated) : '—');
+        renderItems(data.items || []);
+        if (initial) sourceSelect.addEventListener('change', () => applyFilter(data.items || []));
+      }catch(e){
+        updatedEl.textContent = 'load failed';
+      }
+    }
+
+    loadAndRender(true);
+    setInterval(() => loadAndRender(false), 5*60*1000);
   </script>
 </body>
 </html>
