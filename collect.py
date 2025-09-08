@@ -1,11 +1,28 @@
 #!/usr/bin/env python3
-import json, time, re, os
+"""
+Purdue MBB collector — hardened for GitHub Pages
+
+- Only Purdue MEN'S BASKETBALL articles are allowed.
+- Excludes: football, volleyball, softball, baseball, soccer, hockey, WBB, etc.
+- Writes items.json with:
+    {
+      "updated": ISO8601,
+      "sources": [...fixed curated list...],
+      "links":   [...fixed buttons...],
+      "items":   [ {title, link, summary, source, published} ... ]
+    }
+- Safe to run in GitHub Actions on a schedule. Only items.json changes.
+"""
+
+import json
+import time
+import re
 from datetime import datetime, timezone
 import feedparser
 
 from feeds import FEEDS, STATIC_LINKS, CURATED_SOURCES, TRUSTED_DOMAINS
 
-# ---------- helpers ----------
+# ---------------- Basics ----------------
 NOW = datetime.now(timezone.utc)
 
 def iso_now():
@@ -17,64 +34,72 @@ def to_iso(dt_struct):
     except Exception:
         return iso_now()
 
-def clean_text(s):
+def clean_text(s: str) -> str:
     return (s or "").replace("\u200b", "").strip()
 
-def domain_of(href):
+def domain_of(href: str) -> str:
     try:
         return re.sub(r"^https?://(www\.)?", "", href).split("/")[0].lower()
     except Exception:
         return ""
 
-# ---------- Purdue MBB filter ----------
+# ---------------- Filters ----------------
 NEGATIVE = re.compile(
-    r"\b(football|nfl|volleyball|softball|baseball|women'?s|wbb|soccer|hockey)\b",
+    r"\b(football|nfl|volleyball|softball|baseball|soccer|hockey|women'?s|wbb|w\s*bb)\b",
     re.I,
 )
 MBB_POSITIVE = re.compile(
-    r"\b(basketball|mbb|men'?s\s+basketball|boilermakers)\b",
+    r"\b(men'?s\s*basketball|mbb|basketball)\b",
     re.I,
 )
 PURDUE = re.compile(r"\bpurdue\b", re.I)
 
-def is_trusted(href):
+def is_trusted(href: str) -> bool:
     d = domain_of(href)
     return any(d.endswith(t) for t in TRUSTED_DOMAINS)
 
-def allow_item(title, summary, href):
-    """Strict Purdue MBB allow-list with sport excludes."""
+def allow_item(title: str, summary: str, href: str) -> bool:
+    """
+    Strict allowlist:
+      - Must not mention excluded sports.
+      - Must reference Purdue.
+      - Must look like MEN's basketball (or trusted domain leniency).
+    """
     text = f"{title} {summary}"
     if NEGATIVE.search(text):
         return False
+
     if not PURDUE.search(text):
-        # If the domain is trusted, allow even without explicit 'Purdue' (some headlines omit)
         if not is_trusted(href):
             return False
-    # Must look like men's basketball
+
     if not MBB_POSITIVE.search(text):
-        # For trusted domains, be lenient if it’s clearly a team page/recap path
         if not is_trusted(href):
             return False
+
     return True
 
-# ---------- fetch ----------
-def fetch_feed(url, limit=60):
+# ---------------- Fetch & build ----------------
+def fetch_feed(url: str, limit: int = 75):
     d = feedparser.parse(url)
     items = []
     for e in d.entries[:limit]:
         title = clean_text(getattr(e, "title", ""))
         link = getattr(e, "link", "")
-        summary = clean_text(getattr(e, "summary", "") or getattr(e, "description", ""))
-        src = clean_text(getattr(e, "source", {}).get("title", "") if hasattr(e, "source") else "")
-        if not src:
-            src = clean_text(getattr(d.feed, "title", "")) or domain_of(link)
-
-        if not link or not title:
+        if not title or not link:
             continue
+
+        summary = clean_text(
+            getattr(e, "summary", "")
+            or getattr(e, "description", "")
+        )
+
+        # Prefer the feed's title as source; fallback to domain
+        src = clean_text(getattr(d.feed, "title", "")) or domain_of(link)
+
         if not allow_item(title, summary, link):
             continue
 
-        published = None
         if hasattr(e, "published_parsed") and e.published_parsed:
             published = to_iso(e.published_parsed)
         elif hasattr(e, "updated_parsed") and e.updated_parsed:
@@ -103,34 +128,31 @@ def dedupe(items):
     return out
 
 def sort_items(items):
-    def key(it):
-        return it.get("published", "")
-    return sorted(items, key=key, reverse=True)
+    return sorted(items, key=lambda it: it.get("published", ""), reverse=True)
 
-# ---------- main ----------
 def main():
     all_items = []
     for url in FEEDS:
         try:
             all_items.extend(fetch_feed(url))
         except Exception:
+            # keep going; bad feeds shouldn't break the run
             continue
 
     all_items = dedupe(all_items)
-    all_items = sort_items(all_items)[:120]
+    all_items = sort_items(all_items)[:150]  # cap list size for fast Pages loads
 
-    # Harden the dropdown by ALWAYS shipping curated sources,
-    # even if a given run produced zero stories from one of them.
-    data = {
+    payload = {
         "updated": iso_now(),
-        "sources": CURATED_SOURCES,
-        "links": STATIC_LINKS,
+        "sources": CURATED_SOURCES,   # <— hardened dropdown (always present)
+        "links": STATIC_LINKS,        # <— hardened quick-link buttons (always present)
         "items": all_items,
     }
-    with open("items.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print(f"Wrote items.json with {len(all_items)} items at {data['updated']}")
+    with open("items.json", "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+    print(f"[collect.py] wrote items.json with {len(all_items)} items at {payload['updated']}")
 
 if __name__ == "__main__":
     main()
