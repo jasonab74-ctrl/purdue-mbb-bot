@@ -1,134 +1,136 @@
 #!/usr/bin/env python3
-# Hardened Purdue MBB collector — ensures items actually appear
-
-import json, time, re, hashlib
-from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
+import json, time, re, os
 from datetime import datetime, timezone
 import feedparser
-from feeds import FEEDS, STATIC_LINKS
 
-MAX_ITEMS = 100
+from feeds import FEEDS, STATIC_LINKS, CURATED_SOURCES, TRUSTED_DOMAINS
 
-CURATED_SOURCES = [
-    "PurdueSports.com","Journal & Courier","GoldandBlack.com","Hammer and Rails",
-    "The Athletic","ESPN","Yahoo Sports","Sports Illustrated","CBS Sports","Big Ten Network"
-]
-ALLOWED_SOURCES = set(CURATED_SOURCES)
+# ---------- helpers ----------
+NOW = datetime.now(timezone.utc)
 
-def now_iso():
-    return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+def iso_now():
+    return NOW.isoformat()
 
-def _host(u):
+def to_iso(dt_struct):
     try:
-        n=urlparse(u).netloc.lower()
-        for p in("www.","m.","amp."):
-            if n.startswith(p): n=n[len(p):]
-        return n
-    except: return ""
+        return datetime.fromtimestamp(time.mktime(dt_struct), tz=timezone.utc).isoformat()
+    except Exception:
+        return iso_now()
 
-def canonical(u):
+def clean_text(s):
+    return (s or "").replace("\u200b", "").strip()
+
+def domain_of(href):
     try:
-        p=urlparse(u); q=parse_qs(p.query)
-        keep={"id","story","v","p"}
-        q={k:v for k,v in q.items() if k in keep}
-        p=p._replace(query=urlencode(q,doseq=True),fragment="",netloc=_host(u))
-        return urlunparse(p)
-    except: return u
+        return re.sub(r"^https?://(www\.)?", "", href).split("/")[0].lower()
+    except Exception:
+        return ""
 
-def hid(s): return hashlib.sha1(s.encode("utf-8")).hexdigest()[:16]
+# ---------- Purdue MBB filter ----------
+NEGATIVE = re.compile(
+    r"\b(football|nfl|volleyball|softball|baseball|women'?s|wbb|soccer|hockey)\b",
+    re.I,
+)
+MBB_POSITIVE = re.compile(
+    r"\b(basketball|mbb|men'?s\s+basketball|boilermakers)\b",
+    re.I,
+)
+PURDUE = re.compile(r"\bpurdue\b", re.I)
 
-ALIASES = {
-    "purduesports.com":"PurdueSports.com",
-    "jconline.com":"Journal & Courier",
-    "goldandblack.com":"GoldandBlack.com",
-    "on3.com":"GoldandBlack.com",
-    "hammerandrails.com":"Hammer and Rails",
-    "theathletic.com":"The Athletic",
-    "espn.com":"ESPN",
-    "sports.yahoo.com":"Yahoo Sports",
-    "si.com":"Sports Illustrated",
-    "cbssports.com":"CBS Sports",
-    "btn.com":"Big Ten Network",
-    "btn.plus":"Big Ten Network",
-}
+def is_trusted(href):
+    d = domain_of(href)
+    return any(d.endswith(t) for t in TRUSTED_DOMAINS)
 
-# Looser KEEP to ensure items show; still drop non-MBB
-KEEP = [
-    r"\bPurdue\b", r"\bBoilermakers?\b",
-    r"\bmen'?s?\s*basketball\b", r"\bMBB\b",
-    r"\bMatt Painter\b", r"\bBraden Smith\b", r"\bFletcher Loyer\b",
-    r"\bTrey Kaufman-?Renn\b", r"\bMyles Colvin\b", r"\bZach Edey\b"
-]
-DROP = [
-    r"\bfootball\b", r"\bvolleyball\b", r"\bbaseball\b", r"\bsoftball\b",
-    r"\bwrestling\b", r"\btrack\b", r"\bsoccer\b", r"\bhockey\b",
-    r"\bwomen'?s\b", r"\bWBB\b", r"\bWNBA\b", r"\bWNIT\b",
-    r"\bNotre Dame\b", r"\bIndiana\b", r"\bIU\b", r"\bButler\b",
-]
-
-def text_ok(title, summary):
-    t=f"{title} {summary}"
-    if not any(re.search(p,t,re.I) for p in KEEP): return False
-    if any(re.search(p,t,re.I) for p in DROP): return False
+def allow_item(title, summary, href):
+    """Strict Purdue MBB allow-list with sport excludes."""
+    text = f"{title} {summary}"
+    if NEGATIVE.search(text):
+        return False
+    if not PURDUE.search(text):
+        # If the domain is trusted, allow even without explicit 'Purdue' (some headlines omit)
+        if not is_trusted(href):
+            return False
+    # Must look like men's basketball
+    if not MBB_POSITIVE.search(text):
+        # For trusted domains, be lenient if it’s clearly a team page/recap path
+        if not is_trusted(href):
+            return False
     return True
 
-def parse_time(e):
-    for k in("published_parsed","updated_parsed"):
-        if e.get(k):
-            try: return time.strftime("%Y-%m-%dT%H:%M:%S%z", e[k])
-            except: pass
-    return now_iso()
+# ---------- fetch ----------
+def fetch_feed(url, limit=60):
+    d = feedparser.parse(url)
+    items = []
+    for e in d.entries[:limit]:
+        title = clean_text(getattr(e, "title", ""))
+        link = getattr(e, "link", "")
+        summary = clean_text(getattr(e, "summary", "") or getattr(e, "description", ""))
+        src = clean_text(getattr(e, "source", {}).get("title", "") if hasattr(e, "source") else "")
+        if not src:
+            src = clean_text(getattr(d.feed, "title", "")) or domain_of(link)
 
-def label_for(link, fallback):
-    return ALIASES.get(_host(link), fallback.strip() or "Unknown")
-
-def fetch_all():
-    items, seen = [], set()
-    for f in FEEDS:
-        fname=f["name"].strip(); furl=f["url"].strip()
-        try:
-            parsed=feedparser.parse(furl)
-        except: 
+        if not link or not title:
             continue
-        for e in parsed.entries[:150]:
-            link = canonical((e.get("link") or e.get("id") or "").strip())
-            if not link: continue
-            key=hid(link)
-            if key in seen: continue
+        if not allow_item(title, summary, link):
+            continue
 
-            src = label_for(link, fname)
-            if src not in ALLOWED_SOURCES: 
-                continue
+        published = None
+        if hasattr(e, "published_parsed") and e.published_parsed:
+            published = to_iso(e.published_parsed)
+        elif hasattr(e, "updated_parsed") and e.updated_parsed:
+            published = to_iso(e.updated_parsed)
+        else:
+            published = iso_now()
 
-            title=(e.get("title") or "").strip()
-            summary=(e.get("summary") or e.get("description") or "").strip()
-            # Permit broader during preseason/quiet periods: keep Purdue mentions even if "men's" not present
-            if not text_ok(title, summary): 
-                continue
+        items.append({
+            "title": title,
+            "link": link,
+            "summary": summary,
+            "source": src,
+            "published": published,
+        })
+    return items
 
-            items.append({
-                "id": key,
-                "title": title or "(untitled)",
-                "link": link,
-                "source": src,
-                "feed": fname,
-                "published": parse_time(e),
-                "summary": summary
-            })
-            seen.add(key)
+def dedupe(items):
+    seen = set()
+    out = []
+    for it in items:
+        k = (it["title"].lower(), it["link"])
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(it)
+    return out
 
-    items.sort(key=lambda x: x["published"], reverse=True)
-    return items[:MAX_ITEMS]
+def sort_items(items):
+    def key(it):
+        return it.get("published", "")
+    return sorted(items, key=key, reverse=True)
 
-def write_items(items):
-    payload = {
-        "updated": now_iso(),
-        "items": items,
+# ---------- main ----------
+def main():
+    all_items = []
+    for url in FEEDS:
+        try:
+            all_items.extend(fetch_feed(url))
+        except Exception:
+            continue
+
+    all_items = dedupe(all_items)
+    all_items = sort_items(all_items)[:120]
+
+    # Harden the dropdown by ALWAYS shipping curated sources,
+    # even if a given run produced zero stories from one of them.
+    data = {
+        "updated": iso_now(),
+        "sources": CURATED_SOURCES,
         "links": STATIC_LINKS,
-        "sources": list(CURATED_SOURCES)
+        "items": all_items,
     }
-    with open("items.json","w",encoding="utf-8") as f:
-        json.dump(payload,f,ensure_ascii=False,indent=2)
+    with open("items.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print(f"Wrote items.json with {len(all_items)} items at {data['updated']}")
 
 if __name__ == "__main__":
-    write_items(fetch_all())
+    main()
