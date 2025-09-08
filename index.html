@@ -1,165 +1,145 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>Purdue Boilermakers — Men’s Basketball</title>
+  <meta name="description" content="Live Purdue men's basketball feed with auto-updates." />
 
-  <!-- Icons (use your real files if you have them) -->
-  <link rel="icon" href="static/logo.png" type="image/png">
+  <!-- Icons: use relative paths so GitHub Pages subpaths work -->
+  <link rel="icon" href="static/logo.png" />
+  <link rel="apple-touch-icon" href="static/logo.png" />
+  <meta name="apple-mobile-web-app-title" content="Purdue Hoops" />
+  <meta name="theme-color" content="#000000" />
 
-  <link rel="stylesheet" href="static/style.css"/>
+  <link rel="stylesheet" href="static/style.css" />
 </head>
 <body>
   <header class="hero">
     <div class="brand">
-      <img class="logo" src="static/logo.png" alt="Purdue logo" onerror="this.style.display='none'">
-      <div class="titles">
-        <h1>Purdue Boilermakers — Men’s Basketball</h1>
-        <p class="tagline">Live team feed · auto-updates</p>
+      <img src="static/logo.png" alt="Purdue logo" class="brand-logo" />
+      <div class="brand-text">
+        <h1>Purdue Boilermakers — <span>Men’s Basketball</span></h1>
+        <div class="sub">Live team feed · auto-updates</div>
       </div>
     </div>
 
-    <div class="fight">
-      <button id="fight-btn" class="btn-pill">► Hail Purdue</button>
-      <audio id="fight-audio" preload="auto">
-        <source src="static/hail-purdue.mp3" type="audio/mpeg"/>
-      </audio>
-    </div>
+    <!-- Fight song button (fixed width to prevent label “bounce”) -->
+    <button id="songBtn" class="pill cta" aria-label="Play Hail Purdue">
+      <span class="cta-dot" aria-hidden="true">▶</span>
+      Hail Purdue
+    </button>
+
+    <!-- Song is standardized: static/fight-song.mp3 -->
+    <audio id="song" preload="auto">
+      <source src="static/fight-song.mp3" type="audio/mpeg" />
+    </audio>
   </header>
 
-  <nav class="links" id="quick-links"></nav>
+  <main class="wrap" id="app">
+    <section id="links" class="links-row"></section>
 
-  <section class="toolbar">
-    <label for="sourceSel">Source:</label>
-    <select id="sourceSel">
-      <option value="*">All sources</option>
-    </select>
+    <div class="meta-row">
+      <label class="meta">Source:</label>
+      <select id="sourceSelect" class="select"></select>
 
-    <div class="updated">
-      <span>Updated:</span>
-      <time id="updatedTs">—</time>
+      <div class="updated">
+        <span>Updated:</span>
+        <time id="updatedTs">—</time>
+      </div>
     </div>
-  </section>
 
-  <main id="feed" class="feed"></main>
-
-  <footer class="foot">
-    <a class="muted" href="items.json" target="_blank" rel="noopener">items.json</a>
-  </footer>
+    <section id="feed" class="feed"></section>
+  </main>
 
   <script>
-    // ---- helpers ----
-    const fmtDate = (iso) => {
-      try {
-        const d = new Date(iso);
-        return d.toLocaleString('en-US', {
-          month: 'short', day: 'numeric', year: 'numeric',
-          hour: 'numeric', minute: '2-digit'
-        });
-      } catch { return iso || ''; }
-    };
+    // ——— Fight song control (no new window) ———
+    (function () {
+      const btn = document.getElementById('songBtn');
+      const audio = document.getElementById('song');
+      let playing = false;
 
-    const byId = (id)=>document.getElementById(id);
-    const feedEl = byId('feed');
-    const sourceSel = byId('sourceSel');
-
-    // fight song (no bouncing, no new tab)
-    const fightBtn = byId('fight-btn');
-    const fightAudio = byId('fight-audio');
-    fightBtn.addEventListener('click', () => {
-      if (fightAudio.paused) {
-        fightAudio.currentTime = 0;
-        fightAudio.play().catch(()=>{ /* ignore autoplay block */ });
-        fightBtn.textContent = '⏸ Hail Purdue';
-      } else {
-        fightAudio.pause();
-        fightBtn.textContent = '► Hail Purdue';
+      function setBtnState(isPlaying) {
+        playing = isPlaying;
+        btn.classList.toggle('playing', playing);
+        btn.innerHTML = (playing ? '⏸' : '<span class="cta-dot">▶</span>') + ' Hail Purdue';
       }
-    });
 
-    // ---- render ----
-    let DATA = null;
-
-    function renderSources(list) {
-      // harden: keep options stable
-      const existing = new Set();
-      [...sourceSel.options].forEach(opt => existing.add(opt.value));
-      list.forEach(name => {
-        if (!existing.has(name)) {
-          const opt = document.createElement('option');
-          opt.value = name;
-          opt.textContent = name;
-          sourceSel.appendChild(opt);
+      btn.addEventListener('click', async () => {
+        try {
+          if (!playing) {
+            audio.currentTime = 0;
+            await audio.play();
+            setBtnState(true);
+          } else {
+            audio.pause();
+            setBtnState(false);
+          }
+        } catch (err) {
+          // If autoplay is blocked until user gesture, clicking again will work.
+          console.error('Audio play failed:', err);
+          setBtnState(false);
         }
       });
+
+      audio.addEventListener('ended', () => setBtnState(false));
+      audio.addEventListener('pause', () => setBtnState(false));
+      audio.addEventListener('play',  () => setBtnState(true));
+    })();
+
+    // ——— Feed loader (hardened: UI reads items.json only) ———
+    async function loadFeed() {
+      try {
+        const res = await fetch('items.json', { cache: 'no-store' });
+        const data = await res.json();
+
+        // Updated stamp (US style)
+        const ts = data.updated ? new Date(data.updated) : new Date();
+        document.getElementById('updatedTs').textContent =
+          ts.toLocaleString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+
+        // Quick-link pills
+        const links = document.getElementById('links');
+        links.innerHTML = (data.links || []).map(l => `
+          <a class="pill" href="${l.url}" target="_blank" rel="noopener">${l.label}</a>
+        `).join('');
+
+        // Source dropdown
+        const sel = document.getElementById('sourceSelect');
+        const sources = ['All sources'].concat(data.sources || []);
+        sel.innerHTML = sources.map((s,i)=>`<option value="${i===0?'':s}">${s}</option>`).join('');
+
+        // Render list
+        const feed = document.getElementById('feed');
+        const render = (items) => {
+          feed.innerHTML = (items || []).map(it => `
+            <article class="card">
+              <a class="card-link" href="${it.link}" target="_blank" rel="noopener">
+                <h3 class="card-title">${it.title}</h3>
+                <div class="card-meta">
+                  <span class="src">${it.source || ''}</span>
+                  <span class="dot">•</span>
+                  <time class="ts">${new Date(it.published).toLocaleString('en-US')}</time>
+                </div>
+                ${it.summary ? `<p class="card-sum">${it.summary}</p>` : ``}
+              </a>
+            </article>
+          `).join('');
+        };
+
+        render(data.items || []);
+
+        sel.addEventListener('change', () => {
+          const v = sel.value;
+          if (!v) return render(data.items || []);
+          render((data.items || []).filter(it => (it.source || '').toLowerCase() === v.toLowerCase()));
+        });
+      } catch (e) {
+        console.error('loadFeed error', e);
+      }
     }
-
-    function renderLinks(links) {
-      const nav = document.getElementById('quick-links');
-      nav.innerHTML = '';
-      links.forEach(l => {
-        const a = document.createElement('a');
-        a.className = 'pill';
-        a.href = l.url;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.textContent = l.label;
-        nav.appendChild(a);
-      });
-    }
-
-    function renderItems(items) {
-      const filter = sourceSel.value;
-      feedEl.innerHTML = '';
-      (items || []).forEach(it => {
-        if (filter !== '*' && it.source !== filter) return;
-
-        const card = document.createElement('article');
-        card.className = 'card';
-
-        // Only ONE clickable thing: the bold title (no second underlined link)
-        const titleA = document.createElement('a');
-        titleA.className = 'title';
-        titleA.href = it.link;
-        titleA.target = '_blank';
-        titleA.rel = 'noopener';
-        titleA.textContent = it.title;
-
-        const meta = document.createElement('div');
-        meta.className = 'meta';
-        meta.textContent = `${it.source}  •  ${fmtDate(it.published)}`;
-
-        card.appendChild(titleA);
-        card.appendChild(meta);
-        feedEl.appendChild(card);
-      });
-    }
-
-    async function load() {
-      const res = await fetch('items.json', {cache:'no-cache'});
-      const data = await res.json();
-      DATA = data;
-
-      // sources + updated
-      renderSources(data.sources || []);
-      document.getElementById('updatedTs').textContent = fmtDate(data.updated);
-
-      // links row
-      renderLinks(data.links || []);
-
-      // items
-      renderItems(data.items || []);
-    }
-
-    sourceSel.addEventListener('change', () => {
-      if (!DATA) return;
-      renderItems(DATA.items || []);
-    });
-
-    // poll items.json every 5 min without altering layout
-    load();
-    setInterval(load, 5 * 60 * 1000);
+    loadFeed();
   </script>
 </body>
 </html>
