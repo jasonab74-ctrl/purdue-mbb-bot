@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Purdue Boilermakers — Men’s Basketball</title>
 
-  <!-- Icons / manifest (relative so GitHub Pages subfolders work) -->
+  <!-- Icons kept relative so GitHub Pages subfolders work -->
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#000000" />
 
-  <!-- cache-busted so the hardened theme loads and sticks -->
-  <link rel="stylesheet" href="static/style.css?v=purdue-2025-09-08" />
+  <!-- cache-busted so styles never regress -->
+  <link rel="stylesheet" href="static/style.css?v=purdue-static-2025-09-08a" />
 </head>
 <body>
   <header class="hero">
@@ -29,17 +29,16 @@
 
     <div class="hero-titles">
       <h1>Purdue Boilermakers — Men’s Basketball</h1>
-      <div class="sub">Live team feed · auto-updates</div>
+      <div class="sub">Live team feed · auto-updates (from items.json)</div>
     </div>
 
-    <!-- Fight song (standardized file path) -->
     <button id="songBtn" class="song-btn" type="button" title="Hail Purdue">
       ▶ Hail Purdue
     </button>
     <audio id="song" src="static/fight-song.mp3" preload="auto"></audio>
   </header>
 
-  <!-- Quick links (buttons) -->
+  <!-- Quick links (buttons) — rendered from items.json: links[] -->
   <div id="links" class="pill-row"></div>
 
   <section class="controls">
@@ -56,13 +55,13 @@
   <main id="feed"></main>
 
   <script>
-    // ---------- Hardened renderer ----------
+    // ---------- hardened static renderer ----------
     const feedEl = document.getElementById('feed');
     const updatedEl = document.getElementById('updated');
     const sourceSelect = document.getElementById('sourceSelect');
     const linksEl = document.getElementById('links');
 
-    // Fight song control
+    // Fight song (never opens a new tab)
     const song = document.getElementById('song');
     const songBtn = document.getElementById('songBtn');
     songBtn?.addEventListener('click', async () => {
@@ -147,22 +146,25 @@
 
     async function loadAndRender(initial=false){
       try{
+        // Static file; no-store stops Safari/Pages caching weirdness
         const r = await fetch('items.json?ts='+Date.now(), {cache:'no-store'});
         const data = await r.json();
 
+        // Always present, so UI never collapses
         renderLinks(data.links || []);
         buildSourceDropdown(data.items || [], data.sources || []);
         updatedEl.textContent = data.updated ? fmtLocal(data.updated) : '—';
         renderItems(data.items || []);
 
         if (initial) sourceSelect.addEventListener('change', () => applyFilter(data.items || []));
-      }catch{
+      }catch(e){
         updatedEl.textContent = 'load failed';
       }
     }
 
     loadAndRender(true);
-    setInterval(() => loadAndRender(false), 5 * 60 * 1000);
+    // Optional: check for a new items.json every 10 min (safe for static)
+    setInterval(() => loadAndRender(false), 10 * 60 * 1000);
   </script>
 </body>
 </html>
