@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # Purdue Men's Basketball — hardened collector
-# - Curated source list (strings only) for stable dropdown
-# - Strict Purdue MBB filters (drops football, WBB, other sports, other schools)
+# - Curated 10-source dropdown (strings only) for stability
+# - Strict MBB filters (drops football, WBB, other sports, other schools)
 # - Always writes 'updated', 'links', and 'sources' so UI never rolls back
-# - Canonical links + de-dupe to keep items clean
+# - Canonical links + de-dupe
+# - No secrets required
 
 import json, time, re, hashlib
 from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
@@ -11,7 +12,7 @@ from datetime import datetime, timezone
 import feedparser
 from feeds import FEEDS, STATIC_LINKS
 
-MAX_ITEMS = 60
+MAX_ITEMS = 80
 
 CURATED_SOURCES = [
     "PurdueSports.com",
@@ -33,7 +34,7 @@ def now_iso():
 def _host(u: str) -> str:
     try:
         n = urlparse(u).netloc.lower()
-        for p in ("www.","m.","amp."):
+        for p in ("www.","m.","amp."): 
             if n.startswith(p): n = n[len(p):]
         return n
     except Exception:
@@ -68,12 +69,11 @@ ALIASES = {
     "btn.plus":             "Big Ten Network",
 }
 
-# ---- filters ----
 KEEP = [
     r"\bPurdue\b", r"\bBoilermakers?\b",
-    r"\bmen'?s?\s*basketball\b", r"\bMBB\b", r"\bcollege basketball\b",
-    r"\bMatt Painter\b", r"\bBraden Smith\b", r"\bFletcher Loyer\b", r"\bMason Gillis\b",
-    r"\bMyles Colvin\b", r"\bTrey Kaufman-?Renn\b",
+    r"\bmen'?s?\s*basketball\b", r"\bMBB\b",
+    r"\bMatt Painter\b", r"\bBraden Smith\b", r"\bFletcher Loyer\b", r"\bMyles Colvin\b",
+    r"\bTrey Kaufman-?Renn\b", r"\bMason Gillis\b"
 ]
 DROP = [
     r"\bfootball\b", r"\bvolleyball\b", r"\bbaseball\b", r"\bsoftball\b", r"\bwrestling\b",
@@ -97,8 +97,8 @@ def parse_time(entry):
                 pass
     return now_iso()
 
-def source_label(link: str, feed_name: str) -> str:
-    return ALIASES.get(_host(link), feed_name.strip())
+def label_for(link: str, fallback: str) -> str:
+    return ALIASES.get(_host(link), fallback.strip() or "Unknown")
 
 def fetch_all():
     items, seen = [], set()
@@ -108,15 +108,15 @@ def fetch_all():
             parsed = feedparser.parse(furl)
         except Exception:
             continue
-        for e in parsed.entries[:140]:
+        for e in parsed.entries[:150]:
             link = canonical((e.get("link") or e.get("id") or "").strip())
             if not link: continue
             key = hid(link)
             if key in seen: continue
 
-            src = source_label(link, fname)
-            if src not in ALLOWED_SOURCES:
-                continue  # keep dropdown tight and predictable
+            src = label_for(link, fname)
+            if src not in ALLOWED_SOURCES:  # keep dropdown tight and predictable
+                continue
 
             title = (e.get("title") or "").strip()
             summary = (e.get("summary") or e.get("description") or "").strip()
@@ -126,7 +126,7 @@ def fetch_all():
                 "id": key,
                 "title": title or "(untitled)",
                 "link": link,
-                "source": src,         # STRING — prevents [object Object]
+                "source": src,
                 "feed": fname,
                 "published": parse_time(e),
                 "summary": summary,
@@ -140,8 +140,8 @@ def write_items(items):
     payload = {
         "updated": now_iso(),
         "items": items,
-        "links": STATIC_LINKS,            # buttons always rendered
-        "sources": list(CURATED_SOURCES)  # frozen curated list (strings)
+        "links": STATIC_LINKS,
+        "sources": list(CURATED_SOURCES)
     }
     with open("items.json", "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
