@@ -1,65 +1,79 @@
+/* Purdue MBB — hardened theme (Old Gold & Black) */
+
 :root{
-  --primary:#000000;      /* Purdue black */
-  --accent:#CFB991;       /* Purdue gold */
-  --bg:#0b0b0b;
-  --card:#131313;
-  --pill:#efefef;
-  --text:#f6f6f6;
-  --muted:#cfcfcf;
+  --primary:#000000;   /* header black */
+  --accent:#CEB888;    /* Old Gold line */
+  --bg:#0d0f12;        /* deep charcoal background */
+  --card:#ffffff;      /* white cards */
+  --pill:#f3ead6;      /* pale gold quick links */
+  --text:#111418;      /* dark card text */
+  --muted:#5c6067;     /* meta text */
 }
+
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   background:var(--bg);
-  color:var(--text);
+  color:#e9eef6;
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
 
-/* ----- HEADER ----- */
+/* HEADER */
 .hero{
   display:flex; align-items:center; gap:14px;
-  padding:16px; background:var(--primary);
+  padding:16px;
+  background:var(--primary);
   border-bottom:4px solid var(--accent);
+  color:#fff;
 }
 .logo-box{
-  width:64px; height:64px; border-radius:12px; background:#fff;
-  display:flex; align-items:center; justify-content:center; overflow:hidden;
-  box-shadow:0 1px 4px rgba(0,0,0,.35);
+  width:64px;height:64px;border-radius:12px;background:#fff;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,.35)
 }
-.logo-box img{max-width:100%;max-height:100%;display:block}
+.logo-box img{display:block;max-width:100%;max-height:100%;object-fit:contain}
+.hero-titles h1{margin:0;font-size:1.8rem;color:#fff;line-height:1.05}
+.hero-titles .sub{color:#f3f7fb;opacity:.92;font-size:.92rem}
 
-.hero-titles h1{margin:0;font-size:1.7rem;color:#fff;line-height:1.05}
-.hero-titles .sub{color:#f0e9da;opacity:.9;font-size:.92rem}
-
-/* Fight song button with play icon */
-.fight-btn{
-  margin-left:auto; display:inline-flex; align-items:center; gap:.5rem;
-  background:#ffffff; color:#1a1a1a;
-  text-decoration:none; padding:.6rem 1rem; border-radius:999px;
-  font-weight:800; font-size:.95rem; border:1px solid rgba(0,0,0,.06);
-  box-shadow:0 1px 4px rgba(0,0,0,.28);
-  transition:transform .06s ease, background .2s ease, color .2s ease;
+/* Fight song button */
+.song-btn{
+  margin-left:auto;
+  border:0;
+  border-radius:999px;
+  padding:.6rem 1rem;
+  font-weight:800;
+  background:var(--accent);
+  color:#1b1b1b;
+  cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.25);
 }
-.fight-btn .icon{width:18px;height:18px;fill:#000;flex:0 0 auto}
-.fight-btn:hover{background:var(--accent);color:#000}
-.fight-btn:hover .icon{fill:#000}
-.fight-btn:active{transform:translateY(1px)}
 
-/* ----- QUICK LINKS ----- */
+/* QUICK LINKS */
 .pill-row{display:flex;flex-wrap:wrap;gap:.6rem;padding:12px}
-.pill{display:inline-block;padding:.55rem .9rem;border-radius:999px;background:var(--pill);color:#111;text-decoration:none;font-weight:800}
+.pill{
+  display:inline-block;padding:.55rem .9rem;border-radius:999px;
+  background:var(--pill);color:#3a2b12;text-decoration:none;font-weight:800
+}
 
-/* ----- CONTROLS ----- */
-.controls{display:flex;justify-content:space-between;align-items:center;padding:8px 12px}
+/* CONTROLS */
+.controls{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;color:#cfd7e6}
 .controls label{font-weight:800;margin-right:.4rem}
-#sourceSelect{padding:.45rem .6rem;border-radius:.6rem;border:1px solid #bdbdbd;background:#fff;color:#111}
+#sourceSelect{
+  padding:.45rem .6rem;border-radius:.6rem;border:1px solid #8e96a8;
+  background:#13161b;color:#e9eef6
+}
+.control.right{margin-left:auto}
 
-/* ----- CARDS ----- */
+/* FEED */
 main{padding:6px 12px 40px}
-.card{background:var(--card);border-radius:16px;padding:14px;margin:10px 0}
+.card{
+  background:var(--card); border-radius:16px; padding:14px; margin:10px 0;
+  box-shadow:0 1px 2px rgba(0,0,0,.14)
+}
 .title{font-weight:900;text-decoration:none;color:var(--text);display:block}
 .meta{color:var(--muted);margin-top:6px;font-size:.92rem}
 
+/* width on larger screens */
 @media(min-width:768px){
-  main{max-width:860px;margin:0 auto}
+  main{max-width:900px;margin:0 auto}
 }
