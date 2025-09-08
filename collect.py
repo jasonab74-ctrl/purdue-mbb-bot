@@ -1,258 +1,148 @@
 #!/usr/bin/env python3
-"""
-collect.py — fetches RSS, applies Purdue MBB filters, writes items.json
+# Purdue Boilermakers MBB — collector (HARDENED: curated sources + guaranteed links/dates)
 
-Safe tighten-ups:
-- Negative sport words: drop if found and "basketball" not present
-- Positive signals require "purdue" and ("basketball" or known MBB entity)
-- Mild year guard for stale "Team Rankings" listicles (e.g., 2006/2007)
-- 50 item cap
-"""
-
-from __future__ import annotations
-
-import json
-import re
-import sys
-import time
+import json, time, re, hashlib
+from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Tuple
-from urllib.parse import urlparse
-
 import feedparser
+from feeds import FEEDS, STATIC_LINKS
 
-# ---- Config -----------------------------------------------------------------
+MAX_ITEMS = 60
 
-MAX_ITEMS = 50  # cap
-
-# Load feeds/links from feeds.py (default Purdue set)
-try:
-    from feeds import FEEDS as BASE_FEEDS  # type: ignore
-except Exception as e:
-    print(f"ERROR importing feeds.py: {e}", file=sys.stderr)
-    BASE_FEEDS = []
-
-# Known Purdue MBB entities (coach, arena, current roster bundle)
-POSITIVE_ENTITIES = [
-    # coach/arena
-    "matt painter", "mackey arena",
-    # players bundle (keep lowercase)
-    "braden smith", "fletcher loyer", "trey kaufman-renn", "jack benter", "omer mayer",
-    "gicarri harris", "raleigh burgess", "daniel jacobsen", "oscar cluff", "liam murphy",
-    "sam king", "aaron fine", "jace rayl", "jack lusk", "c.j. cox", "cj cox"
+# ---- Curated dropdown (8–10 reliable sources) ----
+CURATED_SOURCES = [
+    "Hammer and Rails",
+    "ESPN",
+    "Yahoo Sports",
+    "Sports Illustrated",
+    "IndyStar",
+    "Journal & Courier",
+    "Purdue Exponent",
+    "AP News",
+    "SB Nation",
+    "The Athletic",
 ]
 
-# Negative sport words we want to block *unless* "basketball" also appears
-NEGATIVE_SPORT_WORDS = [
-    "football", "volleyball", "softball", "baseball", "soccer", "wbb", "women's", "women’s",
-    "womens", "women", "swim", "golf", "track", "tennis", "hockey", "wrestling"
-]
+ALLOWED_SOURCES = set(CURATED_SOURCES)
 
-# Some sources we treat as "trusted", but still reject obvious non-basketball items.
-# Using partials so we can match against the "source" label we attach.
-TRUSTED_SOURCE_PARTIALS = [
-    "On3", "247Sports", "Rivals", "GoldandBlack", "Hammer & Rails",
-    "PurdueSports.com", "Journal & Courier", "Purdue Exponent"
-]
+# --------------- utils ----------------
 
-# Mild year guard for stale ranking listicles
-YEAR_GUARD_RE = re.compile(r"\b(200[0-9]|201[0-4])\b")  # blocks <= 2014 in titles unless basketball is explicit
+def now_iso():
+    return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
 
-
-# ---- Helpers ----------------------------------------------------------------
-
-def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def safe_get_time(entry: Any) -> Tuple[float, str]:
-    """
-    Returns (timestamp, iso_string). Falls back to now if not present.
-    """
-    # feedparser sets 'published_parsed' or 'updated_parsed'
-    dt_struct = entry.get("published_parsed") or entry.get("updated_parsed")
-    if dt_struct:
-        ts = time.mktime(dt_struct)
-        iso = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-        return ts, iso
-    # Otherwise try raw strings
-    raw = entry.get("published") or entry.get("updated") or ""
+def _host(u: str) -> str:
     try:
-        # last ditch: rely on feedparser's parsed fields if available
-        pass
-    except Exception:
-        pass
-    # Fallback: now
-    iso = now_iso()
-    return time.time(), iso
-
-
-def domain_from_link(link: str) -> str:
-    try:
-        return urlparse(link).netloc.lower()
+        n = urlparse(u).netloc.lower()
+        for p in ("www.","m.","amp."):
+            if n.startswith(p): n = n[len(p):]
+        return n
     except Exception:
         return ""
 
+def canonical(u: str) -> str:
+    try:
+        p = urlparse(u)
+        keep = {"id","story","v","p"}
+        q = parse_qs(p.query)
+        q = {k:v for k,v in q.items() if k in keep}
+        p = p._replace(query=urlencode(q, doseq=True), fragment="", netloc=_host(u))
+        return urlunparse(p)
+    except Exception:
+        return u
 
-def text_blob(entry: Any) -> str:
-    parts = [
-        str(entry.get("title", "")),
-        str(entry.get("summary", "")),
-        str(entry.get("description", "")),
-        str(entry.get("source", "")),
-    ]
-    return " ".join(parts).lower()
+def hid(s: str) -> str:
+    return hashlib.sha1(s.encode("utf-8")).hexdigest()[:16]
 
+ALIASES = {
+    # locals / team
+    "hammerandrails.com": "Hammer and Rails",
+    "indystar.com":       "IndyStar",
+    "jconline.com":       "Journal & Courier",
+    "purdueexponent.org": "Purdue Exponent",
+    # nationals (mapped so dropdown stays clean)
+    "espn.com":           "ESPN",
+    "sports.yahoo.com":   "Yahoo Sports",
+    "si.com":             "Sports Illustrated",
+    "apnews.com":         "AP News",
+    "sbnation.com":       "SB Nation",
+    "theathletic.com":    "The Athletic",
+    # Google News articles will be normalized by target hostname,
+    # so no separate alias is needed here.
+}
 
-def is_trusted_source(source_name: str) -> bool:
-    s = source_name.lower()
-    return any(p.lower() in s for p in TRUSTED_SOURCE_PARTIALS)
+# require Purdue + hoops; exclude non-MBB sports
+KEEP = [r"\bPurdue\b", r"\bBoilermakers?\b", r"\bBoilers?\b", r"\bbasketball\b"]
+DROP = [r"\bfootball\b", r"\bvolleyball\b", r"\bbaseball\b", r"\bwomen'?s\b", r"\bwbb\b"]
 
-
-# ---- Filtering ---------------------------------------------------------------
-
-def allow_item(entry: Any, source_name: str) -> bool:
-    """
-    Tight but safe filter for Purdue Men's Basketball.
-    Rules (lowercased comparisons):
-      1) If NEGATIVE sport word present AND "basketball" absent => reject.
-      2) Require "purdue" present somewhere.
-      3) Also require "basketball" OR any POSITIVE_ENTITIES present.
-         (Trusted sources still must pass this simple sport/subject check.)
-      4) If title looks like old ranking listicles (<= 2014) and "basketball" not present => reject.
-    """
-    title = str(entry.get("title", "")).strip()
-    summary = str(entry.get("summary", "")).strip()
-    blob = f"{title}\n{summary}".lower()
-
-    # Rule 1: obvious other-sport blocks unless basketball present
-    if any(w in blob for w in NEGATIVE_SPORT_WORDS) and ("basketball" not in blob and "mbb" not in blob):
-        return False
-
-    # Require "purdue" somewhere
-    if "purdue" not in blob and "boilermaker" not in blob:
-        return False
-
-    # Sport/topic positive
-    has_bball = ("basketball" in blob) or ("mbb" in blob)
-    has_entity = any(name in blob for name in POSITIVE_ENTITIES)
-
-    if not (has_bball or has_entity):
-        # Even for trusted sources, still ensure it's hoop-ish
-        return False
-
-    # Year guard for ancient listicles (common on team feeds)
-    title_lc = title.lower()
-    if YEAR_GUARD_RE.search(title_lc) and "basketball" not in title_lc:
-        return False
-
+def text_ok(title: str, summary: str) -> bool:
+    t = f"{title} {summary}"
+    if not any(re.search(p, t, re.I) for p in KEEP): return False
+    if any(re.search(p, t, re.I) for p in DROP): return False
     return True
 
+def parse_time(entry):
+    for key in ("published_parsed","updated_parsed"):
+        if entry.get(key):
+            try:
+                return time.strftime("%Y-%m-%dT%H:%M:%S%z", entry[key])
+            except Exception:
+                pass
+    return now_iso()  # fallback → dates always render
 
-# ---- Fetch & Build -----------------------------------------------------------
+def source_label(link: str, feed_name: str) -> str:
+    # Prefer normalized domain label; otherwise use feed name
+    return ALIASES.get(_host(link), feed_name.strip())
 
-def fetch_feed(url: str) -> feedparser.FeedParserDict:
-    # feedparser handles HTTP; simple call is fine
-    try:
-        return feedparser.parse(url)
-    except Exception as e:
-        print(f"feed error: {url} -> {e}", file=sys.stderr)
-        return feedparser.FeedParserDict(entries=[])
+# --------------- pipeline ----------------
 
-
-def build_items(feeds: List[Dict[str, str]]) -> List[Dict[str, Any]]:
-    items: List[Dict[str, Any]] = []
-    seen_links = set()
-
-    for feed in feeds:
-        name = feed.get("name", "Source")
-        url = feed.get("url", "")
-        if not url:
+def fetch_all():
+    items, seen = [], set()
+    for f in FEEDS:
+        fname, furl = f["name"].strip(), f["url"].strip()
+        try:
+            parsed = feedparser.parse(furl)
+        except Exception:
             continue
+        for e in parsed.entries[:120]:
+            link = canonical((e.get("link") or e.get("id") or "").strip())
+            if not link: continue
+            key = hid(link)
+            if key in seen: continue
 
-        parsed = fetch_feed(url)
-        for entry in parsed.entries or []:
-            link = entry.get("link") or entry.get("id") or ""
-            if not link or link in seen_links:
-                continue
+            src = source_label(link, fname)
+            if src not in ALLOWED_SOURCES:
+                continue  # dropdown remains curated/clean
 
-            if not allow_item(entry, name):
-                continue
+            title = (e.get("title") or "").strip()
+            summary = (e.get("summary") or e.get("description") or "").strip()
+            if not text_ok(title, summary): continue
 
-            ts, iso = safe_get_time(entry)
-            title = str(entry.get("title", "")).strip()
-            summary = str(entry.get("summary", "")).strip()
-            src_label = name
-            item = {
-                "source": src_label,
-                "title": title,
+            items.append({
+                "id": key,
+                "title": title or "(untitled)",
                 "link": link,
+                "source": src,
+                "feed": fname,
+                "published": parse_time(e),   # always present (ISO)
                 "summary": summary,
-                "published": iso,
-                "ts": ts,
-                "domain": domain_from_link(link),
-            }
-            items.append(item)
-            seen_links.add(link)
+            })
+            seen.add(key)
 
-    # newest first
-    items.sort(key=lambda x: x.get("ts", 0), reverse=True)
-    # cap
+    items.sort(key=lambda x: x["published"], reverse=True)
     return items[:MAX_ITEMS]
 
-
-# ---- Write -------------------------------------------------------------------
-
-def write_items_json(items: List[Dict[str, Any]], path: str = "items.json") -> None:
+def write_items(items):
     payload = {
         "updated": now_iso(),
-        "count": len(items),
-        "items": [
-            {
-                "source": it["source"],
-                "title": it["title"],
-                "link": it["link"],
-                "summary": it["summary"],
-                "published": it["published"],
-            }
-            for it in items
-        ],
+        "items": items,
+        "links": STATIC_LINKS,       # buttons always present
+        "sources": CURATED_SOURCES,  # dropdown never disappears
     }
-    with open(path, "w", encoding="utf-8") as f:
+    with open("items.json", "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
-
-# ---- Main --------------------------------------------------------------------
-
-def main() -> None:
-    # Optional flags for multi-team setups:
-    #   --team <slug> : import teams/<slug>/feeds.py
-    #   --out  <path> : output path (default items.json)
-    feeds = BASE_FEEDS
-    out_path = "items.json"
-
-    args = sys.argv[1:]
-    if "--team" in args:
-        try:
-            idx = args.index("--team")
-            slug = args[idx + 1]
-            mod_name = f"teams.{slug}.feeds"
-            team_mod = __import__(mod_name, fromlist=["*"])
-            feeds = getattr(team_mod, "FEEDS", feeds)
-            # STATIC_LINKS optionally used by the server/template, but not needed here
-        except Exception as e:
-            print(f"WARNING: could not load team feeds: {e}", file=sys.stderr)
-
-    if "--out" in args:
-        try:
-            out_path = args[args.index("--out") + 1]
-        except Exception:
-            pass
-
-    items = build_items(feeds)
-    write_items_json(items, out_path)
-    print(f"Wrote {len(items)} items -> {out_path}")
-
+def main():
+    write_items(fetch_all())
 
 if __name__ == "__main__":
     main()
