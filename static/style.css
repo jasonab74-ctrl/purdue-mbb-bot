@@ -1,59 +1,98 @@
-:root{
-  --bg:#000;              /* site bg */
-  --text:#f3e8d2;         /* light gold text */
-  --pill:#e6d6b7;         /* button fill */
-  --pill-text:#111;       /* button text */
-  --accent:#c4ad84;       /* card background (light gold) */
-  --card-text:#121212;    /* dark text on cards */
-  --muted:#8f8f8f;
-  --ring:#cbb68b;
+:root {
+  /* Purdue brand look */
+  --bg: #0b0b0b;
+  --text: #f2e9d0;        /* warm light gold for body text */
+  --card: #d8c7a1;        /* light gold card background */
+  --card-text: #1a1a1a;   /* dark text on cards */
+  --pill: #e6d8b9;
+  --pill-text: #1b1b1b;
+  --accent: #c8b37a;
+  --muted: #b7a57a;
+  --border: #4a3f2a;
 }
 
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-
-.wrap{max-width:960px;margin:0 auto;padding:16px}
-
-.hero{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:16px; padding:16px; border-bottom:2px solid var(--ring);
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+  line-height: 1.35;
 }
 
-.brand{display:flex;align-items:center;gap:12px}
-.brand-logo{width:44px;height:44px;object-fit:contain;flex:0 0 44px}
-.brand-text h1{margin:0;font-size:clamp(20px,4.2vw,32px);line-height:1.1}
-.brand-text .sub{margin-top:4px;color:var(--muted);font-size:14px}
+.hero {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 2px solid var(--accent);
+  gap: 16px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { width: 44px; height: 44px; border-radius: 10px; background:#000; }
+.titles h1 { margin: 0; font-size: 22px; }
+.titles .tagline { margin: 2px 0 0; color: var(--muted); }
 
-.pill{
-  display:inline-flex;align-items:center;justify-content:center;
-  background:var(--pill);color:var(--pill-text);
-  border:none;border-radius:24px;padding:10px 16px;
-  font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap;
+.btn-pill {
+  appearance: none; border: 0; cursor: pointer;
+  background: var(--pill); color: var(--pill-text);
+  font-weight: 700; padding: 10px 16px; border-radius: 999px;
+}
+.btn-pill:active { transform: translateY(1px); }
+
+.links {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  padding: 14px 16px;
+}
+.pill {
+  display: inline-block;
+  background: var(--pill);
+  color: var(--pill-text);
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 1px solid var(--border);
 }
 
-.links-row{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 6px}
-
-.meta-row{display:flex;align-items:center;gap:12px;margin:8px 0 18px}
-.select{appearance:none;border:1px solid var(--ring);background:#111;color:var(--text);padding:8px 10px;border-radius:10px}
-.updated{margin-left:auto;color:var(--muted)}
-
-.cta{
-  min-width:150px;              /* prevents text from “bouncing” */
-  box-shadow:0 0 0 2px var(--ring) inset;
+.toolbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 16px 10px;
 }
-.cta.playing{background:#d1c19f}
-
-.cta-dot{display:inline-block;margin-right:6px}
-
-.feed{display:grid;gap:14px}
-
-.card{
-  background:var(--accent); border-radius:14px; padding:14px 16px;
-  box-shadow:0 1px 0 rgba(255,255,255,0.06) inset;
+.updated { margin-left: auto; color: var(--muted); }
+label { color: var(--muted); }
+select {
+  background: #111; color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 8px; border-radius: 8px;
 }
-.card-link{color:var(--card-text); text-decoration:none; display:block}
-.card-title{margin:0 0 6px; font-weight:800; line-height:1.25}
-.card-meta{display:flex;align-items:center;gap:8px;color:#333;font-size:13px}
-.card-sum{margin:10px 0 0;color:#2a2a2a}
 
-.dot{opacity:.55}
+.feed {
+  padding: 10px 10px 32px;
+  display: grid; gap: 12px;
+}
+.card {
+  background: var(--card);
+  color: var(--card-text);
+  border-radius: 16px;
+  padding: 16px 14px;
+  border: 1px solid #b9a982;
+}
+.card .title {
+  display: inline-block;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--card-text);
+  text-decoration: none;             /* <- no underline, per your ask */
+  line-height: 1.25;
+}
+.card .title:hover { text-decoration: underline; } /* subtle affordance */
+.card .meta {
+  margin-top: 8px;
+  color: #3a3323;
+  font-weight: 600;
+}
+
+.foot {
+  padding: 16px; text-align: center;
+}
+.muted { color: var(--muted); text-decoration: none; }
+.muted:hover { text-decoration: underline; }
