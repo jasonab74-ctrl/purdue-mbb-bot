@@ -1,31 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Purdue Boilermakers — MBB News</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Purdue Boilermakers — Men’s Basketball</title>
 
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#000000">
+  <!-- Icons / manifest (relative so GitHub Pages subfolders work) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#000000" />
 
-  <link rel="stylesheet" href="static/style.css">
+  <!-- cache-busted so the hardened theme loads and sticks -->
+  <link rel="stylesheet" href="static/style.css?v=purdue-2025-09-08" />
 </head>
 <body>
   <header class="hero">
     <div class="logo-box">
-      <img src="static/purdue.png" alt="Purdue logo" />
+      <img
+        src="static/purdue.png"
+        alt="Purdue logo"
+        width="64"
+        height="64"
+        onerror="this.onerror=null; this.src='static/logo.png';"
+      />
     </div>
+
     <div class="hero-titles">
       <h1>Purdue Boilermakers — Men’s Basketball</h1>
       <div class="sub">Live team feed · auto-updates</div>
     </div>
-    <a class="fight-btn" href="static/fight-song.mp3" target="_blank" rel="noopener">
-      <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5z"></path></svg>
-      <span>Hail Purdue</span>
-    </a>
+
+    <!-- Fight song (standardized file path) -->
+    <button id="songBtn" class="song-btn" type="button" title="Hail Purdue">
+      ▶ Hail Purdue
+    </button>
+    <audio id="song" src="static/fight-song.mp3" preload="auto"></audio>
   </header>
 
   <!-- Quick links (buttons) -->
@@ -45,39 +56,63 @@
   <main id="feed"></main>
 
   <script>
+    // ---------- Hardened renderer ----------
     const feedEl = document.getElementById('feed');
     const updatedEl = document.getElementById('updated');
     const sourceSelect = document.getElementById('sourceSelect');
     const linksEl = document.getElementById('links');
 
-    const fmtLocal = iso => {
+    // Fight song control
+    const song = document.getElementById('song');
+    const songBtn = document.getElementById('songBtn');
+    songBtn?.addEventListener('click', async () => {
       try{
+        if (song.paused) { await song.play(); songBtn.textContent = '⏸ Hail Purdue'; }
+        else { song.pause(); song.currentTime=0; songBtn.textContent = '▶ Hail Purdue'; }
+      }catch{}
+    });
+
+    const fmtLocal = iso => {
+      try {
         const d = new Date(iso);
         return d.toLocaleString([], {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
-      }catch{ return iso || ''; }
+      } catch { return iso || ''; }
     };
 
     function renderLinks(links){
       linksEl.innerHTML = '';
       (links||[]).forEach(l=>{
+        const label = typeof l === 'string' ? l : (l.label || '');
+        const url   = typeof l === 'string' ? '#' : (l.url || '#');
         const a = document.createElement('a');
         a.className = 'pill';
-        a.href = l.url; a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = l.label;
+        a.href = url; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = label || url;
         linksEl.appendChild(a);
       });
     }
 
+    function normalizeSourceEntry(s){
+      if (typeof s === 'string') return s;
+      if (s && typeof s === 'object') return s.label || s.name || s.id || String(s);
+      return String(s || '');
+    }
+
     function buildSourceDropdown(items, curated){
       sourceSelect.innerHTML = '';
-      const base = Array.isArray(curated) && curated.length ? curated
-                 : Array.from(new Set((items||[]).map(i => i.source || i.feed).filter(Boolean))).sort();
+      const curatedStrings = (Array.isArray(curated)?curated:[]).map(normalizeSourceEntry).filter(Boolean);
+      const derived = Array.from(
+        new Set((items||[]).map(i => i.source || i.feed).map(normalizeSourceEntry).filter(Boolean))
+      ).sort();
+      const list = curatedStrings.length ? curatedStrings : derived;
+
       const optAll = document.createElement('option');
       optAll.value=''; optAll.textContent='All sources';
       sourceSelect.appendChild(optAll);
-      base.forEach(s=>{
+
+      list.forEach(label=>{
         const o=document.createElement('option');
-        o.value=s; o.textContent=s;
+        o.value=label; o.textContent=label;
         sourceSelect.appendChild(o);
       });
     }
@@ -86,16 +121,17 @@
       feedEl.innerHTML = '';
       (items||[]).forEach(it=>{
         const card = document.createElement('article');
-        card.className='card';
+        card.className = 'card';
 
-        const a=document.createElement('a');
-        a.href=it.link; a.target='_blank'; a.rel='noopener';
+        const a = document.createElement('a');
+        a.href = it.link; a.target='_blank'; a.rel='noopener';
         a.className='title';
-        a.textContent=it.title || '(no title)';
+        a.textContent = it.title || '(no title)';
 
-        const meta=document.createElement('div');
+        const meta = document.createElement('div');
         meta.className='meta';
-        meta.textContent=`${it.source || it.feed || ''} • ${fmtLocal(it.published || it.updated)}`;
+        const srcLabel = normalizeSourceEntry(it.source || it.feed);
+        meta.textContent = `${srcLabel} • ${fmtLocal(it.published || it.updated)}`;
 
         card.appendChild(a);
         card.appendChild(meta);
@@ -105,7 +141,7 @@
 
     function applyFilter(all){
       const src = sourceSelect.value;
-      const list = src ? all.filter(i => (i.source || i.feed) === src) : all;
+      const list = src ? all.filter(i => normalizeSourceEntry(i.source || i.feed) === src) : all;
       renderItems(list);
     }
 
@@ -113,18 +149,20 @@
       try{
         const r = await fetch('items.json?ts='+Date.now(), {cache:'no-store'});
         const data = await r.json();
+
         renderLinks(data.links || []);
         buildSourceDropdown(data.items || [], data.sources || []);
-        updatedEl.textContent = (data.updated ? fmtLocal(data.updated) : '—');
+        updatedEl.textContent = data.updated ? fmtLocal(data.updated) : '—';
         renderItems(data.items || []);
+
         if (initial) sourceSelect.addEventListener('change', () => applyFilter(data.items || []));
-      }catch(e){
+      }catch{
         updatedEl.textContent = 'load failed';
       }
     }
 
     loadAndRender(true);
-    setInterval(() => loadAndRender(false), 5*60*1000);
+    setInterval(() => loadAndRender(false), 5 * 60 * 1000);
   </script>
 </body>
 </html>
