@@ -1,84 +1,198 @@
-:root{
-  --bg:#0f0f0f;
-  --card:#d9c49a;       /* light gold */
-  --card-text:#0e0e0e;  /* dark text on gold cards */
-  --ink:#f4f2ee;        /* light ink on dark bg */
-  --muted:#bcb6a6;
-  --pill:#e7d7b1;
-  --pill-ink:#10100e;
-  --ring:#c8b27c;
-  --ring-2:#6c5a2b;
-  --maxw: 1100px;
-  --radius: 18px;
+/* Purdue MBB — hardened front-end
+   - Single JS file (delete any app.js in repo root)
+   - Fixes iOS audio gesture + robust date parsing (no 1970)
+   - Stable source list + caching guard on items.json
+*/
+
+const SOURCE_SELECT = document.getElementById('sourceSelect');
+const FEED = document.getElementById('feed');
+const EMPTY = document.getElementById('empty');
+const UPDATED = document.getElementById('updatedAt');
+
+// --- Stable source list for the dropdown (8–10 good ones)
+const SOURCE_OPTIONS = [
+  "All sources",
+  "Hammer and Rails",
+  "Google News",
+  "ESPN",
+  "Yahoo Sports",
+  "Sports Illustrated",
+  "CBS Sports",
+  "PurdueSports.com",
+  "Journal & Courier",
+  "The Athletic"
+];
+
+// Seed dropdown (idempotent)
+SOURCE_SELECT.innerHTML = SOURCE_OPTIONS
+  .map((s, i) => `<option value="${s}" ${i === 0 ? "selected" : ""}>${s}</option>`)
+  .join("");
+
+// --- Fight song (user gesture requirement on iOS)
+(function wireFightSong() {
+  const btn = document.getElementById('fightSongBtn');
+  const audio = document.getElementById('fightSong');
+  if (!btn || !audio) return;
+
+  let playing = false;
+
+  const tryPlay = async () => {
+    try {
+      await audio.play();
+      playing = true;
+      btn.textContent = "⏸ Hail Purdue";
+    } catch (err) {
+      // Most common: iOS mute switch / no user gesture
+      alert("Could not play audio. If you’re on iPhone, make sure Silent Mode is OFF and tap again.");
+    }
+  };
+
+  btn.addEventListener('click', async () => {
+    if (!playing) {
+      await tryPlay();
+    } else {
+      audio.pause();
+      playing = false;
+      btn.textContent = "▶︎ Hail Purdue";
+    }
+  });
+
+  // Unlock on first user interaction (extra safety)
+  const unlock = () => {
+    audio.muted = false;
+    audio.play().then(() => { audio.pause(); audio.currentTime = 0; })
+      .catch(() => {/* ignore */});
+    window.removeEventListener('touchend', unlock);
+    window.removeEventListener('click', unlock);
+  };
+  window.addEventListener('touchend', unlock, { once: true });
+  window.addEventListener('click', unlock, { once: true });
+})();
+
+// --- Fetch + render items.json (with cache-buster)
+let ALL_ITEMS = [];
+
+async function loadItems() {
+  const url = `items.json?v=${Date.now()}`; // bust stale cache
+  let data;
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    data = await res.json();
+  } catch (e) {
+    // Fail soft: keep what we have, show message if empty
+    console.error("items.json fetch failed:", e);
+    UPDATED.textContent = "—";
+    FEED.innerHTML = "";
+    EMPTY.hidden = false;
+    return;
+  }
+
+  // items.json can be either an array or {items:[...]}; accept both
+  const raw = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
+
+  // Normalize and robustly parse dates
+  ALL_ITEMS = raw.map(normalizeItem).sort((a, b) => b.time - a.time);
+
+  render();
 }
 
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-a{color:inherit;text-decoration:none}
-img{display:block;max-width:100%;height:auto}
+function normalizeItem(it) {
+  // Source/Title/URL keys vary a bit depending on the collector
+  const title = it.title || it.headline || "(Untitled)";
+  const url = it.link || it.url || "#";
+  const source = it.source || it.site || it.outlet || "Unknown";
 
-.hero{
-  max-width:var(--maxw);
-  margin:20px auto 10px;
-  padding:16px 16px 0;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-}
-.hero-left{display:flex;gap:14px;align-items:center}
-.logo{width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 0 0 rgba(0,0,0,0.0))}
-.title h1{margin:0;font-size:34px;line-height:1.05;font-weight:800}
-.title h2{margin:0;font-size:28px;font-weight:700;color:var(--ink)}
-.sub{margin:6px 0 0;color:var(--muted)}
+  // Try multiple date fields; fix epoch/invalid issues
+  const time = parseBestDate(
+    it.published || it.pubDate || it.date || it.updated || it.isoDate || it.time
+  );
 
-.hero-right{display:flex;align-items:center;gap:8px}
-
-.pill{
-  display:inline-block;
-  padding:12px 18px;border-radius:999px;background:var(--pill);
-  color:var(--pill-ink);font-weight:700;line-height:1;
-  border:1px solid rgba(0,0,0,0.05);
-}
-.pill:hover{outline:2px solid var(--ring);outline-offset:2px}
-.pill-strong{background:var(--card);border-color:var(--ring-2)}
-
-.links{
-  max-width:var(--maxw);
-  margin:8px auto 0;padding:10px 16px 0;
-  display:flex;flex-wrap:wrap;gap:14px;
-  border-top:2px solid var(--ring-2);
+  return { title, url, source, time };
 }
 
-.bar{
-  max-width:var(--maxw);
-  margin:6px auto 0;padding:10px 16px 12px;
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-}
-.bar-label{opacity:.9}
-.source-select{
-  appearance:none;
-  background:transparent;color:var(--ink);
-  padding:10px 14px;border:2px solid var(--ring-2);border-radius:12px;
-  min-width:220px;
-}
-.updated{margin-left:auto;color:var(--muted)}
+function parseBestDate(val) {
+  // If it’s a number (ms) or numeric string, coerce
+  if (typeof val === "number") {
+    const d = new Date(val);
+    if (!isNaN(d)) return d.getTime();
+  }
 
-.feed{
-  max-width:var(--maxw);
-  margin:6px auto 30px;padding:0 16px 16px;
-  display:grid;gap:12px;
+  if (typeof val === "string") {
+    // Common “Sep 8, 2025, 2:09:32 PM” or ISO strings
+    let d = new Date(val);
+    if (!isNaN(d)) return d.getTime();
+
+    // Try without commas
+    d = new Date(val.replace(/,/g, ""));
+    if (!isNaN(d)) return d.getTime();
+
+    // Try Date.parse directly
+    const t = Date.parse(val);
+    if (!Number.isNaN(t)) return t;
+  }
+
+  // As an absolute fallback, use “now” so we never show 1970
+  return Date.now();
 }
 
-.card{
-  background:var(--card);color:var(--card-text);
-  border-radius:16px;padding:18px 16px;
-  border:2px solid rgba(0,0,0,0.12);
-}
-.card-title{margin:0 0 10px 0;font-size:20px}
-.card-meta{display:flex;gap:8px;align-items:center;color:#332d22;font-weight:600}
-.meta-dot{opacity:.6}
+function fmt(ts) {
+  const d = new Date(ts);
+  // If something slipped through and year is very old, guard it
+  if (d.getFullYear() < 1990) return "Just now";
 
-@media (max-width:700px){
-  .title h1{font-size:28px}
-  .title h2{font-size:22px}
-  .pill{padding:11px 16px}
-  .card-title{font-size:19px}
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
 }
+
+function render() {
+  const pick = SOURCE_SELECT.value || "All sources";
+  const items = pick === "All sources"
+    ? ALL_ITEMS
+    : ALL_ITEMS.filter(i => i.source && i.source.toLowerCase().includes(pick.toLowerCase()));
+
+  UPDATED.textContent = ALL_ITEMS.length ? fmt(ALL_ITEMS[0].time) : "—";
+
+  if (!items.length) {
+    FEED.innerHTML = "";
+    EMPTY.hidden = false;
+    return;
+  }
+  EMPTY.hidden = true;
+
+  const html = items.map(i => `
+    <article class="card">
+      <a href="${i.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">
+        <div style="font-weight:900;font-size:1.15rem;line-height:1.25">${escapeHTML(i.title)}</div>
+        <div class="meta">
+          <span>${escapeHTML(i.source || "—")}</span>
+          <span>•</span>
+          <span>${fmt(i.time)}</span>
+        </div>
+      </a>
+    </article>
+  `).join("");
+
+  FEED.innerHTML = html;
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Wire source filter
+SOURCE_SELECT.addEventListener('change', render);
+
+// Kick everything off
+loadItems();
+
+// Refresh periodically (keeps GH Pages fresh without thrashing)
+setInterval(loadItems, 5 * 60 * 1000);
