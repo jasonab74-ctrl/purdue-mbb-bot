@@ -1,238 +1,169 @@
-/* Purdue MBB — front-end feed logic
-   Drop-in replacement. Only requires:
-   - <select id="sourceSelect"> in the page
-   - <span id="updatedAt"> (optional)
-   - <div id="feed"> container for cards
-   - items.json at site root (GitHub Pages) updated by Actions
-*/
+// ---------- CONFIG (easy to reuse for other teams) ----------
+const ITEMS_URL = 'items.json';          // keep items.json in the repo root
+const AUDIO_URL = 'static/hail-purdue.mp3'; // exact filename; no spaces/uppercase
+const FOOTBALL_FILTER = /\bfootball|ross-ade|gridiron\b/i; // drop football posts
 
-(function () {
-  const FEED_URL = `items.json?nocache=${Date.now()}`;
-  const feedEl = document.getElementById('feed');
-  const selectEl = document.getElementById('sourceSelect') || document.getElementById('source-select');
-  const updatedEl = document.getElementById('updatedAt') || document.querySelector('[data-updated]');
+// ---------- AUDIO (user-gesture on iOS) ----------
+const playBtn = document.getElementById('playBtn');
+let audio;
+playBtn?.addEventListener('click', async () => {
+  try {
+    if (!audio) audio = new Audio(AUDIO_URL);
+    // iOS can fail if on silent — but a user gesture still required
+    await audio.play();
+  } catch (err) {
+    alert('Could not play audio. On iPhone, ensure Silent Mode is off and tap again.\n\nAlso verify the file exists at static/hail-purdue.mp3');
+  }
+});
 
-  // Safeguard: light helpers
-  const by = (s, r = document) => r.querySelector(s);
-  const cr = (t, cls) => {
-    const n = document.createElement(t);
-    if (cls) n.className = cls;
-    return n;
-  };
+// ---------- DOM ELEMENTS ----------
+const feedEl = document.getElementById('feed');
+const selectEl = document.getElementById('sourceSelect');
+const updatedEl = document.getElementById('updated');
 
-  // ---- Date parsing hardened (prevents 1970) -------------------------------
-  const parseDate = (item) => {
-    const candidates = [
-      item.isoDate,
-      item.pubDate,
-      item.published,
-      item.date,
-      item.updated,
-      item.created
-    ];
+// ---------- UTIL ----------
+const fmtDate = (isoOrText) => {
+  // Try ISO first; if it fails, try Date.parse; if still bad, return '—'
+  let d = new Date(isoOrText);
+  if (isNaN(d)) {
+    const parsed = Date.parse(isoOrText);
+    d = new Date(parsed);
+  }
+  if (isNaN(d)) return '—';
+  return d.toLocaleString(undefined, {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute:'2-digit'
+  });
+};
 
-    for (const c of candidates) {
-      if (!c) continue;
-      const d = new Date(c);
-      if (!Number.isNaN(d.getTime())) return d;
-    }
+const byRecency = (a,b) => {
+  const da = Date.parse(a.date || a.pubDate || 0) || 0;
+  const db = Date.parse(b.date || b.pubDate || 0) || 0;
+  return db - da;
+};
 
-    // some feeds store seconds since epoch
-    if (typeof item.timestamp === 'number') {
-      const d = new Date(
-        item.timestamp > 1e12 ? item.timestamp : item.timestamp * 1000
-      );
-      if (!Number.isNaN(d.getTime())) return d;
-    }
+// Dedup by URL (keep latest)
+const dedup = (items) => {
+  const seen = new Map();
+  for (const it of items) {
+    const key = (it.link || it.url || '').trim();
+    if (!key) continue;
+    const prev = seen.get(key);
+    if (!prev || byRecency(it, prev) < 0) seen.set(key, it);
+  }
+  return [...seen.values()];
+};
 
-    // try to mine a date from the link string (rare)
-    if (item.link && /\d{4}-\d{2}-\d{2}/.test(item.link)) {
-      const m = item.link.match(/\d{4}-\d{2}-\d{2}/);
-      const d = new Date(m[0]);
-      if (!Number.isNaN(d.getTime())) return d;
-    }
+// ---------- RENDER ----------
+const render = (items, source='*') => {
+  feedEl.innerHTML = '';
+  let list = items.slice();
 
-    return null; // unknown
-  };
+  // Filter out football cross-posts
+  list = list.filter(it => !FOOTBALL_FILTER.test(it.title || ''));
 
-  const fmtDate = (d) =>
-    d
-      ? d.toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit'
-        })
-      : '—';
-
-  // ---- Sources list (always visible) --------------------------------------
-  function extractSource(item) {
-    // normalize likely fields across feeds
-    return (
-      item.source ||
-      item.source_name ||
-      item.site ||
-      item.feed ||
-      item.provider ||
-      ''
-    ).toString().trim();
+  if (source && source !== '*') {
+    list = list.filter(it => (it.source || '').toLowerCase() === source.toLowerCase());
   }
 
-  function buildSources(items) {
-    // Preferred order for Purdue hoops (edit this array to pin “top 10”)
-    const preferred = [
-      'Yahoo Sports',
-      'Google News',
-      'Hammer and Rails',
-      'ESPN',
-      'Sports Illustrated',
-      'Journal & Courier',
-      'GoldandBlack',
-      'The Athletic',
-      'CBS Sports',
-      'Big Ten Network'
-    ];
+  list.sort(byRecency);
 
-    const seen = new Set();
-    const fromData = [];
+  for (const it of list) {
+    const card = document.createElement('article');
+    card.className = 'card';
 
-    for (const it of items) {
-      const s = extractSource(it);
-      if (!s) continue;
-      if (!seen.has(s)) {
-        seen.add(s);
-        fromData.push(s);
-      }
+    const title = (it.title || '').trim();
+    const href  = (it.link || it.url || '').trim();
+
+    const h3 = document.createElement('h3');
+    h3.className = 'card-title';
+
+    if (href) {
+      const a = document.createElement('a');
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = title || 'Untitled';
+      h3.appendChild(a);
+    } else {
+      h3.textContent = title || 'Untitled';
     }
 
-    // ensure preferred ones appear (if present) and top-ordered
-    const inData = new Set(fromData);
-    const ordered = preferred.filter((p) => inData.has(p));
-    // append any others alphabetically
-    const extras = fromData.filter((s) => !ordered.includes(s)).sort();
+    const meta = document.createElement('div');
+    meta.className = 'card-meta';
+    const src = (it.source || it.outlet || '').trim() || '—';
+    const when = fmtDate(it.date || it.pubDate || it.published || '');
+    meta.innerHTML = `${src} <span class="dot"></span> ${when}`;
 
-    return ordered.concat(extras);
+    card.append(h3, meta);
+    feedEl.appendChild(card);
   }
 
-  function populateSelect(sources) {
-    if (!selectEl) return;
-    // Clean slate
-    selectEl.innerHTML = '';
+  updatedEl.textContent = `Updated: ${fmtDate(new Date().toISOString())}`;
+};
 
-    const optAll = cr('option');
-    optAll.value = '';
-    optAll.textContent = 'All sources';
-    selectEl.appendChild(optAll);
+// ---------- LOAD ----------
+(async function init(){
+  try {
+    const res = await fetch(ITEMS_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to fetch ${ITEMS_URL}`);
+    const data = await res.json();
 
+    // Normalize structure – accept either {items:[...]} or [...]
+    const raw = Array.isArray(data) ? data : (data.items || []);
+    const clean = dedup(
+      raw.map(x => ({
+        title: x.title || x.headline || '',
+        link:  x.link  || x.url || '',
+        source: x.source || x.outlet || x.feed || '',
+        date: x.date || x.pubDate || x.published || ''
+      }))
+    );
+
+    // Populate source dropdown
+    const sources = Array.from(new Set(clean
+      .map(i => (i.source || '').trim())
+      .filter(Boolean)
+    )).sort((a,b)=>a.localeCompare(b));
+
+    // Reset options safely
+    selectEl.innerHTML = '<option value="*">All sources</option>';
     for (const s of sources) {
-      const opt = cr('option');
+      const opt = document.createElement('option');
       opt.value = s;
       opt.textContent = s;
       selectEl.appendChild(opt);
     }
 
-    // Keep whatever user had selected if it still exists
-    const saved = sessionStorage.getItem('purdue_source') || '';
-    if ([...selectEl.options].some((o) => o.value === saved)) {
-      selectEl.value = saved;
-    } else {
-      selectEl.value = '';
-    }
-  }
+    // First paint
+    render(clean, '*');
 
-  // ---- Render --------------------------------------------------------------
-  function render(items) {
-    if (!feedEl) return;
-    feedEl.innerHTML = '';
-
-    const chosen = (selectEl && selectEl.value) || '';
-    const filtered = chosen
-      ? items.filter((it) => extractSource(it) === chosen)
-      : items.slice();
-
-    // sort newest first
-    filtered.sort((a, b) => {
-      const da = parseDate(a)?.getTime() ?? 0;
-      const db = parseDate(b)?.getTime() ?? 0;
-      return db - da;
+    // Interactions
+    selectEl.addEventListener('change', () => {
+      render(clean, selectEl.value);
     });
 
-    for (const it of filtered) {
-      const card = cr('article', 'news-card');
-
-      const title = cr('a', 'news-title');
-      title.href = it.link;
-      title.target = '_blank';
-      title.rel = 'noopener';
-      title.textContent = (it.title || '').trim();
-
-      const meta = cr('div', 'news-meta');
-      const src = extractSource(it) || '—';
-      const when = fmtDate(parseDate(it));
-      meta.textContent = `${src} • ${when}`;
-
-      card.appendChild(title);
-      card.appendChild(meta);
-      feedEl.appendChild(card);
-    }
-
-    if (updatedEl) {
-      const newest = filtered[0] ? parseDate(filtered[0]) : null;
-      updatedEl.textContent = newest ? fmtDate(newest) : '—';
-    }
-  }
-
-  // ---- Bootstrap -----------------------------------------------------------
-  let ALL_ITEMS = [];
-
-  function handleSelectChange() {
-    if (!selectEl) return;
-    sessionStorage.setItem('purdue_source', selectEl.value || '');
-    render(ALL_ITEMS);
-  }
-
-  async function init() {
-    try {
-      const res = await fetch(FEED_URL, { cache: 'no-store' });
-      const data = await res.json();
-
-      // Accept arrays or {items:[...]}
-      const items = Array.isArray(data) ? data : (data.items || []);
-      ALL_ITEMS = items;
-
-      const sources = buildSources(items);
-      populateSelect(sources);
-      render(items);
-
-      if (selectEl) selectEl.addEventListener('change', handleSelectChange);
-    } catch (e) {
-      console.error('Failed to load items.json', e);
-      if (feedEl) {
-        const msg = cr('div', 'news-error');
-        msg.textContent = 'Unable to load articles.';
-        feedEl.appendChild(msg);
-      }
-    }
-  }
-
-  // ---- Optional: fight song (no breakage) ---------------------------------
-  // If you have a button with id="play-anthem" and a file at /static/hail-purdue.mp3
-  // this will play on user tap. (Safari requires a user gesture.)
-  const anthemBtn = by('#play-anthem');
-  if (anthemBtn) {
-    const audio = new Audio('/static/hail-purdue.mp3'); // no spaces, lowercase
-    anthemBtn.addEventListener('click', async () => {
+    // Light auto-refresh (client-side) every 15 min without breaking the UI
+    setInterval(async () => {
       try {
-        await audio.play();
-      } catch (err) {
-        alert(
-          'Could not play audio. On iPhone, make sure Silent Mode is off and tap again.\n\nAlso verify the file exists at static/hail-purdue.mp3'
-        );
-      }
-    });
-  }
+        const r = await fetch(ITEMS_URL, { cache: 'no-store' });
+        if (!r.ok) return;
+        const d = await r.json();
+        const nxt = Array.isArray(d) ? d : (d.items || []);
+        const cleaned = dedup(nxt.map(x => ({
+          title: x.title || x.headline || '',
+          link:  x.link  || x.url || '',
+          source: x.source || x.outlet || x.feed || '',
+          date: x.date || x.pubDate || x.published || ''
+        })));
+        render(cleaned, selectEl.value);
+      } catch {}
+    }, 15 * 60 * 1000);
 
-  // go!
-  init();
+  } catch (err) {
+    console.error(err);
+    updatedEl.textContent = 'Updated: —';
+    feedEl.innerHTML =
+      '<div class="card"><h3 class="card-title">Couldn’t load items.json</h3><div class="card-meta">Make sure items.json is in the repo root and is valid JSON.</div></div>';
+  }
 })();
