@@ -2,237 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Purdue Boilermakers — Men’s Basketball</title>
-  <meta name="theme-color" content="#0c0b09" />
-
-  <style>
-    :root{
-      --bg:#0c0b09;
-      --panel:#151310;
-      --pill:#e4cf9f;
-      --pillText:#1b1305;
-      --muted:#a5936f;
-      --text:#f5efe4;
-      --card:#d8c399;
-      --cardText:#1b1305;
-      --accent:#f1d79f;
-      --border:#3a3429;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol"}
-    a{color:inherit}
-    img{max-width:100%;display:block}
-
-    .wrap{max-width:960px;margin:0 auto;padding:16px}
-    header{
-      display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;
-      padding:8px 0 4px;border-bottom:1px solid var(--border);
-    }
-    .logo{width:56px;height:56px;border-radius:8px;overflow:hidden;background:#00000012;display:flex;align-items:center;justify-content:center}
-    .logo img{width:100%;height:100%;object-fit:contain}
-    .t1{font-size:28px;font-weight:800;letter-spacing:.2px}
-    .t2{font-size:14px;color:var(--muted);margin-top:2px}
-
-    .play-btn{
-      display:inline-flex;align-items:center;gap:.6rem;
-      background:var(--pill);color:var(--pillText);
-      border:none;border-radius:999px;padding:.7rem 1rem;font-weight:700;cursor:pointer;
-      box-shadow:0 1px 0 #00000020 inset, 0 .5px 0 #ffffff14 inset;
-    }
-    .play-btn:active{transform:translateY(1px)}
-
-    .chips{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 16px}
-    .chip{
-      background:var(--pill);color:var(--pillText);
-      border-radius:999px;padding:.65rem 1rem;font-weight:700;text-decoration:none;display:inline-block;
-    }
-
-    .toolbar{
-      display:flex;gap:12px;align-items:center;flex-wrap:wrap;
-      border-top:1px solid var(--border);padding-top:12px;margin-top:6px;margin-bottom:6px;
-    }
-    label{font-weight:700;color:var(--muted)}
-    select{
-      background:var(--panel);color:var(--text);border:1px solid var(--border);
-      border-radius:12px;padding:.6rem .8rem;width:min(460px,100%);
-      appearance:none;
-    }
-    .updated{margin-left:auto;color:var(--muted);font-size:.95rem;white-space:nowrap}
-
-    .notice{
-      background:#2c2518;border:1px solid var(--border);border-radius:12px;
-      padding:14px;margin:10px 0;color:#f7e7c4;
-    }
-
-    .list{display:flex;flex-direction:column;gap:12px;margin:12px 0 28px}
-    .card{
-      background:var(--card);color:var(--cardText);border-radius:14px; padding:14px 14px 12px;
-      border:2px solid #00000012;
-      box-shadow:0 1px 0 #ffffff20 inset, 0 1px 6px #00000025;
-    }
-    .card a{color:inherit;text-decoration:none}
-    .card a:hover{text-decoration:underline}
-    .title{font-size:1.1rem;font-weight:800;margin:0 0 6px}
-    .meta{display:flex;gap:10px;align-items:center;color:#30261a;font-weight:650;font-size:.93rem}
-    .dot{width:4px;height:4px;background:#30261a;border-radius:50%}
-
-    /* mobile polish */
-    @media (max-width:480px){
-      .t1{font-size:24px}
-      header{grid-template-columns:48px 1fr auto}
-      .logo{width:48px;height:48px}
-      .chips .chip{padding:.62rem .9rem}
-    }
-  </style>
+  <link rel="preload" href="static/hail-purdue.mp3" as="audio" type="audio/mpeg">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo">
-        <img src="static/logo.png" alt="Purdue logo" onerror="this.style.display='none'"/>
-      </div>
-      <div>
-        <div class="t1">Purdue Boilermakers — Men’s Basketball</div>
-        <div class="t2">Live team feed · auto-updates</div>
-      </div>
-      <button id="fightBtn" class="play-btn" type="button" aria-pressed="false">► Hail Purdue</button>
-      <audio id="fightSong" preload="none">
-        <source src="static/hail-purdue.mp3" type="audio/mpeg" />
-      </audio>
-    </header>
-
-    <nav class="chips" aria-label="Quick links">
-      <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule">Schedule</a>
-      <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster">Roster</a>
-      <a class="chip" href="https://purduesports.com/sports/mens-basketball/tickets">Tickets</a>
-      <a class="chip" href="https://www.reddit.com/r/Boilermakers/">Reddit — r/Boilermakers</a>
-      <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers">ESPN Team</a>
-      <a class="chip" href="https://kenpom.com/">KenPom</a>
-      <a class="chip" href="https://www.sports-reference.com/cbb/schools/purdue/">Sports-Reference</a>
-      <a class="chip" href="https://bigten.org/standings.aspx?path=mbball">Big Ten Standings</a>
-      <a class="chip" href="https://apnews.com/hub/ap-top-25-college-basketball-poll">AP Top 25</a>
-      <a class="chip" href="https://www.youtube.com/results?search_query=purdue+basketball+highlights">Highlights</a>
-      <a class="chip" href="https://247sports.com/college/purdue/">247Sports</a>
-      <a class="chip" href="https://purdue.rivals.com/">Rivals</a>
-      <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/">CBS Purdue</a>
-    </nav>
-
-    <div class="toolbar">
-      <label for="sourceSel">Source:</label>
-      <select id="sourceSel">
-        <!-- pinned list; never empty -->
-        <option value="ALL">All sources</option>
-        <option>PurdueSports.com</option>
-        <option>Journal & Courier</option>
-        <option>GoldandBlack.com</option>
-        <option>Hammer and Rails</option>
-        <option>The Athletic</option>
-        <option>ESPN</option>
-        <option>Yahoo Sports</option>
-        <option>Sports Illustrated</option>
-        <option>CBS Sports</option>
-        <option>Big Ten Network</option>
-      </select>
-      <div class="updated" id="updated">Updated: —</div>
+  <header class="hero">
+    <img class="team-logo" src="static/logo.png" alt="Purdue logo" />
+    <div class="title-wrap">
+      <h1 class="title">Purdue Boilermakers <span class="dash">—</span> <span>Men’s Basketball</span></h1>
+      <p class="sub">Live team feed · auto-updates</p>
     </div>
 
-    <div id="notice" class="notice" hidden>
-      Can’t load <code>items.json</code> right now. Your page is fine; the feed will refresh automatically
-      the next time GitHub Actions commits an update.
+    <!-- Fight song -->
+    <button id="fightBtn" class="pill pill--primary" type="button" aria-pressed="false">
+      <span id="fightIcon">▶︎</span> Hail Purdue
+    </button>
+    <!-- Keep the audio element in the DOM (no autoplay). iOS requires a user gesture. -->
+    <audio id="fightSong" playsinline preload="auto">
+      <!-- If you keep the file name different, change this src only -->
+      <source src="static/hail-purdue.mp3" type="audio/mpeg" />
+    </audio>
+  </header>
+
+  <!-- Quick links (unchanged) -->
+  <nav class="chips">
+    <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
+    <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
+    <a class="chip" href="https://purduesports.com/sports/2024/10/31/tickets" target="_blank" rel="noopener">Tickets</a>
+    <a class="chip" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
+    <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
+    <a class="chip" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
+    <a class="chip" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
+    <a class="chip" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
+    <a class="chip" href="https://apnews.com/hub/ap-top-25-college-basketball-poll" target="_blank" rel="noopener">AP Top 25</a>
+    <a class="chip" href="https://www.youtube.com/results?search_query=purdue+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
+    <a class="chip" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
+    <a class="chip" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
+    <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
+  </nav>
+
+  <!-- Sources + last updated -->
+  <section class="toolbar">
+    <label class="label" for="sourceSelect">Source:</label>
+    <select id="sourceSelect" class="select">
+      <option value="*">All sources</option>
+      <!-- The JS will also inject any sources seen in items.json so this list never “rolls back” -->
+      <option>PurdueSports.com</option>
+      <option>Journal & Courier</option>
+      <option>GoldandBlack.com</option>
+      <option>Hammer and Rails</option>
+      <option>The Athletic</option>
+      <option>ESPN</option>
+      <option>Yahoo Sports</option>
+      <option>Sports Illustrated</option>
+      <option>CBS Sports</option>
+      <option>Big Ten Network</option>
+      <!-- Safe wildcard fallback below, added by script if needed -->
+    </select>
+
+    <div class="updated">
+      <span class="label">Updated:</span>
+      <time id="updatedAt">—</time>
     </div>
+  </section>
 
-    <section id="list" class="list" aria-live="polite"></section>
-  </div>
+  <!-- News list -->
+  <main id="list" class="list" aria-live="polite"></main>
 
-  <script>
-    // ---- Fight song button (user gesture required on iOS) ---------------------------------------
-    (function(){
-      const btn = document.getElementById('fightBtn');
-      const audio = document.getElementById('fightSong');
-      btn.addEventListener('click', async () => {
-        try{
-          if (audio.paused){ await audio.play(); btn.textContent = '❚❚ Hail Purdue'; btn.setAttribute('aria-pressed','true'); }
-          else { audio.pause(); btn.textContent = '► Hail Purdue'; btn.setAttribute('aria-pressed','false'); }
-        }catch(e){
-          alert('Could not play audio. If you’re on iPhone, ensure silent mode is off and tap again.');
-        }
-      });
-      audio.addEventListener('ended', () => { btn.textContent = '► Hail Purdue'; btn.setAttribute('aria-pressed','false'); });
-    })();
-
-    // ---- Fixed source list & rendering -----------------------------------------------------------
-    const sourceSel = document.getElementById('sourceSel');
-    const listEl = document.getElementById('list');
-    const updatedEl = document.getElementById('updated');
-    const noticeEl  = document.getElementById('notice');
-
-    // very light football filter to keep hoops first
-    const FOOTBALL_HINTS = [
-      'football','ross-ade','quarterback','qb ','gridiron','kickoff',
-      'touchdown','running back','wide receiver','linebacker','field goal','sack '
-    ];
-
-    function looksLikeFootball(title){
-      if (!title) return false;
-      const t = title.toLowerCase();
-      return FOOTBALL_HINTS.some(k=>t.includes(k));
-    }
-
-    function fmtDate(d){
-      try{
-        return new Intl.DateTimeFormat('en-US',{month:'short', day:'numeric', year:'numeric',
-          hour:'numeric', minute:'2-digit'}).format(new Date(d));
-      }catch{ return d || '—'; }
-    }
-
-    async function loadItems(){
-      try{
-        const res = await fetch('items.json?cachebust=' + Date.now(), {cache:'no-store'});
-        if (!res.ok) throw new Error('fetch fail');
-        const items = await res.json();
-
-        // normalize: expect array of { title, link, source, published }
-        const clean = (Array.isArray(items)? items: items.items||[])
-          .filter(it => it && it.title && it.link)
-          .filter(it => !looksLikeFootball(it.title)); // drop obvious football
-
-        render(clean);
-        const newest = clean.reduce((a,b)=> (new Date(a?.published||0) > new Date(b?.published||0) ? a:b), {});
-        updatedEl.textContent = 'Updated: ' + (newest.published ? fmtDate(newest.published) : '—');
-        noticeEl.hidden = true;
-      }catch(e){
-        // don’t blow up UI when feed is temporarily missing
-        updatedEl.textContent = 'Updated: —';
-        noticeEl.hidden = false;
-        render([]); // empty list gracefully
-      }
-    }
-
-    function render(items){
-      const chosen = sourceSel.value;
-      const out = (chosen==='ALL' ? items : items.filter(it => (it.source||'').toLowerCase() === chosen.toLowerCase()));
-      listEl.innerHTML = out.slice(0, 80).map(it => `
-        <article class="card">
-          <a href="${it.link}" target="_blank" rel="noopener">
-            <h3 class="title">${escapeHtml(it.title)}</h3>
-          </a>
-          <div class="meta">
-            <span>${escapeHtml(it.source || '—')}</span>
-            <span class="dot"></span>
-            <time datetime="${it.published||''}">${fmtDate(it.published)}</time>
-          </div>
-        </article>
-      `).join('') || `<div class="notice">No articles for the selected source yet.</div>`;
-    }
-
-    function escapeHtml(s){return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-
-    sourceSel.addEventListener('change', ()=> loadItems());
-    loadItems();
-
-    // Optional: soft refresh every 5 minutes without jank
-    setInterval(loadItems, 5 * 60 * 1000);
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
