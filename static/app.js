@@ -1,209 +1,238 @@
-/* =========================================================
-   Purdue MBB – minimal, hardened client logic
-   Fixes:
-     1) Fight song playback on iOS / odd filenames
-     2) Articles list rendering & bad (1970) dates
-   ========================================================= */
+/* Purdue MBB — front-end feed logic
+   Drop-in replacement. Only requires:
+   - <select id="sourceSelect"> in the page
+   - <span id="updatedAt"> (optional)
+   - <div id="feed"> container for cards
+   - items.json at site root (GitHub Pages) updated by Actions
+*/
 
-/* ---------- Adjustable selectors (match your DOM) ---------- */
-const SELECTORS = {
-  fightSongButton: '#fightSongBtn, [data-fight-song], .fight-song-btn', // your button already works; we try a few
-  itemsList: '#items, #feed, .items, [data-list]',                      // container for article cards
-  updatedAt: '#updatedAt, [data-updated], .updated-at',                 // “Updated:” text target
-  sourceSelect: '#sourceSelect, #source, select[name="source"]'         // the Sources <select>
-};
+(function () {
+  const FEED_URL = `items.json?nocache=${Date.now()}`;
+  const feedEl = document.getElementById('feed');
+  const selectEl = document.getElementById('sourceSelect') || document.getElementById('source-select');
+  const updatedEl = document.getElementById('updatedAt') || document.querySelector('[data-updated]');
 
-/* ---------- Utilities ---------- */
-const $ = (sel) => document.querySelector(sel);
+  // Safeguard: light helpers
+  const by = (s, r = document) => r.querySelector(s);
+  const cr = (t, cls) => {
+    const n = document.createElement(t);
+    if (cls) n.className = cls;
+    return n;
+  };
 
-function toast(msg) {
-  let t = document.getElementById('toaster');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'toaster';
-    Object.assign(t.style, {
-      position: 'fixed', left: '50%', bottom: '18px', transform: 'translateX(-50%)',
-      background: 'rgba(0,0,0,.8)', color: '#fff', padding: '10px 14px', borderRadius: '10px',
-      fontSize: '14px', zIndex: 99999, maxWidth: '92%', textAlign: 'center'
-    });
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.style.opacity = '1';
-  setTimeout(() => (t.style.opacity = '0'), 2600);
-}
+  // ---- Date parsing hardened (prevents 1970) -------------------------------
+  const parseDate = (item) => {
+    const candidates = [
+      item.isoDate,
+      item.pubDate,
+      item.published,
+      item.date,
+      item.updated,
+      item.created
+    ];
 
-const fmt = new Intl.DateTimeFormat('en-US', {
-  month: 'short', day: 'numeric', year: 'numeric',
-  hour: 'numeric', minute: '2-digit'
-});
-
-function toDate(val) {
-  if (!val) return null;
-  // numeric seconds or ms
-  if (typeof val === 'number') {
-    const ms = val < 1e12 ? val * 1000 : val;
-    const d = new Date(ms);
-    return isNaN(d) ? null : d;
-  }
-  // strings
-  const d = new Date(val);
-  return isNaN(d) ? null : d;
-}
-
-function normalizeDate(item) {
-  const keys = ['isoDate', 'pubDate', 'published', 'date', 'updated', 'created'];
-  for (const k of keys) {
-    if (item[k]) {
-      const d = toDate(item[k]);
-      if (d) return d;
+    for (const c of candidates) {
+      if (!c) continue;
+      const d = new Date(c);
+      if (!Number.isNaN(d.getTime())) return d;
     }
+
+    // some feeds store seconds since epoch
+    if (typeof item.timestamp === 'number') {
+      const d = new Date(
+        item.timestamp > 1e12 ? item.timestamp : item.timestamp * 1000
+      );
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+
+    // try to mine a date from the link string (rare)
+    if (item.link && /\d{4}-\d{2}-\d{2}/.test(item.link)) {
+      const m = item.link.match(/\d{4}-\d{2}-\d{2}/);
+      const d = new Date(m[0]);
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+
+    return null; // unknown
+  };
+
+  const fmtDate = (d) =>
+    d
+      ? d.toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit'
+        })
+      : '—';
+
+  // ---- Sources list (always visible) --------------------------------------
+  function extractSource(item) {
+    // normalize likely fields across feeds
+    return (
+      item.source ||
+      item.source_name ||
+      item.site ||
+      item.feed ||
+      item.provider ||
+      ''
+    ).toString().trim();
   }
-  return null;
-}
 
-function americanDate(d) {
-  return d ? fmt.format(d) : '—';
-}
+  function buildSources(items) {
+    // Preferred order for Purdue hoops (edit this array to pin “top 10”)
+    const preferred = [
+      'Yahoo Sports',
+      'Google News',
+      'Hammer and Rails',
+      'ESPN',
+      'Sports Illustrated',
+      'Journal & Courier',
+      'GoldandBlack',
+      'The Athletic',
+      'CBS Sports',
+      'Big Ten Network'
+    ];
 
-/* ---------- Fight song (robust path + iOS gesture) ---------- */
-const CANDIDATE_MP3S = [
-  'static/hail-purdue.mp3',
-  'static/fight song.MP3',
-  'static/fight%20song.MP3',
-  'static/fight%20song.mp3',
-  'static/fight-song.mp3'
-];
+    const seen = new Set();
+    const fromData = [];
 
-async function resolveAudioSrc() {
-  for (const path of CANDIDATE_MP3S) {
-    try {
-      const res = await fetch(path, { method: 'HEAD', cache: 'no-store' });
-      if (res.ok) return path;
-    } catch { /* ignore */ }
-  }
-  return null;
-}
-
-function initFightSong() {
-  const btn = document.querySelector(SELECTORS.fightSongButton);
-  if (!btn) return;
-
-  let resolved = null;
-
-  btn.addEventListener('click', async () => {
-    try {
-      if (!resolved) resolved = await resolveAudioSrc();
-      if (!resolved) {
-        toast('Can’t find fight song in /static (try hail-purdue.mp3).');
-        return;
+    for (const it of items) {
+      const s = extractSource(it);
+      if (!s) continue;
+      if (!seen.has(s)) {
+        seen.add(s);
+        fromData.push(s);
       }
-      // Must create & play inside the user gesture callback for iOS
-      const a = new Audio(resolved);
-      a.play().catch(() => {
-        toast('Could not play audio. Ensure Silent Mode is off and tap again.');
-      });
-    } catch {
-      toast('Could not play audio. Ensure Silent Mode is off and tap again.');
     }
-  });
-}
 
-/* ---------- Articles ---------- */
-const ITEMS_URL = `./items.json?v=${Date.now()}`; // cache-buster for GitHub Pages
+    // ensure preferred ones appear (if present) and top-ordered
+    const inData = new Set(fromData);
+    const ordered = preferred.filter((p) => inData.has(p));
+    // append any others alphabetically
+    const extras = fromData.filter((s) => !ordered.includes(s)).sort();
 
-let allItems = [];
-let activeSource = 'All sources';
-
-function renderItems() {
-  const list = document.querySelector(SELECTORS.itemsList);
-  if (!list) return;
-
-  // clear
-  list.innerHTML = '';
-
-  const items = activeSource && activeSource !== 'All sources'
-    ? allItems.filter(i => {
-        const src = (i.source || i.site || i.feed || '').toString().trim();
-        return src.toLowerCase().includes(activeSource.toLowerCase());
-      })
-    : allItems;
-
-  if (!items.length) {
-    const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.textContent = 'No stories right now.';
-    list.appendChild(empty);
-    return;
+    return ordered.concat(extras);
   }
 
-  for (const it of items) {
-    const d = normalizeDate(it);
-    const card = document.createElement('a');
-    card.className = 'card';
-    card.href = it.link || it.url || '#';
-    card.target = '_blank';
-    card.rel = 'noopener';
+  function populateSelect(sources) {
+    if (!selectEl) return;
+    // Clean slate
+    selectEl.innerHTML = '';
 
-    card.innerHTML = `
-      <div class="card__title">${(it.title || 'Untitled').trim()}</div>
-      <div class="card__meta">
-        <span>${(it.source || it.site || '—').toString()}</span>
-        <span class="dot">•</span>
-        <span>${americanDate(d)}</span>
-      </div>
-    `;
-    list.appendChild(card);
+    const optAll = cr('option');
+    optAll.value = '';
+    optAll.textContent = 'All sources';
+    selectEl.appendChild(optAll);
+
+    for (const s of sources) {
+      const opt = cr('option');
+      opt.value = s;
+      opt.textContent = s;
+      selectEl.appendChild(opt);
+    }
+
+    // Keep whatever user had selected if it still exists
+    const saved = sessionStorage.getItem('purdue_source') || '';
+    if ([...selectEl.options].some((o) => o.value === saved)) {
+      selectEl.value = saved;
+    } else {
+      selectEl.value = '';
+    }
   }
 
-  // updated stamp = newest item date
-  const newest = items.map(normalizeDate).filter(Boolean).sort((a,b)=>b-a)[0];
-  const upEl = document.querySelector(SELECTORS.updatedAt);
-  if (upEl) upEl.textContent = newest ? americanDate(newest) : '—';
-}
+  // ---- Render --------------------------------------------------------------
+  function render(items) {
+    if (!feedEl) return;
+    feedEl.innerHTML = '';
 
-async function loadItems() {
-  try {
-    const res = await fetch(ITEMS_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const chosen = (selectEl && selectEl.value) || '';
+    const filtered = chosen
+      ? items.filter((it) => extractSource(it) === chosen)
+      : items.slice();
 
-    // Accept either {items: [...]} or plain array
-    const arr = Array.isArray(data) ? data : (data.items || []);
-    // Normalize & sort (desc)
-    allItems = arr
-      .map(x => ({ ...x }))
-      .sort((a, b) => {
-        const da = normalizeDate(a);
-        const db = normalizeDate(b);
-        if (!da && !db) return 0;
-        if (!da) return 1;
-        if (!db) return -1;
-        return db - da;
-      });
+    // sort newest first
+    filtered.sort((a, b) => {
+      const da = parseDate(a)?.getTime() ?? 0;
+      const db = parseDate(b)?.getTime() ?? 0;
+      return db - da;
+    });
 
-    renderItems();
-  } catch (e) {
-    console.error('Failed to load items.json', e);
-    toast('Could not load stories (items.json).');
+    for (const it of filtered) {
+      const card = cr('article', 'news-card');
+
+      const title = cr('a', 'news-title');
+      title.href = it.link;
+      title.target = '_blank';
+      title.rel = 'noopener';
+      title.textContent = (it.title || '').trim();
+
+      const meta = cr('div', 'news-meta');
+      const src = extractSource(it) || '—';
+      const when = fmtDate(parseDate(it));
+      meta.textContent = `${src} • ${when}`;
+
+      card.appendChild(title);
+      card.appendChild(meta);
+      feedEl.appendChild(card);
+    }
+
+    if (updatedEl) {
+      const newest = filtered[0] ? parseDate(filtered[0]) : null;
+      updatedEl.textContent = newest ? fmtDate(newest) : '—';
+    }
   }
-}
 
-function initSourceSelect() {
-  const sel = document.querySelector(SELECTORS.sourceSelect);
-  if (!sel) return;
+  // ---- Bootstrap -----------------------------------------------------------
+  let ALL_ITEMS = [];
 
-  // If your HTML already has <option>s, we don’t rebuild it.
-  // We just react to changes.
-  sel.addEventListener('change', (e) => {
-    activeSource = e.target.value || 'All sources';
-    renderItems();
-  });
-}
+  function handleSelectChange() {
+    if (!selectEl) return;
+    sessionStorage.setItem('purdue_source', selectEl.value || '');
+    render(ALL_ITEMS);
+  }
 
-/* ---------- Boot ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  initFightSong();
-  initSourceSelect();
-  loadItems();
-});
+  async function init() {
+    try {
+      const res = await fetch(FEED_URL, { cache: 'no-store' });
+      const data = await res.json();
+
+      // Accept arrays or {items:[...]}
+      const items = Array.isArray(data) ? data : (data.items || []);
+      ALL_ITEMS = items;
+
+      const sources = buildSources(items);
+      populateSelect(sources);
+      render(items);
+
+      if (selectEl) selectEl.addEventListener('change', handleSelectChange);
+    } catch (e) {
+      console.error('Failed to load items.json', e);
+      if (feedEl) {
+        const msg = cr('div', 'news-error');
+        msg.textContent = 'Unable to load articles.';
+        feedEl.appendChild(msg);
+      }
+    }
+  }
+
+  // ---- Optional: fight song (no breakage) ---------------------------------
+  // If you have a button with id="play-anthem" and a file at /static/hail-purdue.mp3
+  // this will play on user tap. (Safari requires a user gesture.)
+  const anthemBtn = by('#play-anthem');
+  if (anthemBtn) {
+    const audio = new Audio('/static/hail-purdue.mp3'); // no spaces, lowercase
+    anthemBtn.addEventListener('click', async () => {
+      try {
+        await audio.play();
+      } catch (err) {
+        alert(
+          'Could not play audio. On iPhone, make sure Silent Mode is off and tap again.\n\nAlso verify the file exists at static/hail-purdue.mp3'
+        );
+      }
+    });
+  }
+
+  // go!
+  init();
+})();
