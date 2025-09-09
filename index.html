@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Purdue Boilermakers — Men’s Basketball</title>
-  <link rel="stylesheet" href="static/style.css">
+  <link rel="stylesheet" href="static/style.css" />
 </head>
 <body>
   <header>
-    <img src="static/logo.png" alt="Purdue Logo" class="team-logo">
-    <div class="header-text">
+    <img src="static/logo.png" alt="Purdue Logo" class="team-logo" />
+    <div>
       <h1>Purdue Boilermakers — Men’s Basketball</h1>
       <p>Live team feed · auto-updates</p>
     </div>
-    <button id="fight-song" class="fight-btn">▶ Hail Purdue</button>
-    <audio id="fight-audio" src="static/fight-song.mp3"></audio>
+    <button id="fight-song">▶ Hail Purdue</button>
+    <audio id="audio" src="static/fight-song.mp3"></audio>
   </header>
 
   <nav class="quick-links">
@@ -26,7 +26,7 @@
     <a href="https://kenpom.com" target="_blank">KenPom</a>
     <a href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank">Sports-Reference</a>
     <a href="https://bigten.org/standings.aspx?path=mbball" target="_blank">Big Ten Standings</a>
-    <a href="https://apnews.com/hub/ap-top-25-college-basketball-poll" target="_blank">AP Top 25</a>
+    <a href="https://www.espn.com/mens-college-basketball/rankings" target="_blank">AP Top 25</a>
     <a href="https://www.espn.com/mens-college-basketball/bracketology" target="_blank">Bracketology</a>
     <a href="https://www.youtube.com/results?search_query=purdue+basketball+highlights" target="_blank">Highlights</a>
     <a href="https://247sports.com/college/purdue/Season/2025-Basketball/Commits/" target="_blank">247Sports</a>
@@ -35,74 +35,63 @@
   </nav>
 
   <main>
-    <div class="filters">
+    <div class="filter-bar">
       <label for="source">Source:</label>
-      <select id="source"></select>
-      <span id="updated"></span>
+      <select id="source">
+        <option value="all">All sources</option>
+        <option value="Hammer and Rails">Hammer and Rails</option>
+        <option value="ESPN">ESPN</option>
+        <option value="Sports Illustrated">Sports Illustrated</option>
+        <option value="CBS Sports">CBS Sports</option>
+        <option value="Yahoo Sports">Yahoo Sports</option>
+        <option value="Journal & Courier">Journal & Courier</option>
+        <option value="The Athletic">The Athletic</option>
+        <option value="GoldandBlack.com">GoldandBlack.com</option>
+        <option value="247Sports">247Sports</option>
+        <option value="Rivals">Rivals</option>
+      </select>
+      <span id="last-updated">Updated: Invalid Date</span>
     </div>
-    <div id="articles"></div>
+
+    <div id="feed"></div>
   </main>
 
   <script>
-    const fightBtn = document.getElementById("fight-song");
-    const fightAudio = document.getElementById("fight-audio");
-
-    fightBtn.addEventListener("click", () => {
-      if (fightAudio.paused) {
-        fightAudio.play();
-        fightBtn.textContent = "⏸ Hail Purdue";
+    const audio = document.getElementById("audio");
+    document.getElementById("fight-song").addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play();
       } else {
-        fightAudio.pause();
-        fightBtn.textContent = "▶ Hail Purdue";
+        audio.pause();
       }
     });
 
-    async function loadArticles() {
+    async function loadFeed() {
       try {
         const res = await fetch("items.json");
         const data = await res.json();
+        const feed = document.getElementById("feed");
+        feed.innerHTML = "";
 
-        const select = document.getElementById("source");
-        const container = document.getElementById("articles");
-        const updated = document.getElementById("updated");
-
-        select.innerHTML = `<option value="All sources">All sources</option>`;
-        container.innerHTML = "";
-
-        const sources = [...new Set(data.items.map(i => i.source))];
-        sources.forEach(src => {
-          const opt = document.createElement("option");
-          opt.value = src;
-          opt.textContent = src;
-          select.appendChild(opt);
+        data.items.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <a href="${item.url}" target="_blank">${item.title}</a>
+            <div class="meta">${item.source} · ${new Date(item.published).toLocaleString("en-US")}</div>
+          `;
+          feed.appendChild(card);
         });
 
-        updated.textContent = "Updated: " + new Date(data.updated_at).toLocaleString("en-US");
-
-        function render(filter) {
-          container.innerHTML = "";
-          data.items
-            .filter(i => filter === "All sources" || i.source === filter)
-            .filter(i => !/football/i.test(i.title)) // tighten filter
-            .forEach(i => {
-              const card = document.createElement("div");
-              card.className = "article";
-              card.innerHTML = `
-                <h3><a href="${i.link}" target="_blank">${i.title}</a></h3>
-                <p>${i.source} · ${new Date(i.published).toLocaleString("en-US")}</p>
-              `;
-              container.appendChild(card);
-            });
-        }
-
-        render("All sources");
-        select.addEventListener("change", () => render(select.value));
-      } catch (e) {
-        console.error("Error loading items.json", e);
+        document.getElementById("last-updated").innerText =
+          "Updated: " + new Date(data.updated_at).toLocaleString("en-US");
+      } catch (err) {
+        console.error("Error loading feed:", err);
       }
     }
 
-    loadArticles();
+    loadFeed();
+    setInterval(loadFeed, 60000);
   </script>
 </body>
 </html>
