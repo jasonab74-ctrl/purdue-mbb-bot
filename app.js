@@ -1,150 +1,176 @@
-/* Hardened client that:
-   - fetches ./items.json with cache-busting
-   - filters out obvious football content
-   - populates an 8–10 source dropdown
-   - formats US dates
-   - makes the fight-song button work on iOS (user gesture)
-*/
+/* --------------- HARDENED FRONTEND ----------------
+   Fixes:
+   1) Fight song button works reliably on iOS/Safari (user gesture).
+   2) Dates never show 1970 — robust, defensive parsing.
+   3) Source dropdown will NOT “roll back”: we merge known sources
+      with whatever appears in items.json without removing yours.
+---------------------------------------------------*/
 
-const SOURCE_OPTIONS = [
-  { key: 'all',        label: 'All sources' },
-  { key: 'Hammer and Rails', label: 'Hammer and Rails' },
-  { key: 'PurdueSports.com', label: 'PurdueSports.com' },
-  { key: 'Journal & Courier', label: 'Journal & Courier' },
-  { key: 'GoldandBlack.com', label: 'GoldandBlack.com' },
-  { key: 'ESPN',       label: 'ESPN' },
-  { key: 'Sports Illustrated', label: 'Sports Illustrated' },
-  { key: 'Yahoo Sports', label: 'Yahoo Sports' },
-  { key: 'CBS Sports', label: 'CBS Sports' },
-  { key: 'Big Ten Network', label: 'Big Ten Network' },
-];
+// ---- Fight song ----
+(function wireFightSong() {
+  const btn = document.getElementById('fightBtn');
+  const icon = document.getElementById('fightIcon');
+  const audio = document.getElementById('fightSong');
 
-const FOOTBALL_NEG = [
-  'football','gridiron','ross-ade','qb','quarterback','touchdown',
-  'field goal','ryan walters','walters','running back','linebacker',
-  'safety','cornerback','wide receiver','nfl','big ten football','game at ross-ade'
-];
-
-const sel = (s) => document.querySelector(s);
-const list = sel('#list');
-const sourceSel = sel('#sourceSel');
-const stamp = sel('#stamp');
-
-function fillSources() {
-  sourceSel.innerHTML = SOURCE_OPTIONS
-    .map(o => `<option value="${o.key}">${o.label}</option>`)
-    .join('');
-  sourceSel.value = 'all';
-}
-
-function isBasketballish(text) {
-  if (!text) return true;
-  const t = text.toLowerCase();
-  // exclude obvious football cues
-  if (FOOTBALL_NEG.some(w => t.includes(w))) return false;
-  // include neutral hoops hints
-  const hoopsHints = ['basketball','mbb','m. basketball','men’s basketball','men\'s basketball','mackey'];
-  if (hoopsHints.some(w => t.includes(w))) return true;
-  // if headline mentions Purdue + opponent but no football terms, allow
-  return true;
-}
-
-function formatUSDate(iso) {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: 'numeric', minute: '2-digit'
-    });
-  } catch { return iso || ''; }
-}
-
-function render(items) {
-  list.innerHTML = '';
-  if (!items?.length) {
-    list.innerHTML = `<div class="stamp">No items found.</div>`;
-    return;
-  }
-  const src = sourceSel.value;
-  const filtered = items
-    .filter(x => isBasketballish(`${x.title} ${x.source} ${x.summary || ''}`))
-    .filter(x => src === 'all' ? true : (x.source || '').includes(src));
-
-  if (!filtered.length) {
-    list.innerHTML = `<div class="stamp">No items for that source.</div>`;
-    return;
-  }
-
-  const html = filtered.map(x => `
-    <article class="card">
-      <a class="title" href="${x.link}" target="_blank" rel="noopener">
-        ${x.title}
-      </a>
-      <div class="meta">
-        <span>${x.source || '—'}</span>
-        <span class="dot"></span>
-        <span>${formatUSDate(x.published)}</span>
-      </div>
-    </article>
-  `).join('');
-
-  list.innerHTML = html;
-}
-
-async function load() {
-  try {
-    // cache-busting + explicit same-origin to avoid accidental CDN issues
-    const res = await fetch(`./items.json?ts=${Date.now()}`, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    // Expected shape: [{title, link, source, published, summary?}, ...]
-    // stamp
-    const latest = data?.[0]?.fetched_at || data?.[0]?.published || new Date().toISOString();
-    stamp.textContent = `Updated: ${formatUSDate(latest)}`;
-    render(data || []);
-  } catch (err) {
-    console.error('Failed to load items.json', err);
-    stamp.textContent = 'Updated: (load error)';
-    list.innerHTML = `
-      <div class="card" style="background:#2a2a2a;color:#fff">
-        <div class="title">Couldn’t load the news feed.</div>
-        <div class="meta">Make sure <code>items.json</code> is at the repo root and is valid JSON.</div>
-      </div>`;
-  }
-}
-
-function wireAudio() {
-  const btn = sel('#hailBtn');
-  const audio = sel('#fightSong');
+  // Extra hardening: verify the file is reachable
+  // (preload=auto + this probe helps avoid silent failures)
+  fetch(audio.currentSrc || audio.src, { method: 'HEAD', cache: 'no-store' })
+    .catch(() => { /* ignore; button will show error if needed */ });
 
   let playing = false;
 
-  const setLabel = () => btn.textContent = (playing ? '⏸︎' : '▶︎') + ' Hail Purdue';
-
-  btn.addEventListener('click', async () => {
+  async function togglePlay() {
     try {
       if (!playing) {
-        await audio.play(); // user gesture => allowed on iOS
+        // iOS requires play() from a direct click handler (this is one)
+        await audio.play();
         playing = true;
+        btn.setAttribute('aria-pressed', 'true');
+        icon.textContent = '⏸';
       } else {
         audio.pause();
         playing = false;
+        btn.setAttribute('aria-pressed', 'false');
+        icon.textContent = '▶︎';
       }
-      setLabel();
-    } catch (e) {
-      console.warn('Audio play blocked or missing file', e);
-      alert('Could not play audio. Confirm static/hail-purdue.mp3 exists.');
+    } catch (err) {
+      // Most common cause on iOS is Silent mode or a bad path
+      alert("Could not play audio. If you’re on iPhone, make sure Silent Mode is OFF and tap again.");
+      console.error('Audio play error:', err);
     }
-  });
+  }
 
-  audio.addEventListener('ended', () => { playing = false; setLabel(); });
-  setLabel();
+  btn.addEventListener('click', togglePlay);
+  audio.addEventListener('ended', () => {
+    playing = false;
+    btn.setAttribute('aria-pressed', 'false');
+    icon.textContent = '▶︎';
+  });
+})();
+
+// ---- Date parsing (never 1970) ----
+function parseSafeDate(any) {
+  if (!any) return null;
+  // Accept millis, seconds, or date strings
+  if (typeof any === 'number') {
+    // If it's seconds, convert to ms
+    if (any < 1e12) any = any * 1000;
+    const d = new Date(any);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  if (typeof any === 'string') {
+    // Some feeds give ISO strings; some give RFC2822
+    const d = new Date(any);
+    if (!isNaN(d.getTime())) return d;
+
+    // Try to parse integers inside strings
+    const n = Number(any);
+    if (!Number.isNaN(n)) return parseSafeDate(n);
+  }
+  return null;
 }
 
-fillSources();
-wireAudio();
-sourceSel.addEventListener('change', load);
-load();
+function formatUS(dt) {
+  return dt.toLocaleString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit'
+  });
+}
 
-// Optional auto-refresh every 15 minutes without tearing UI
-setInterval(load, 15 * 60 * 1000);
+// ---- Render list ----
+const listEl = document.getElementById('list');
+const updatedEl = document.getElementById('updatedAt');
+const sourceSelect = document.getElementById('sourceSelect');
+
+// Cache-bust items.json on GH Pages
+const ITEMS_URL = `items.json?v=${Date.now()}`;
+
+let ITEMS = [];
+
+function addMissingSourcesFromItems(items) {
+  const have = new Set([...sourceSelect.options].map(o => o.textContent.trim()));
+  items.forEach(it => {
+    const src = (it.source || it.site || it.by || '').toString().trim();
+    if (src && !have.has(src)) {
+      const opt = document.createElement('option');
+      opt.textContent = src;
+      sourceSelect.appendChild(opt);
+      have.add(src);
+    }
+  });
+}
+
+function render() {
+  const filter = sourceSelect.value;
+  listEl.innerHTML = '';
+
+  // Show updated time = newest item date we can find; fallback to now
+  const dates = [];
+
+  ITEMS
+    .filter(it => {
+      if (filter === '*') return true;
+      const src = (it.source || it.site || it.by || '').toString().trim();
+      return src === filter;
+    })
+    .sort((a,b) => {
+      const da = parseSafeDate(a.published || a.pubDate || a.isoDate || a.date || a.time || a.timestamp) || 0;
+      const db = parseSafeDate(b.published || b.pubDate || b.isoDate || b.date || b.time || b.timestamp) || 0;
+      return (db - da);
+    })
+    .forEach(it => {
+      const d =
+        parseSafeDate(it.published) ||
+        parseSafeDate(it.pubDate)   ||
+        parseSafeDate(it.isoDate)   ||
+        parseSafeDate(it.date)      ||
+        parseSafeDate(it.time)      ||
+        parseSafeDate(it.timestamp);
+
+      if (d) dates.push(d);
+
+      const when = d ? formatUS(d) : '—';
+
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = `
+        <a class="card__title" href="${it.link}" target="_blank" rel="noopener">${it.title}</a>
+        <div class="card__meta">
+          <span class="meta__source">${(it.source || it.site || it.by || '—')}</span>
+          <span class="dot">•</span>
+          <time>${when}</time>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+
+  const newest = dates.sort((a,b)=>b-a)[0] || new Date();
+  updatedEl.textContent = formatUS(newest);
+}
+
+async function boot() {
+  try {
+    const r = await fetch(ITEMS_URL, { cache: 'no-store' });
+    const raw = await r.json();
+
+    // Expect either array or {items:[...]}
+    const arr = Array.isArray(raw) ? raw : Array.isArray(raw.items) ? raw.items : [];
+    ITEMS = arr.map(x => ({
+      title: x.title || x.headline || 'Untitled',
+      link:  x.link  || x.url      || '#',
+      source: (x.source || x.site || x.by || x.feed || '').toString().trim(),
+      published: x.published ?? x.pubDate ?? x.isoDate ?? x.date ?? x.time ?? x.timestamp ?? null
+    }));
+
+    // Harden sources: merge, never delete your preset list
+    addMissingSourcesFromItems(ITEMS);
+
+    render();
+  } catch (e) {
+    console.error('Failed to load items.json:', e);
+    updatedEl.textContent = '—';
+  }
+}
+
+sourceSelect.addEventListener('change', render);
+boot();
