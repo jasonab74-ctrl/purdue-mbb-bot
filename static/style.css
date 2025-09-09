@@ -1,52 +1,34 @@
-:root{
-  --bg:#0f0f0f;
-  --card:#d9c7a3;       /* light gold */
-  --ink:#111;
-  --ink-muted:#4e4e4e;
-  --pill:#e9d8b5;
-  --pill-ink:#222;
-  --brand:#c2ad83;
-  --ring:#6b5b3e;
-  --divider:#b59c6b66;
-  --link:#1e1e1e;
-  --maxw:1100px;
-  font-synthesis-weight:none;
+/* Keep your theme — this only touches article styling & links. */
+
+a { text-decoration: none; }
+a:hover, a:focus { text-decoration: underline; }
+
+.news-card {
+  background: #DAC6A6;         /* light gold card */
+  color: #111;                  /* dark text */
+  border-radius: 14px;
+  padding: 18px 18px 14px;
+  margin: 14px 0;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.1) inset;
 }
 
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:#f5f5f5;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+.item-title {
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 800;             /* bold title */
+  margin: 0 0 6px;
+}
 
-a{color:#0b0b0b;text-decoration:none}
-a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:10px}
+.item-title a { color: inherit; } /* clickable title, no underline by default */
 
-.hero{max-width:var(--maxw);margin:24px auto 8px;display:flex;gap:16px;align-items:center;padding:0 16px}
-.hero .logo{width:56px;height:auto;flex:0 0 auto;filter:drop-shadow(0 0 0 transparent)}
-.hero-titles h1{margin:0 0 6px;font-weight:800;letter-spacing:.2px}
-.hero-titles .dash{opacity:.7}
-.tagline{margin:0;color:#cfcfcf}
+.item-meta {
+  font-size: 14px;
+  opacity: 0.9;
+}
 
-.chips{max-width:var(--maxw);margin:8px auto 10px;display:flex;flex-wrap:wrap;gap:12px;padding:0 16px}
-.pill{appearance:none;border:0;border-radius:28px;padding:10px 16px;background:var(--pill);color:var(--pill-ink);font-weight:700;box-shadow:0 2px 0 #00000055;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
-.pill.primary{background:var(--brand);}
+.meta-source { font-weight: 600; }
 
-.controls{max-width:var(--maxw);margin:4px auto 6px;padding:0 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-top:2px solid var(--divider)}
-.lbl{font-weight:700}
-.select{flex:0 0 260px;background:#1b1b1b;color:#eee;border:1px solid #2a2a2a;border-radius:14px;padding:10px 12px}
-
-.updated{margin-left:auto;color:#bbb}
-
-.feed{max-width:var(--maxw);margin:6px auto 40px;padding:0 16px;display:grid;gap:12px}
-
-/* Article card */
-.card{background:var(--card);color:var(--ink);border-radius:14px;padding:16px 16px 14px;box-shadow:0 1px 0 #00000066}
-.card-title{margin:0 0 8px;font-size:1.05rem;font-weight:800}
-.card-title a{color:var(--link);text-decoration:none}
-.card-meta{color:var(--ink-muted);font-size:.92rem;display:flex;gap:8px;align-items:center}
-.dot{width:4px;height:4px;border-radius:99px;background:#6d634f;display:inline-block}
-.hidden{display:none}
-
-@media (max-width:560px){
-  .hero{align-items:flex-start}
-  .hero .logo{width:46px}
-  .select{flex:1 1 100%}
+/* Logo stays tidy and never explodes */
+.team-logo {
+  width: 44px; height: 44px; object-fit: contain; display: block;
 }
