@@ -1,214 +1,144 @@
-<script>
-/* ---------------------------
-   Purdue MBB – front-end only
-   Fixes: stable sources list, US dates, clean titles (no underline)
-   --------------------------- */
-
-const ITEMS_URL = 'items.json';
-
-/** A hard, stable list so the dropdown never goes empty.
- * We merge this with whatever appears in items.json. */
-const FIXED_SOURCES = [
-  'Yahoo Sports',
-  'Google News',
-  'Hammer and Rails',
-  'ESPN',
-  'Sports Illustrated',
-  'Journal & Courier',
-  'GoldandBlack',
-  'The Athletic',
-  'CBS Sports',
-  'Big Ten Network'
+/* ----- 8–10 fixed Purdue MBB sources for a stable dropdown ----- */
+const SOURCES = [
+  { key: 'All sources', label: 'All sources' },
+  { key: 'Yahoo Sports', label: 'Yahoo Sports' },
+  { key: 'Google News', label: 'Google News' },
+  { key: 'Hammer and Rails', label: 'Hammer and Rails' },
+  { key: 'ESPN', label: 'ESPN' },
+  { key: 'Sports Illustrated', label: 'Sports Illustrated' },
+  { key: 'Journal & Courier', label: 'Journal & Courier' },
+  { key: 'GoldandBlack', label: 'GoldandBlack' },
+  { key: 'The Athletic', label: 'The Athletic' },
+  { key: 'CBS Sports', label: 'CBS Sports' },
+  { key: 'Big Ten Network', label: 'Big Ten Network' }
 ];
 
-const els = {
-  select:  document.getElementById('source-select'),
-  updated: document.getElementById('updated-at'),
-  list:    document.getElementById('items-list'),
-};
+/* DOM */
+const feedEl        = document.getElementById('feed');
+const sel           = document.getElementById('sourceSelect');
+const updatedEl     = document.getElementById('updatedAt');
+const songBtn       = document.getElementById('songBtn');
+const fightAudio    = document.getElementById('fightAudio');
 
-// ---- Utilities -------------------------------------------------------------
-
-function formatUS(date) {
-  try {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: 'numeric', minute: '2-digit'
-    }).format(date);
-  } catch {
-    return '';
-  }
-}
-
-/** iOS Safari is picky about non-ISO strings. Prefer isoDate; otherwise
- * parse common “Sep 8, 2025 at 2:09 PM” style manually. */
-function toDate(obj) {
-  if (obj.isoDate) {
-    const d = new Date(obj.isoDate);
-    if (!isNaN(d)) return d;
-  }
-  if (obj.published || obj.pubDate) {
-    const s = String(obj.published || obj.pubDate);
-    // Try adding timezone if missing
-    let d = new Date(s);
-    if (!isNaN(d)) return d;
-
-    // Manual US parser: "Sep 8, 2025 at 2:09 PM" or "Sep 8, 2025, 2:09 PM"
-    const re = /([A-Za-z]{3,9})\s+(\d{1,2}),\s*(\d{4}).*?(\d{1,2}):(\d{2})\s*(AM|PM)/i;
-    const m = s.match(re);
-    if (m) {
-      const months = {
-        January:0, February:1, March:2, April:3, May:4, June:5,
-        July:6, August:7, September:8, October:9, November:10, December:11,
-        Jan:0, Feb:1, Mar:2, Apr:3, Jun:5, Jul:6, Aug:7, Sep:8, Sept:8, Oct:9, Nov:10, Dec:11
-      };
-      const mon = months[m[1]];
-      if (mon != null) {
-        let hr = Number(m[4]) % 12;
-        if (m[6].toUpperCase() === 'PM') hr += 12;
-        const dt = new Date(
-          Number(m[3]), mon, Number(m[2]),
-          hr, Number(m[5]), 0
-        );
-        if (!isNaN(dt)) return dt;
-      }
-    }
-  }
-  return null;
-}
-
-function unique(arr) {
-  return Array.from(new Set(arr.filter(Boolean)));
-}
-
-// ---- Rendering -------------------------------------------------------------
-
-function buildCard(item) {
-  const a = document.createElement('article');
-  a.className = 'news-card';
-
-  const title = document.createElement('h3');
-  title.className = 'item-title';
-  const link  = document.createElement('a');
-  link.href = item.link;
-  link.target = '_blank';
-  link.rel = 'noopener';
-  link.textContent = item.title || '(untitled)';
-  title.appendChild(link);
-
-  const meta = document.createElement('div');
-  meta.className = 'item-meta';
-  const src = document.createElement('span');
-  src.className = 'meta-source';
-  src.textContent = item.source || '—';
-  const dot = document.createElement('span');
-  dot.textContent = ' • ';
-  const time = document.createElement('time');
-  if (item._date) time.textContent = formatUS(item._date);
-
-  meta.appendChild(src);
-  meta.appendChild(dot);
-  meta.appendChild(time);
-
-  a.appendChild(title);
-  a.appendChild(meta);
-
-  return a;
-}
-
-function render(items, sourceFilter) {
-  els.list.innerHTML = '';
-  const filtered = sourceFilter && sourceFilter !== 'All sources'
-    ? items.filter(i => (i.source || '').toLowerCase() === sourceFilter.toLowerCase())
-    : items;
-
-  filtered.forEach(i => els.list.appendChild(buildCard(i)));
-}
-
-// ---- Bootstrap -------------------------------------------------------------
-
-async function main() {
-  let data = [];
-  try {
-    const resp = await fetch(ITEMS_URL, {cache: 'no-store'});
-    data = await resp.json();
-  } catch (e) {
-    console.error('items.json fetch failed', e);
-    data = [];
-  }
-
-  // Normalize items
-  const items = (data || []).map(x => {
-    const obj = {
-      title: x.title ?? x.headline ?? '',
-      link:  x.link  ?? x.url      ?? '#',
-      source: x.source ?? x.site ?? x.feed ?? '',
-    };
-    obj._date = toDate(x);
-    return obj;
-  });
-
-  // Updated stamp: show the newest good date if present,
-  // otherwise use "just now" so it never says 1970.
-  const newest = items
-    .map(i => i._date)
-    .filter(Boolean)
-    .sort((a,b) => b - a)[0];
-  els.updated.textContent = newest ? formatUS(newest) : 'just now';
-
-  // Stable sources list = FIXED_SOURCES ∪ discovered
-  const discovered = unique(items.map(i => i.source));
-  const allSources = unique(['All sources', ...FIXED_SOURCES, ...discovered]);
-
-  // Populate dropdown once, in order
-  els.select.innerHTML = '';
-  for (const s of allSources) {
+/* Build dropdown from the fixed list (never “rolls back”) */
+(function buildDropdown(){
+  sel.innerHTML = '';
+  for (const s of SOURCES) {
     const opt = document.createElement('option');
-    opt.value = opt.textContent = s;
-    els.select.appendChild(opt);
+    opt.value = s.key;
+    opt.textContent = s.label;
+    sel.appendChild(opt);
   }
+  sel.value = 'All sources';
+})();
 
-  // Keep previous selection if still present
-  const saved = localStorage.getItem('sourceFilter');
-  if (saved && allSources.includes(saved)) els.select.value = saved;
-
-  // Initial render
-  render(items, els.select.value);
-
-  // Wire up changes
-  els.select.addEventListener('change', () => {
-    localStorage.setItem('sourceFilter', els.select.value);
-    render(items, els.select.value);
-  });
-
-  // Expose minimal hook for the play button (non-breaking)
-  window.__playHailPurdue = async function() {
-    const candidates = [
-      'static/fight song.mp3',      // your file name (with space)
-      'static/fight%20song.mp3',    // URL-encoded fallback
-      'static/hail-purdue.mp3',     // conventional name fallback
-    ];
-    const src = await (async () => {
-      for (const url of candidates) {
-        try {
-          const r = await fetch(url, {method: 'HEAD', cache: 'no-store'});
-          if (r.ok) return url;
-        } catch {}
-      }
-      return null;
-    })();
-
-    if (!src) {
-      alert('Could not play audio. Make sure the MP3 exists in /static (e.g., "fight song.mp3" or "hail-purdue.mp3").');
-      return;
-    }
-
-    const audio = new Audio(src);
-    audio.play().catch(() => {
-      alert('Could not play audio. On iPhone, make sure Silent Mode is off and tap again.');
-    });
-  };
+/* Load items.json (cache-bust to avoid old GH Pages cache) */
+async function loadItems(){
+  const cacheBust = `?v=${Date.now().toString().slice(0,10)}`;
+  const res = await fetch(`items.json${cacheBust}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const items = await res.json();
+  return Array.isArray(items) ? items : (items.items || []);
 }
 
-document.addEventListener('DOMContentLoaded', main);
-</script>
+/* Robust date parsing (handles ISO, RFC822, “Sep 8, 2025 at 7:01 AM”, etc.) */
+function parseDate(d){
+  if (!d) return null;
+  // strip " at " if present
+  const cleaned = typeof d === 'string' ? d.replace(/\sat\s/i, ' ') : d;
+  const t = Date.parse(cleaned);
+  if (!Number.isNaN(t)) return new Date(t);
+  try { return new Date(cleaned); } catch { return null; }
+}
+
+/* Render feed cards (50 most recent) */
+let allItems = [];
+function render(){
+  const pick = sel.value;
+  let items = allItems;
+
+  if (pick && pick !== 'All sources') {
+    items = items.filter(it => (it.source || '').toLowerCase() === pick.toLowerCase());
+  }
+
+  // Sort newest first
+  items.sort((a,b) => (parseDate(b.isoDate || b.date) ?? 0) - (parseDate(a.isoDate || a.date) ?? 0));
+  items = items.slice(0, 50);
+
+  // Updated time = newest item date (fallback to now)
+  const newest = items.find(it => parseDate(it.isoDate || it.date));
+  updatedEl.textContent = newest ? formatLocal(parseDate(newest.isoDate || newest.date)) : '—';
+
+  // Cards
+  feedEl.innerHTML = '';
+  for (const it of items) {
+    const card = document.createElement('article');
+    card.className = 'card';
+
+    const h3 = document.createElement('h3');
+    h3.className = 'item-title';
+    const a = document.createElement('a');
+    a.href = it.link;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = it.title || 'Untitled';
+    h3.appendChild(a);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const src = document.createElement('span');
+    src.textContent = it.source || '—';
+    const dot = document.createElement('span');
+    dot.textContent = '•';
+    const when = document.createElement('time');
+    const dt = parseDate(it.isoDate || it.date || it.pubDate);
+    when.dateTime = dt ? dt.toISOString() : '';
+    when.textContent = dt ? formatLocal(dt) : '—';
+
+    meta.append(src, dot, when);
+    card.append(h3, meta);
+    feedEl.appendChild(card);
+  }
+}
+
+function formatLocal(d){
+  // Example: Sep 9, 2025 at 4:04 PM
+  const opts = { year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' };
+  return `${d.toLocaleDateString(undefined, opts)} at ${d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'})}`;
+}
+
+/* Init */
+(async function(){
+  try {
+    allItems = await loadItems();
+  } catch (e) {
+    console.error('Failed to load items.json', e);
+    allItems = [];
+  }
+  render();
+})();
+
+/* Interactions */
+sel.addEventListener('change', render);
+
+/* Fight song: play / pause toggle (iOS requires user gesture) */
+songBtn.addEventListener('click', async () => {
+  try{
+    if (fightAudio.paused) {
+      await fightAudio.play();
+      songBtn.setAttribute('aria-pressed', 'true');
+      songBtn.querySelector('.pill__icon').textContent = '❚❚';
+      songBtn.lastElementChild.textContent = 'Pause';
+    } else {
+      fightAudio.pause();
+      fightAudio.currentTime = 0;
+      songBtn.setAttribute('aria-pressed', 'false');
+      songBtn.querySelector('.pill__icon').textContent = '►';
+      songBtn.lastElementChild.textContent = 'Hail Purdue';
+    }
+  }catch(err){
+    // Give a helpful hint without crashing
+    alert('Could not play audio. On iPhone, make sure Silent Mode is off and tap again. Also verify that static/fight-song.mp3 exists.');
+    console.warn(err);
+  }
+});
