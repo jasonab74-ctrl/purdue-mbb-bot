@@ -4,183 +4,183 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Purdue Boilermakers — Men’s Basketball</title>
-  <meta name="description" content="Live team feed • auto-updates" />
-  <link rel="icon" href="static/logo.png">
-  <link rel="apple-touch-icon" href="static/logo.png">
+  <link rel="icon" href="static/logo.png" />
+  <link rel="apple-touch-icon" href="static/logo.png" />
   <link rel="stylesheet" href="static/style.css" />
+  <meta name="theme-color" content="#0b0b0b" />
 </head>
 <body>
-
-<header class="hero">
-  <div class="brand">
-    <img class="logo" src="static/logo.png" alt="Purdue P" />
-    <div class="titles">
+  <header class="hero">
+    <img src="static/logo.png" alt="Purdue P logo" class="logo" width="40" height="40" />
+    <div class="hero-text">
       <h1>Purdue Boilermakers — Men’s Basketball</h1>
-      <p class="tagline">Live team feed · auto-updates</p>
+      <p class="sub">Live team feed · auto-updates</p>
     </div>
-  </div>
 
-  <button id="fightBtn" class="pill primary" aria-pressed="false">
-    <span id="fightIcon">▶︎</span> Hail Purdue
-  </button>
+    <button id="songBtn" class="song pill" aria-pressed="false">
+      <span class="play">▶</span> Hail Purdue
+    </button>
+    <audio id="song" preload="none" src="static/hail-purdue.mp3"></audio>
+  </header>
 
-  <!-- Inline audio (hardened: single element, no new tab) -->
-  <audio id="fightAudio" src="static/fight-song.mp3" preload="auto"></audio>
-</header>
+  <nav class="links">
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/schedule">Schedule</a>
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/roster">Roster</a>
+    <a class="pill" href="https://purduesports.com/tickets">Tickets</a>
+    <a class="pill" href="https://www.reddit.com/r/Boilermakers/">Reddit — r/Boilermakers</a>
+    <a class="pill" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers">ESPN Team</a>
+    <a class="pill" href="https://kenpom.com/">KenPom</a>
+    <a class="pill" href="https://www.sports-reference.com/cbb/schools/purdue/">Sports-Reference</a>
+    <a class="pill" href="https://bigten.org/standings.aspx?path=mbball">Big Ten Standings</a>
+    <a class="pill" href="https://apnews.com/hub/ap-top-25-college-basketball-poll">AP Top 25</a>
+    <a class="pill" href="https://www.youtube.com/results?search_query=Purdue+basketball+highlights">Highlights</a>
+    <a class="pill" href="https://247sports.com/college/purdue/">247Sports</a>
+    <a class="pill" href="https://www.cbssports.com/college-basketball/teams/PURDU/purdue-boilermakers/">CBS Purdue</a>
+    <a class="pill" href="https://purdue.rivals.com/">Rivals</a>
+  </nav>
 
-<nav class="quicklinks">
-  <a class="pill" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
-  <a class="pill" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
-  <a class="pill" href="https://purduesports.com/tickets/" target="_blank" rel="noopener">Tickets</a>
-  <a class="pill" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
-  <a class="pill" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
-  <a class="pill" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
-  <a class="pill" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
-  <a class="pill" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
-  <a class="pill" href="https://apnews.com/hub/ap-top-25-college-basketball-poll" target="_blank" rel="noopener">AP Top 25</a>
-  <a class="pill" href="https://www.espn.com/mens-college-basketball/story/_/id/36363091/bracketology-joe-lunardi" target="_blank" rel="noopener">Bracketology</a>
-  <a class="pill" href="https://www.youtube.com/results?search_query=Purdue+Basketball+highlights" target="_blank" rel="noopener">Highlights</a>
-  <a class="pill" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
-  <a class="pill" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
-  <a class="pill" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
-</nav>
+  <section class="bar">
+    <div class="bar-left">
+      <label for="sourceSel">Source:</label>
+      <select id="sourceSel"></select>
+    </div>
+    <div class="bar-right">
+      <span id="updatedLabel">Updated: —</span>
+      <button id="refreshBtn" class="pill small" title="Refresh now">↻</button>
+    </div>
+  </section>
 
-<section class="controls">
-  <label for="sourceSel">Source:</label>
-  <select id="sourceSel"></select>
+  <main id="feed" class="feed"></main>
 
-  <div class="updated">
-    Updated: <span id="updatedAt">—</span>
-  </div>
-</section>
-
-<main id="feed" class="feed"></main>
-
-<footer class="footer">
-  <a class="muted" href="items.json" target="_blank" rel="noopener">items.json</a>
-</footer>
-
-<script>
-/* -----------------------------
-   HARDENED: Stable sources list
-   ----------------------------- */
-const TEAM_SOURCES = [
-  "PurdueSports.com",
-  "Journal & Courier",
-  "GoldandBlack.com",
-  "Hammer and Rails",
-  "The Athletic",
-  "ESPN",
-  "Yahoo Sports",
-  "Sports Illustrated",
-  "CBS Sports",
-  "Big Ten Network"
-];
-
-/* US date/time formatter (no underlines anywhere) */
-const fmt = new Intl.DateTimeFormat("en-US", {
-  month: "short", day: "numeric", year: "numeric",
-  hour: "numeric", minute: "2-digit"
-});
-
-/* Render source dropdown deterministically */
-const sourceSel = document.getElementById('sourceSel');
-function renderSources() {
-  sourceSel.innerHTML = "";
-  const optAll = document.createElement('option');
-  optAll.value = "";
-  optAll.textContent = "All sources";
-  sourceSel.appendChild(optAll);
-  TEAM_SOURCES.forEach(s => {
-    const o = document.createElement('option');
-    o.value = s; o.textContent = s;
-    sourceSel.appendChild(o);
-  });
-}
-
-/* Fetch items.json and render */
-async function loadFeed() {
-  try {
-    const res = await fetch('items.json', { cache: 'no-store' });
-    const items = await res.json();
-    const updatedEl = document.getElementById('updatedAt');
-    updatedEl.textContent = items.updated
-      ? fmt.format(new Date(items.updated))
-      : "—";
-    window.__ALL_ITEMS__ = (items.items || []).map(normalizeItem);
-    draw();
-  } catch (e) {
-    console.error(e);
-    document.getElementById('feed').innerHTML =
-      `<div class="card muted">Unable to load items.json</div>`;
-  }
-}
-
-/* Normalize one item */
-function normalizeItem(it) {
-  return {
-    title: it.title || "",
-    link: it.link || "#",
-    source: it.source || it.publisher || "",
-    ts: it.published ? new Date(it.published) :
-        (it.isoDate ? new Date(it.isoDate) : null)
-  };
-}
-
-/* Apply source filter and render cards */
-function draw() {
-  const feed = document.getElementById('feed');
-  const sel = sourceSel.value || "";
-  const items = (window.__ALL_ITEMS__ || [])
-    .filter(it => !sel || (it.source || "").toLowerCase() === sel.toLowerCase());
-  if (!items.length) {
-    feed.innerHTML = `<div class="card muted">No items found.</div>`;
-    return;
-  }
-  // newest first if timestamps exist
-  items.sort((a, b) => (b.ts?.getTime() || 0) - (a.ts?.getTime() || 0));
-
-  feed.innerHTML = items.map(it => `
+  <template id="cardTpl">
     <article class="card">
-      <a class="title" href="${it.link}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a>
+      <a class="title" target="_blank" rel="noopener"></a>
       <div class="meta">
-        <span>${escapeHtml(it.source || "")}</span>
+        <span class="source"></span>
         <span class="dot">•</span>
-        <time>${it.ts ? fmt.format(it.ts) : ""}</time>
+        <time class="time"></time>
       </div>
     </article>
-  `).join("");
-}
+  </template>
 
-function escapeHtml(s){return s.replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+  <script>
+    const FEED_URL = 'items.json';
+    const feedEl = document.getElementById('feed');
+    const sel = document.getElementById('sourceSel');
+    const updatedLabel = document.getElementById('updatedLabel');
+    const refreshBtn = document.getElementById('refreshBtn');
 
-/* Audio toggle (hardened: no new window) */
-const fightBtn = document.getElementById('fightBtn');
-const fightIcon = document.getElementById('fightIcon');
-const fightAudio = document.getElementById('fightAudio');
-fightBtn.addEventListener('click', async () => {
-  try {
-    if (fightAudio.paused) {
-      await fightAudio.play();
-      fightBtn.setAttribute('aria-pressed', 'true');
-      fightIcon.textContent = '⏸';
-    } else {
-      fightAudio.pause();
-      fightBtn.setAttribute('aria-pressed', 'false');
-      fightIcon.textContent = '▶︎';
+    // persist selected source across auto-refreshes
+    const SRC_KEY = 'purdue_mbb_source';
+    function savedSource() { return localStorage.getItem(SRC_KEY) || 'All sources'; }
+    function saveSource(v){ localStorage.setItem(SRC_KEY, v); }
+
+    function fmt(dt) {
+      const d = new Date(dt);
+      return d.toLocaleString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit'
+      });
     }
-  } catch(e) {
-    console.error(e);
-  }
-});
 
-/* Wire up */
-renderSources();
-sourceSel.addEventListener('change', draw);
-loadFeed();
+    function fmtTime(epochSec) {
+      const d = new Date(epochSec*1000);
+      return d.toLocaleString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: 'numeric', minute: '2-digit'
+      });
+    }
 
-/* Gentle auto-check without page thrash */
-setInterval(loadFeed, 5 * 60 * 1000); // every 5 minutes
-</script>
+    function buildDropdown(items) {
+      const sources = Array.from(new Set(items.map(i => i.source))).sort();
+      const want = savedSource();
+      sel.innerHTML = '';
+      const optAll = document.createElement('option');
+      optAll.value = 'All sources';
+      optAll.textContent = 'All sources';
+      sel.appendChild(optAll);
+      for (const s of sources) {
+        const o = document.createElement('option');
+        o.value = s; o.textContent = s;
+        sel.appendChild(o);
+      }
+      sel.value = sources.includes(want) || want === 'All sources' ? want : 'All sources';
+    }
+
+    function render(items) {
+      feedEl.innerHTML = '';
+      const tpl = document.getElementById('cardTpl');
+      const filter = sel.value;
+      for (const it of items) {
+        if (filter !== 'All sources' && it.source !== filter) continue;
+        const node = tpl.content.cloneNode(true);
+        const a = node.querySelector('.title');
+        a.href = it.link;
+        a.textContent = it.title;
+        node.querySelector('.source').textContent = it.source;
+        node.querySelector('.time').textContent = fmtTime(it.published || (Date.now()/1000|0));
+        feedEl.appendChild(node);
+      }
+    }
+
+    async function load(andRender=true) {
+      const r = await fetch(FEED_URL, {cache:'no-cache'});
+      if (!r.ok) throw new Error('items.json fetch failed');
+      const data = await r.json();
+      updatedLabel.textContent = 'Updated: ' + fmt(data.updated || Date.now());
+      buildDropdown(data.items || []);
+      if (andRender) render(data.items || []);
+      return data;
+    }
+
+    sel.addEventListener('change', () => {
+      saveSource(sel.value);
+      load().then(d => render(d.items || [])).catch(()=>{});
+    });
+
+    refreshBtn.addEventListener('click', () => {
+      const keep = sel.value;
+      load().then(d => {
+        sel.value = keep;
+        render(d.items || []);
+      }).catch(()=>{});
+    });
+
+    // Soft auto-refresh every 5 min; keep selection stable
+    setInterval(async () => {
+      const keep = sel.value;
+      try {
+        const d = await load(false);
+        sel.value = keep;
+        render(d.items || []);
+      } catch(e) {}
+    }, 5*60*1000);
+
+    // song button
+    const song = document.getElementById('song');
+    const songBtn = document.getElementById('songBtn');
+    let playing = false;
+    songBtn.addEventListener('click', async () => {
+      try {
+        if (!playing) {
+          await song.play();
+          playing = true;
+          songBtn.setAttribute('aria-pressed', 'true');
+          songBtn.querySelector('.play').textContent = '⏸';
+        } else {
+          song.pause();
+          playing = false;
+          songBtn.setAttribute('aria-pressed', 'false');
+          songBtn.querySelector('.play').textContent = '▶';
+        }
+      } catch (e) {
+        // Ignore (mobile needs user interaction – button press counts)
+      }
+    });
+    window.addEventListener('pagehide', ()=>song.pause());
+
+    // initial load
+    load().catch(()=>{});
+  </script>
 </body>
 </html>
