@@ -3,163 +3,161 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Purdue Boilermakers — Men’s Basketball</title>
-  <link rel="preload" as="audio" href="static/hail-purdue.mp3" />
+  <title>Purdue Boilermakers — Men's Basketball</title>
+
+  <!-- HARDENED: fixed path to CSS -->
+  <link rel="stylesheet" href="static/style.css?v=20250908a">
   <link rel="icon" href="static/logo.png">
-  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
-  <header class="site-header">
-    <img class="team-logo" src="static/logo.png" alt="Purdue logo" width="48" height="48" />
-    <div class="title-wrap">
-      <h1 class="title">Purdue Boilermakers — Men’s Basketball</h1>
-      <p class="subtitle">Live team feed · auto-updates</p>
+  <header class="header">
+    <img class="logo" src="static/logo.png" alt="Purdue P">
+    <div class="titlewrap">
+      <h1 class="title">Purdue Boilermakers —<br>Men’s Basketball</h1>
+      <div class="sub">Live team feed · auto-updates</div>
     </div>
-    <button id="fightBtn" class="pill primary" type="button" aria-label="Play Hail Purdue">
-      <span class="playdot">►</span> Hail Purdue
+
+    <button id="songBtn" class="song-btn" aria-label="Play Hail Purdue">
+      <span id="songIcon">▶︎</span> Hail Purdue
     </button>
-    <audio id="song" preload="auto">
-      <source src="static/hail-purdue.mp3" type="audio/mpeg" />
-    </audio>
+    <audio id="song" preload="auto" src="static/hail-purdue.mp3"></audio>
   </header>
 
-  <nav class="links">
-    <a class="pill" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
-    <a class="pill" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
-    <a class="pill" href="https://purduesports.com/sports/mens-basketball/tickets" target="_blank" rel="noopener">Tickets</a>
-    <a class="pill" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
-    <a class="pill" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
-    <a class="pill" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
-    <a class="pill" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
-    <a class="pill" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
-    <a class="pill" href="https://www.espn.com/mens-college-basketball/rankings" target="_blank" rel="noopener">AP Top 25</a>
-    <a class="pill" href="https://www.espn.com/mens-college-basketball/bracketology" target="_blank" rel="noopener">Bracketology</a>
-    <a class="pill" href="https://www.youtube.com/results?search_query=Purdue+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
-    <a class="pill" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
-    <a class="pill" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
-    <a class="pill" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
+  <nav class="chipbar" aria-label="Quick links">
+    <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
+    <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
+    <a class="chip" href="https://purduesports.evenue.net/" target="_blank" rel="noopener">Tickets</a>
+    <a class="chip" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
+    <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
+    <a class="chip" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
+    <a class="chip" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
+    <a class="chip" href="https://www.bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
+    <a class="chip" href="https://apnews.com/hub/ap-top-25-mens-college-basketball-poll" target="_blank" rel="noopener">AP Top 25</a>
+    <a class="chip" href="https://www.espn.com/mens-college-basketball/story/_/id/30604880/bracketology" target="_blank" rel="noopener">Bracketology</a>
+    <a class="chip" href="https://www.youtube.com/results?search_query=purdue+mbb+highlights" target="_blank" rel="noopener">Highlights</a>
+    <a class="chip" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
+    <a class="chip" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
+    <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
   </nav>
 
-  <section class="controls">
-    <label for="srcSel" class="label">Source:</label>
-    <select id="srcSel" class="select">
-      <!-- Hardened, known-good sources -->
-      <option value="__all__" selected>All sources</option>
-      <option>Hammer and Rails</option>
-      <option>Google News</option>
-      <option>PurdueSports.com</option>
-      <option>Journal &amp; Courier</option>
-      <option>GoldandBlack.com</option>
-      <option>The Athletic</option>
-      <option>ESPN</option>
-      <option>Sports Illustrated</option>
-      <option>CBS Sports</option>
-      <option>Big Ten Network</option>
-      <option>Yahoo Sports</option>
+  <section class="toolbar">
+    <label for="sourceSel" class="source-label">Source:</label>
+    <select id="sourceSel" class="source-select" aria-label="Choose news source">
+      <!-- HARDENED: fixed list so it never shrinks -->
+      <option value="all">All sources</option>
+      <option value="Hammer and Rails">Hammer and Rails</option>
+      <option value="Journal & Courier">Journal & Courier</option>
+      <option value="GoldandBlack.com">GoldandBlack.com</option>
+      <option value="The Athletic">The Athletic</option>
+      <option value="ESPN">ESPN</option>
+      <option value="Yahoo Sports">Yahoo Sports</option>
+      <option value="Sports Illustrated">Sports Illustrated</option>
+      <option value="CBS Sports">CBS Sports</option>
+      <option value="Big Ten Network">Big Ten Network</option>
+      <option value="Google News">Google News</option>
     </select>
 
-    <div class="updated">
-      <span class="label">Updated:</span>
-      <time id="updatedTs">—</time>
-    </div>
+    <div id="updated" class="updated" role="status" aria-live="polite"></div>
   </section>
 
-  <main id="feed" class="feed"></main>
-
-  <template id="cardTmpl">
-    <article class="card">
-      <a class="title-link" target="_blank" rel="noopener"></a>
-      <div class="meta">
-        <span class="source"></span>
-        <span class="dot">•</span>
-        <time class="when"></time>
-      </div>
-    </article>
-  </template>
+  <main id="feed" class="feed" aria-live="polite">
+    <!-- Cards injected here -->
+  </main>
 
   <script>
-    // ------- FIGHT SONG -------
-    const fightBtn = document.getElementById('fightBtn');
-    const song = document.getElementById('song');
-    let playing = false;
-    fightBtn.addEventListener('click', () => {
-      if (!playing) { song.currentTime = 0; song.play(); fightBtn.classList.add('paused'); }
-      else { song.pause(); fightBtn.classList.remove('paused'); }
-      playing = !playing;
+    // ---- Audio button (never opens a new page)
+    (function () {
+      const btn = document.getElementById('songBtn');
+      const icon = document.getElementById('songIcon');
+      const audio = document.getElementById('song');
+      let playing = false;
+      btn.addEventListener('click', () => {
+        if (!playing) { audio.play(); icon.textContent = '❚❚'; }
+        else { audio.pause(); icon.textContent = '▶︎'; }
+        playing = !playing;
+      });
+      audio.addEventListener('ended', () => { playing = false; icon.textContent = '▶︎'; });
+    })();
+
+    // ---- Feed rendering (hardened)
+    const FEED_EL = document.getElementById('feed');
+    const UPDATED_EL = document.getElementById('updated');
+    const SEL = document.getElementById('sourceSel');
+
+    // remember last selection
+    SEL.value = localStorage.getItem('purdue_mbb_source') || 'all';
+    SEL.addEventListener('change', () => {
+      localStorage.setItem('purdue_mbb_source', SEL.value);
+      render();
     });
-    song.addEventListener('ended', () => { playing = false; fightBtn.classList.remove('paused'); });
 
-    // ------- FEED -------
-    const feedEl = document.getElementById('feed');
-    const updatedEl = document.getElementById('updatedTs');
-    const srcSel = document.getElementById('srcSel');
-
-    // Small helper: en-US date/time
-    const fmt = new Intl.DateTimeFormat('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: 'numeric', minute: '2-digit'
-    });
-
-    // Very light sport filter to avoid stray football posts
-    const BBALL_HINTS = [
-      'mbb','basketball','boilermakers', 'big ten', 'bracket', 'kenpom',
-      'matt painter','mackey','boiler','guard','forward','center','ncaa'
+    // simple football filter heuristics
+    const FOOTBALL_HINTS = [
+      'football','fb','gridiron','quarterback','wide receiver','running back','coach walters',
+      'ross-ade','boilermaker ball','b1g football','pigskin'
     ];
 
-    function seemsBasketball(title) {
-      const t = (title || '').toLowerCase();
-      // reject obvious football hints
-      if (/(football|qb|touchdown|wide receiver|running back|nfl|helmet)/.test(t)) return false;
-      // allow if any bball hint is present, else neutral (true)
-      return BBALL_HINTS.some(k => t.includes(k)) || true;
+    function looksLikeFootball(item) {
+      const t = (item.title || '').toLowerCase();
+      const s = (item.source || '').toLowerCase();
+      // obvious football words
+      if (FOOTBALL_HINTS.some(k => t.includes(k) || s.includes(k))) return true;
+      // allow if the title contains strong basketball hints
+      const bbHints = ['mbb','basketball','boilermakers men','m. basketball','purdue hoops','zach edey','big ten media day'];
+      if (bbHints.some(k => t.includes(k))) return false;
+      // otherwise neutral -> keep
+      return false;
     }
 
-    async function load() {
+    // load items.json and render
+    async function render() {
       try {
-        const res = await fetch('items.json', {cache:'no-store'});
-        const data = await res.json();
-        const items = (data.items || data || []).filter(x => x && x.title && seemsBasketball(x.title));
+        const res = await fetch('items.json', { cache: 'no-store' });
+        const items = await res.json();
 
-        render(items);
-        const t = data.updated || new Date().toISOString();
-        updatedEl.textContent = fmt.format(new Date(t));
+        const srcFilter = SEL.value;
+        const filtered = items
+          .filter(it => !looksLikeFootball(it))
+          .filter(it => srcFilter === 'all' ? true : (it.source === srcFilter));
+
+        FEED_EL.innerHTML = filtered.map(cardHtml).join('') || '<div class="empty">No stories yet.</div>';
+
+        // Updated line (U.S. format)
+        const now = new Date();
+        UPDATED_EL.textContent =
+          `Updated: ${now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
       } catch (e) {
-        console.error(e);
-        updatedEl.textContent = '—';
-        feedEl.innerHTML = '<p class="empty">No items found.</p>';
+        FEED_EL.innerHTML = '<div class="empty">Could not load items.json</div>';
+        UPDATED_EL.textContent = '';
       }
     }
 
-    function render(items) {
-      const selected = srcSel.value;
-      feedEl.innerHTML = '';
-      const tmpl = document.getElementById('cardTmpl');
+    function cardHtml(it) {
+      const dt = it.published ? new Date(it.published) : null;
+      const when = dt ? dt.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+      const source = it.source || '';
+      const host = it.source_detail || source;
 
-      items
-      .filter(it => selected === '__all__' || (it.source||'').toLowerCase().includes(selected.toLowerCase()))
-      .forEach(it => {
-        const node = tmpl.content.cloneNode(true);
-        const link = node.querySelector('.title-link');
-        link.textContent = it.title;
-        link.href = it.link;
-
-        node.querySelector('.source').textContent = (it.source || '').trim() || '—';
-        try {
-          node.querySelector('.when').textContent = fmt.format(new Date(it.date || it.pubDate || it.published || it.updated || Date.now()));
-        } catch {
-          node.querySelector('.when').textContent = '—';
-        }
-        feedEl.appendChild(node);
-      });
-
-      if (!feedEl.children.length) {
-        feedEl.innerHTML = '<p class="empty">Nothing to show from this source yet.</p>';
-      }
+      return `
+        <article class="card">
+          <a class="card-title" href="${it.link}" target="_blank" rel="noopener">
+            ${escapeHtml(it.title || 'Untitled')}
+          </a>
+          <div class="card-meta">
+            <span class="meta-source">${escapeHtml(host)}</span>
+            ${when ? '<span class="dot">•</span><time>' + when + '</time>' : ''}
+          </div>
+        </article>
+      `;
     }
 
-    srcSel.addEventListener('change', () => load());
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
-    load();
+    function escapeHtml(s) {
+      return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    render();
+    // auto refresh every 5 minutes (works fine on GH Pages)
+    setInterval(render, 5 * 60 * 1000);
   </script>
 </body>
 </html>
