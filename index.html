@@ -3,161 +3,82 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Purdue Boilermakers — Men's Basketball</title>
-
-  <!-- HARDENED: fixed path to CSS -->
-  <link rel="stylesheet" href="static/style.css?v=20250908a">
-  <link rel="icon" href="static/logo.png">
+  <title>Purdue Boilermakers — Men’s Basketball</title>
+  <link rel="icon" href="static/logo.png" />
+  <link rel="apple-touch-icon" href="static/logo.png" />
+  <link rel="stylesheet" href="static/style.css?v=2" />
+  <style>
+    /* minimal safeguards in case style.css is cached/missing */
+    :root{
+      --gold:#dac39c; --gold-ink:#1b1a18; --bg:#0e0e0e; --card:#d8c39a;
+      --ink:#111; --muted:#9c8f77; --chip:#eadbb9; --chip-ink:#1d1c19;
+    }
+    html,body{margin:0;background:var(--bg);color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
+    a{color:#fff;text-decoration:none}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
+    header{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+    header .logo{width:48px;height:48px;border-radius:8px;background:#000 url('static/logo.png') center/contain no-repeat}
+    h1{margin:0;font-size:clamp(26px,4.5vw,40px);line-height:1.05}
+    .sub{color:#cfc7b6;margin-top:4px}
+    .chips{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0 10px}
+    .chip{background:var(--chip); color:var(--chip-ink); padding:10px 16px; border-radius:22px; font-weight:700; display:inline-flex; align-items:center; gap:8px;}
+    .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+    select{appearance:none;background:#161616;color:#fff;border:1px solid #3a3a3a;border-radius:14px;padding:10px 14px;font-weight:600}
+    .stamp{color:#cfc7b6;font-size:14px}
+    .list{display:flex;flex-direction:column;gap:14px;margin:16px 0 80px}
+    .card{background:var(--card);color:var(--gold-ink);border-radius:14px;padding:16px 16px 14px;box-shadow:0 1px 0 #0005}
+    .title{font-size:20px;font-weight:800;line-height:1.2;margin-bottom:10px;color:#111}
+    .meta{color:#5b513f;font-weight:700;font-size:14px;display:flex;gap:10px;align-items:center}
+    .dot{width:6px;height:6px;border-radius:50%;background:#5b513f;display:inline-block}
+    .btn{background:var(--chip);color:var(--chip-ink);border:0;border-radius:24px;padding:12px 16px;font-weight:800;display:inline-flex;align-items:center;gap:10px}
+    .btn:active{transform:translateY(1px)}
+    .right{display:flex;gap:10px}
+    @media (max-width:640px){
+      header{grid-template-columns:48px 1fr;grid-template-rows:auto auto}
+      .right{grid-column:1/-1}
+    }
+  </style>
 </head>
 <body>
-  <header class="header">
-    <img class="logo" src="static/logo.png" alt="Purdue P">
-    <div class="titlewrap">
-      <h1 class="title">Purdue Boilermakers —<br>Men’s Basketball</h1>
-      <div class="sub">Live team feed · auto-updates</div>
-    </div>
+  <div class="wrap">
+    <header>
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>Purdue Boilermakers — Men’s Basketball</h1>
+        <div class="sub">Live team feed · auto-updates</div>
+      </div>
+      <div class="right">
+        <button id="hailBtn" class="btn" type="button">▶︎ Hail Purdue</button>
+        <!-- Optional: add YouTube buttons later if you want -->
+      </div>
+    </header>
 
-    <button id="songBtn" class="song-btn" aria-label="Play Hail Purdue">
-      <span id="songIcon">▶︎</span> Hail Purdue
-    </button>
-    <audio id="song" preload="auto" src="static/hail-purdue.mp3"></audio>
-  </header>
+    <nav class="chips" aria-label="Quick links">
+      <a class="chip" target="_blank" rel="noopener" href="https://purduesports.com/sports/mens-basketball/schedule">Schedule</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://purduesports.com/sports/mens-basketball/roster">Roster</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://purduesports.com/sports/mens-basketball">Tickets</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://www.reddit.com/r/Boilermakers/">Reddit — r/Boilermakers</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers">ESPN Team</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://kenpom.com/">KenPom</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://www.sports-reference.com/cbb/schools/purdue/">Sports-Reference</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://bigten.org/standings.aspx?path=mbball">Big Ten Standings</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://apnews.com/hub/ap-top-25-college-basketball-poll">AP Top 25</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=purdue+basketball+highlights">Highlights</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://247sports.com/college/purdue/">247Sports</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://purdue.rivals.com/">Rivals</a>
+      <a class="chip" target="_blank" rel="noopener" href="https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/">CBS Purdue</a>
+    </nav>
 
-  <nav class="chipbar" aria-label="Quick links">
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
-    <a class="chip" href="https://purduesports.evenue.net/" target="_blank" rel="noopener">Tickets</a>
-    <a class="chip" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
-    <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
-    <a class="chip" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
-    <a class="chip" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
-    <a class="chip" href="https://www.bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
-    <a class="chip" href="https://apnews.com/hub/ap-top-25-mens-college-basketball-poll" target="_blank" rel="noopener">AP Top 25</a>
-    <a class="chip" href="https://www.espn.com/mens-college-basketball/story/_/id/30604880/bracketology" target="_blank" rel="noopener">Bracketology</a>
-    <a class="chip" href="https://www.youtube.com/results?search_query=purdue+mbb+highlights" target="_blank" rel="noopener">Highlights</a>
-    <a class="chip" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
-    <a class="chip" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
-    <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
-  </nav>
+    <section class="bar">
+      <label for="sourceSel" class="stamp" style="font-weight:800">Source:</label>
+      <select id="sourceSel" aria-label="News source"></select>
+      <div class="stamp" id="stamp">Updated: —</div>
+    </section>
 
-  <section class="toolbar">
-    <label for="sourceSel" class="source-label">Source:</label>
-    <select id="sourceSel" class="source-select" aria-label="Choose news source">
-      <!-- HARDENED: fixed list so it never shrinks -->
-      <option value="all">All sources</option>
-      <option value="Hammer and Rails">Hammer and Rails</option>
-      <option value="Journal & Courier">Journal & Courier</option>
-      <option value="GoldandBlack.com">GoldandBlack.com</option>
-      <option value="The Athletic">The Athletic</option>
-      <option value="ESPN">ESPN</option>
-      <option value="Yahoo Sports">Yahoo Sports</option>
-      <option value="Sports Illustrated">Sports Illustrated</option>
-      <option value="CBS Sports">CBS Sports</option>
-      <option value="Big Ten Network">Big Ten Network</option>
-      <option value="Google News">Google News</option>
-    </select>
+    <section id="list" class="list" aria-live="polite"></section>
+  </div>
 
-    <div id="updated" class="updated" role="status" aria-live="polite"></div>
-  </section>
-
-  <main id="feed" class="feed" aria-live="polite">
-    <!-- Cards injected here -->
-  </main>
-
-  <script>
-    // ---- Audio button (never opens a new page)
-    (function () {
-      const btn = document.getElementById('songBtn');
-      const icon = document.getElementById('songIcon');
-      const audio = document.getElementById('song');
-      let playing = false;
-      btn.addEventListener('click', () => {
-        if (!playing) { audio.play(); icon.textContent = '❚❚'; }
-        else { audio.pause(); icon.textContent = '▶︎'; }
-        playing = !playing;
-      });
-      audio.addEventListener('ended', () => { playing = false; icon.textContent = '▶︎'; });
-    })();
-
-    // ---- Feed rendering (hardened)
-    const FEED_EL = document.getElementById('feed');
-    const UPDATED_EL = document.getElementById('updated');
-    const SEL = document.getElementById('sourceSel');
-
-    // remember last selection
-    SEL.value = localStorage.getItem('purdue_mbb_source') || 'all';
-    SEL.addEventListener('change', () => {
-      localStorage.setItem('purdue_mbb_source', SEL.value);
-      render();
-    });
-
-    // simple football filter heuristics
-    const FOOTBALL_HINTS = [
-      'football','fb','gridiron','quarterback','wide receiver','running back','coach walters',
-      'ross-ade','boilermaker ball','b1g football','pigskin'
-    ];
-
-    function looksLikeFootball(item) {
-      const t = (item.title || '').toLowerCase();
-      const s = (item.source || '').toLowerCase();
-      // obvious football words
-      if (FOOTBALL_HINTS.some(k => t.includes(k) || s.includes(k))) return true;
-      // allow if the title contains strong basketball hints
-      const bbHints = ['mbb','basketball','boilermakers men','m. basketball','purdue hoops','zach edey','big ten media day'];
-      if (bbHints.some(k => t.includes(k))) return false;
-      // otherwise neutral -> keep
-      return false;
-    }
-
-    // load items.json and render
-    async function render() {
-      try {
-        const res = await fetch('items.json', { cache: 'no-store' });
-        const items = await res.json();
-
-        const srcFilter = SEL.value;
-        const filtered = items
-          .filter(it => !looksLikeFootball(it))
-          .filter(it => srcFilter === 'all' ? true : (it.source === srcFilter));
-
-        FEED_EL.innerHTML = filtered.map(cardHtml).join('') || '<div class="empty">No stories yet.</div>';
-
-        // Updated line (U.S. format)
-        const now = new Date();
-        UPDATED_EL.textContent =
-          `Updated: ${now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
-      } catch (e) {
-        FEED_EL.innerHTML = '<div class="empty">Could not load items.json</div>';
-        UPDATED_EL.textContent = '';
-      }
-    }
-
-    function cardHtml(it) {
-      const dt = it.published ? new Date(it.published) : null;
-      const when = dt ? dt.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : '';
-      const source = it.source || '';
-      const host = it.source_detail || source;
-
-      return `
-        <article class="card">
-          <a class="card-title" href="${it.link}" target="_blank" rel="noopener">
-            ${escapeHtml(it.title || 'Untitled')}
-          </a>
-          <div class="card-meta">
-            <span class="meta-source">${escapeHtml(host)}</span>
-            ${when ? '<span class="dot">•</span><time>' + when + '</time>' : ''}
-          </div>
-        </article>
-      `;
-    }
-
-    function escapeHtml(s) {
-      return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    }
-
-    render();
-    // auto refresh every 5 minutes (works fine on GH Pages)
-    setInterval(render, 5 * 60 * 1000);
-  </script>
+  <audio id="fightSong" preload="auto" src="static/hail-purdue.mp3"></audio>
+  <script src="static/app.js?v=3" defer></script>
 </body>
 </html>
