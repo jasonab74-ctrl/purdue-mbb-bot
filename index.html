@@ -1,198 +1,165 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Purdue Boilermakers — Men’s Basketball</title>
-  <link rel="preload" href="static/hail-purdue.mp3" as="audio">
-  <link rel="stylesheet" href="static/style.css">
+  <link rel="preload" as="audio" href="static/hail-purdue.mp3" />
+  <link rel="icon" href="static/logo.png">
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
-  <header class="hero">
-    <img class="logo" src="static/logo.png" alt="Purdue P logo" width="64" height="64" decoding="async">
+  <header class="site-header">
+    <img class="team-logo" src="static/logo.png" alt="Purdue logo" width="48" height="48" />
     <div class="title-wrap">
-      <h1 class="title">Purdue Boilermakers — <span class="nowrap">Men’s Basketball</span></h1>
+      <h1 class="title">Purdue Boilermakers — Men’s Basketball</h1>
       <p class="subtitle">Live team feed · auto-updates</p>
     </div>
-
-    <button id="songBtn" class="pill primary" type="button" aria-label="Play Hail Purdue">
-      <span class="play-dot" aria-hidden="true">▶︎</span> Hail Purdue
+    <button id="fightBtn" class="pill primary" type="button" aria-label="Play Hail Purdue">
+      <span class="playdot">►</span> Hail Purdue
     </button>
-
     <audio id="song" preload="auto">
-      <source src="static/hail-purdue.mp3" type="audio/mpeg">
+      <source src="static/hail-purdue.mp3" type="audio/mpeg" />
     </audio>
   </header>
 
-  <nav class="chips">
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/tickets" target="_blank" rel="noopener">Tickets</a>
-    <a class="chip" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
-    <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
-    <a class="chip" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
-    <a class="chip" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
-    <a class="chip" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
-    <a class="chip" href="https://apnews.com/hub/ap-top-25-college-basketball-poll" target="_blank" rel="noopener">AP Top 25</a>
-    <a class="chip" href="https://www.youtube.com/results?search_query=Purdue+Men%27s+Basketball+highlights" target="_blank" rel="noopener">Highlights</a>
-    <a class="chip" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
-    <a class="chip" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
+  <nav class="links">
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/tickets" target="_blank" rel="noopener">Tickets</a>
+    <a class="pill" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
+    <a class="pill" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
+    <a class="pill" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
+    <a class="pill" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
+    <a class="pill" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
+    <a class="pill" href="https://www.espn.com/mens-college-basketball/rankings" target="_blank" rel="noopener">AP Top 25</a>
+    <a class="pill" href="https://www.espn.com/mens-college-basketball/bracketology" target="_blank" rel="noopener">Bracketology</a>
+    <a class="pill" href="https://www.youtube.com/results?search_query=Purdue+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
+    <a class="pill" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
+    <a class="pill" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
+    <a class="pill" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
   </nav>
 
-  <section class="toolbar">
-    <div class="field">
-      <label for="sourceSel">Source:</label>
-      <select id="sourceSel">
-        <!-- options injected from FIXED_SOURCES below -->
-      </select>
+  <section class="controls">
+    <label for="srcSel" class="label">Source:</label>
+    <select id="srcSel" class="select">
+      <!-- Hardened, known-good sources -->
+      <option value="__all__" selected>All sources</option>
+      <option>Hammer and Rails</option>
+      <option>Google News</option>
+      <option>PurdueSports.com</option>
+      <option>Journal &amp; Courier</option>
+      <option>GoldandBlack.com</option>
+      <option>The Athletic</option>
+      <option>ESPN</option>
+      <option>Sports Illustrated</option>
+      <option>CBS Sports</option>
+      <option>Big Ten Network</option>
+      <option>Yahoo Sports</option>
+    </select>
+
+    <div class="updated">
+      <span class="label">Updated:</span>
+      <time id="updatedTs">—</time>
     </div>
-    <div class="updated" id="updated">Updated: —</div>
   </section>
 
-  <main id="feed" class="feed" aria-live="polite"></main>
+  <main id="feed" class="feed"></main>
 
-  <template id="cardTpl">
+  <template id="cardTmpl">
     <article class="card">
-      <a class="card-link" target="_blank" rel="noopener">
-        <h3 class="card-title"></h3>
-        <div class="meta">
-          <span class="source"></span>
-          <span class="dot">•</span>
-          <time class="when"></time>
-        </div>
-      </a>
+      <a class="title-link" target="_blank" rel="noopener"></a>
+      <div class="meta">
+        <span class="source"></span>
+        <span class="dot">•</span>
+        <time class="when"></time>
+      </div>
     </article>
   </template>
 
   <script>
-    // ------------- HARDENED: fixed dropdown list (doesn't get overwritten) -------------
-    const FIXED_SOURCES = [
-      "All sources",
-      "PurdueSports.com",
-      "Journal & Courier",
-      "GoldandBlack.com",
-      "Hammer and Rails",
-      "The Athletic",
-      "ESPN",
-      "Yahoo Sports",
-      "Sports Illustrated",
-      "CBS Sports",
-      "Big Ten Network"
-    ];
-
-    // Basic football noise filter (titles or source lines that scream football)
-    const BAD_WORDS = [
-      "football", "Ross-Ade", "QB", "quarterback", "wide receiver", "running back",
-      "Colts", "NFL", "Pro Football", "Notre Dame Football"
-    ];
-
-    const $ = sel => document.querySelector(sel);
-    const $$ = sel => Array.from(document.querySelectorAll(sel));
-
-    // populate the source dropdown (no more reverting)
-    const sel = $('#sourceSel');
-    FIXED_SOURCES.forEach((name, i) => {
-      const opt = document.createElement('option');
-      opt.textContent = name;
-      opt.value = name;
-      if (i === 0) opt.selected = true;
-      sel.appendChild(opt);
-    });
-
-    // play/pause song (no navigation, iOS-safe because it’s a direct tap)
-    const song = $('#song');
-    const songBtn = $('#songBtn');
+    // ------- FIGHT SONG -------
+    const fightBtn = document.getElementById('fightBtn');
+    const song = document.getElementById('song');
     let playing = false;
-    songBtn.addEventListener('click', () => {
-      if (!playing) { song.currentTime = 0; song.play(); playing = true; songBtn.classList.add('playing'); }
-      else { song.pause(); playing = false; songBtn.classList.remove('playing'); }
+    fightBtn.addEventListener('click', () => {
+      if (!playing) { song.currentTime = 0; song.play(); fightBtn.classList.add('paused'); }
+      else { song.pause(); fightBtn.classList.remove('paused'); }
+      playing = !playing;
     });
-    song.addEventListener('ended', () => { playing = false; songBtn.classList.remove('playing'); });
+    song.addEventListener('ended', () => { playing = false; fightBtn.classList.remove('paused'); });
 
-    // robust parse of items (supports multiple shapes)
-    function normalizeItem(it) {
-      const link = it.url || it.link || it.permalink || '#';
-      const title = it.title || it.headline || 'Untitled';
-      const src = it.source_name || it.source || (it.source && it.source.name) || it.site || '';
-      const dRaw = it.published_at || it.published || it.date || it.isoDate || it.updated || null;
-      const d = dRaw ? new Date(dRaw) : null;
-      return { title, link, src, date: d };
-    }
+    // ------- FEED -------
+    const feedEl = document.getElementById('feed');
+    const updatedEl = document.getElementById('updatedTs');
+    const srcSel = document.getElementById('srcSel');
 
-    function isBasketball(item) {
-      const hay = (item.title + ' ' + item.src).toLowerCase();
-      return !BAD_WORDS.some(w => hay.includes(w.toLowerCase()));
-    }
+    // Small helper: en-US date/time
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit'
+    });
 
-    function formatUS(d) {
-      try {
-        return new Intl.DateTimeFormat('en-US',{
-          year:'numeric', month:'short', day:'numeric',
-          hour:'numeric', minute:'2-digit'
-        }).format(d);
-      } catch { return ''; }
+    // Very light sport filter to avoid stray football posts
+    const BBALL_HINTS = [
+      'mbb','basketball','boilermakers', 'big ten', 'bracket', 'kenpom',
+      'matt painter','mackey','boiler','guard','forward','center','ncaa'
+    ];
+
+    function seemsBasketball(title) {
+      const t = (title || '').toLowerCase();
+      // reject obvious football hints
+      if (/(football|qb|touchdown|wide receiver|running back|nfl|helmet)/.test(t)) return false;
+      // allow if any bball hint is present, else neutral (true)
+      return BBALL_HINTS.some(k => t.includes(k)) || true;
     }
 
     async function load() {
-      // fetch items.json (root). If your action writes somewhere else, update this path.
-      const res = await fetch('items.json', { cache: 'no-cache' });
-      const data = await res.json();
-      const arr = Array.isArray(data) ? data : (data.items || []);
-      const items = arr.map(normalizeItem).filter(it => it.title && it.link);
+      try {
+        const res = await fetch('items.json', {cache:'no-store'});
+        const data = await res.json();
+        const items = (data.items || data || []).filter(x => x && x.title && seemsBasketball(x.title));
 
-      // Set updated (now) to indicate when the page processed the file
-      const now = new Date();
-      $('#updated').textContent = 'Updated: ' + formatUS(now);
-
-      // Render once and keep stable; selection filters in-place
-      render(items);
-
-      sel.addEventListener('change', () => render(items));
+        render(items);
+        const t = data.updated || new Date().toISOString();
+        updatedEl.textContent = fmt.format(new Date(t));
+      } catch (e) {
+        console.error(e);
+        updatedEl.textContent = '—';
+        feedEl.innerHTML = '<p class="empty">No items found.</p>';
+      }
     }
 
-    function render(allItems) {
-      const feed = $('#feed');
-      feed.innerHTML = '';
+    function render(items) {
+      const selected = srcSel.value;
+      feedEl.innerHTML = '';
+      const tmpl = document.getElementById('cardTmpl');
 
-      const chosen = sel.value;
-      let items = allItems;
+      items
+      .filter(it => selected === '__all__' || (it.source||'').toLowerCase().includes(selected.toLowerCase()))
+      .forEach(it => {
+        const node = tmpl.content.cloneNode(true);
+        const link = node.querySelector('.title-link');
+        link.textContent = it.title;
+        link.href = it.link;
 
-      if (chosen && chosen !== 'All sources') {
-        items = items.filter(it =>
-          (it.src || '').toLowerCase().includes(chosen.toLowerCase())
-        );
-      }
-
-      // basketball-first
-      items = items.filter(isBasketball);
-
-      // newest first; tolerate missing dates
-      items.sort((a,b) => (b.date||0) - (a.date||0));
-
-      const tpl = $('#cardTpl').content;
-
-      items.forEach(it => {
-        const node = tpl.cloneNode(true);
-        const a = node.querySelector('.card-link');
-        a.href = it.link;
-        node.querySelector('.card-title').textContent = it.title.trim();
-        node.querySelector('.source').textContent = it.src || '—';
-        node.querySelector('.when').textContent = it.date ? formatUS(it.date) : '';
-        feed.appendChild(node);
+        node.querySelector('.source').textContent = (it.source || '').trim() || '—';
+        try {
+          node.querySelector('.when').textContent = fmt.format(new Date(it.date || it.pubDate || it.published || it.updated || Date.now()));
+        } catch {
+          node.querySelector('.when').textContent = '—';
+        }
+        feedEl.appendChild(node);
       });
 
-      if (items.length === 0) {
-        const empty = document.createElement('p');
-        empty.className = 'empty';
-        empty.textContent = 'No articles yet for this selection.';
-        feed.appendChild(empty);
+      if (!feedEl.children.length) {
+        feedEl.innerHTML = '<p class="empty">Nothing to show from this source yet.</p>';
       }
     }
 
-    load().catch(err => {
-      console.error(err);
-      $('#feed').innerHTML = '<p class="empty">Could not load items.json.</p>';
-    });
+    srcSel.addEventListener('change', () => load());
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+    load();
   </script>
 </body>
 </html>
