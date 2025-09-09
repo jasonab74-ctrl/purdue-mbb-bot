@@ -1,130 +1,150 @@
-/* ------------- HARDENED FRONTEND (no flip-flop) -----------------
-   - Reads items.json (your Action keeps updating it)
-   - Curated, stable source dropdown (8–10 Purdue MBB outlets)
-   - Basketball-first filter; lightly excludes football spillover
-   - US date/time; no underlines; gold cards, dark text
------------------------------------------------------------------- */
-
-const FEED_URL = 'items.json?cache=' + Date.now();
-const feedEl = document.getElementById('feed');
-const updatedEl = document.getElementById('updatedTime');
-const selectEl = document.getElementById('sourceSelect');
-const refreshBtn = document.getElementById('refreshBtn');
-
-/* Stable curated list shown in the dropdown, regardless of what’s inside items.json */
-const CURATED_SOURCES = [
-  'Hammer and Rails',
-  'Journal & Courier',
-  'GoldandBlack.com',
-  'The Athletic',
-  'ESPN',
-  'Yahoo Sports',
-  'Sports Illustrated',
-  'CBS Sports',
-  'Big Ten Network',
-  '247Sports',
-  'Rivals'
-];
-
-/* football-ish words we want to skip when we can */
-const FOOTBALL_NO = [
-  'football','qb','quarterback','touchdown','wide receiver','running back',
-  'ross-ade','gridiron','nfl','colts'
-];
-
-/* basketball-ish words we’re happy to see */
-const HOOPS_YES = [
-  'basketball','mbb','boilers','boilermakers','purdue','big ten','painter',
-  'paint crew','mackey','boiler','kenpom','ncaa tournament','bracket'
-];
-
-const audio = document.getElementById('fightSong');
-const songBtn = document.getElementById('songBtn');
-songBtn.addEventListener('click', async () => {
-  try{
-    if (audio.paused) { await audio.play(); songBtn.setAttribute('aria-pressed','true'); songBtn.querySelector('.pill-dot').textContent='⏸'; }
-    else { audio.pause(); songBtn.setAttribute('aria-pressed','false'); songBtn.querySelector('.pill-dot').textContent='▶'; }
-  }catch(e){ /* ignore autoplay blockers */ }
-});
-audio.addEventListener('ended', ()=>{ songBtn.setAttribute('aria-pressed','false'); songBtn.querySelector('.pill-dot').textContent='▶'; });
-
-refreshBtn.addEventListener('click', () => load());
-
-selectEl.addEventListener('change', () => {
-  if (window._items) render(window._items);
-});
-
-function usTime(iso){
-  const d = new Date(iso);
-  if (Number.isNaN(+d)) return '—';
-  return d.toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
-}
-
-function looksFootball(t){
-  const s = (t||'').toLowerCase();
-  return FOOTBALL_NO.some(k => s.includes(k));
-}
-function looksHoops(t){
-  const s = (t||'').toLowerCase();
-  return HOOPS_YES.some(k => s.includes(k));
-}
-
-/* Gentle basketball filter:
-   - Always keep if the source is one of our curated hoops outlets
-   - Else keep if it looks like hoops AND not obviously football
+/* Hardened client that:
+   - fetches ./items.json with cache-busting
+   - filters out obvious football content
+   - populates an 8–10 source dropdown
+   - formats US dates
+   - makes the fight-song button work on iOS (user gesture)
 */
-function keepItem(item){
-  const src = (item.source || '').trim();
-  const title = (item.title || '').trim();
-  if (CURATED_SOURCES.includes(src)) return !looksFootball(title);
-  return looksHoops(title) && !looksFootball(title);
+
+const SOURCE_OPTIONS = [
+  { key: 'all',        label: 'All sources' },
+  { key: 'Hammer and Rails', label: 'Hammer and Rails' },
+  { key: 'PurdueSports.com', label: 'PurdueSports.com' },
+  { key: 'Journal & Courier', label: 'Journal & Courier' },
+  { key: 'GoldandBlack.com', label: 'GoldandBlack.com' },
+  { key: 'ESPN',       label: 'ESPN' },
+  { key: 'Sports Illustrated', label: 'Sports Illustrated' },
+  { key: 'Yahoo Sports', label: 'Yahoo Sports' },
+  { key: 'CBS Sports', label: 'CBS Sports' },
+  { key: 'Big Ten Network', label: 'Big Ten Network' },
+];
+
+const FOOTBALL_NEG = [
+  'football','gridiron','ross-ade','qb','quarterback','touchdown',
+  'field goal','ryan walters','walters','running back','linebacker',
+  'safety','cornerback','wide receiver','nfl','big ten football','game at ross-ade'
+];
+
+const sel = (s) => document.querySelector(s);
+const list = sel('#list');
+const sourceSel = sel('#sourceSel');
+const stamp = sel('#stamp');
+
+function fillSources() {
+  sourceSel.innerHTML = SOURCE_OPTIONS
+    .map(o => `<option value="${o.key}">${o.label}</option>`)
+    .join('');
+  sourceSel.value = 'all';
 }
 
-function buildDropdown(items){
-  // “All sources” + curated list (only include those that appear at least once)
-  const seen = new Set(items.map(i => i.source));
-  const chosen = CURATED_SOURCES.filter(s => seen.has(s));
-
-  const opts = ['All sources', ...chosen];
-  selectEl.innerHTML = opts.map(s =>
-    `<option value="${s}">${s}</option>`
-  ).join('');
-  selectEl.value = 'All sources';
+function isBasketballish(text) {
+  if (!text) return true;
+  const t = text.toLowerCase();
+  // exclude obvious football cues
+  if (FOOTBALL_NEG.some(w => t.includes(w))) return false;
+  // include neutral hoops hints
+  const hoopsHints = ['basketball','mbb','m. basketball','men’s basketball','men\'s basketball','mackey'];
+  if (hoopsHints.some(w => t.includes(w))) return true;
+  // if headline mentions Purdue + opponent but no football terms, allow
+  return true;
 }
 
-function render(items){
-  const filter = selectEl.value;
-  const list = items
-    .filter(keepItem)
-    .filter(i => filter === 'All sources' ? true : i.source === filter)
-    .sort((a,b)=> new Date(b.published) - new Date(a.published));
+function formatUSDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit'
+    });
+  } catch { return iso || ''; }
+}
 
-  feedEl.innerHTML = list.map(i => `
+function render(items) {
+  list.innerHTML = '';
+  if (!items?.length) {
+    list.innerHTML = `<div class="stamp">No items found.</div>`;
+    return;
+  }
+  const src = sourceSel.value;
+  const filtered = items
+    .filter(x => isBasketballish(`${x.title} ${x.source} ${x.summary || ''}`))
+    .filter(x => src === 'all' ? true : (x.source || '').includes(src));
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="stamp">No items for that source.</div>`;
+    return;
+  }
+
+  const html = filtered.map(x => `
     <article class="card">
-      <h3><a href="${i.link}" target="_blank" rel="noopener">${i.title}</a></h3>
+      <a class="title" href="${x.link}" target="_blank" rel="noopener">
+        ${x.title}
+      </a>
       <div class="meta">
-        <span>${i.source || '—'}</span>
-        <span class="dot">•</span>
-        <time>${usTime(i.published)}</time>
+        <span>${x.source || '—'}</span>
+        <span class="dot"></span>
+        <span>${formatUSDate(x.published)}</span>
       </div>
     </article>
   `).join('');
 
-  const newest = list[0]?.published || items[0]?.published;
-  updatedEl.textContent = newest ? usTime(newest) : '—';
+  list.innerHTML = html;
 }
 
-async function load(){
-  try{
-    const res = await fetch(FEED_URL, {cache:'no-store'});
-    const items = await res.json();         // expects array: [{title, link, source, published}, ...]
-    window._items = items;
-    buildDropdown(items);
-    render(items);
-  }catch(err){
-    updatedEl.textContent = '—';
-    feedEl.innerHTML = `<div class="card"><h3>Couldn’t load items.json</h3><div class="meta"><span>Check GitHub Pages & Action</span></div></div>`;
+async function load() {
+  try {
+    // cache-busting + explicit same-origin to avoid accidental CDN issues
+    const res = await fetch(`./items.json?ts=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    // Expected shape: [{title, link, source, published, summary?}, ...]
+    // stamp
+    const latest = data?.[0]?.fetched_at || data?.[0]?.published || new Date().toISOString();
+    stamp.textContent = `Updated: ${formatUSDate(latest)}`;
+    render(data || []);
+  } catch (err) {
+    console.error('Failed to load items.json', err);
+    stamp.textContent = 'Updated: (load error)';
+    list.innerHTML = `
+      <div class="card" style="background:#2a2a2a;color:#fff">
+        <div class="title">Couldn’t load the news feed.</div>
+        <div class="meta">Make sure <code>items.json</code> is at the repo root and is valid JSON.</div>
+      </div>`;
   }
 }
 
+function wireAudio() {
+  const btn = sel('#hailBtn');
+  const audio = sel('#fightSong');
+
+  let playing = false;
+
+  const setLabel = () => btn.textContent = (playing ? '⏸︎' : '▶︎') + ' Hail Purdue';
+
+  btn.addEventListener('click', async () => {
+    try {
+      if (!playing) {
+        await audio.play(); // user gesture => allowed on iOS
+        playing = true;
+      } else {
+        audio.pause();
+        playing = false;
+      }
+      setLabel();
+    } catch (e) {
+      console.warn('Audio play blocked or missing file', e);
+      alert('Could not play audio. Confirm static/hail-purdue.mp3 exists.');
+    }
+  });
+
+  audio.addEventListener('ended', () => { playing = false; setLabel(); });
+  setLabel();
+}
+
+fillSources();
+wireAudio();
+sourceSel.addEventListener('change', load);
 load();
+
+// Optional auto-refresh every 15 minutes without tearing UI
+setInterval(load, 15 * 60 * 1000);
