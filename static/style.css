@@ -1,139 +1,84 @@
-/* RESET / BASE */
 :root{
-  --bg:#0d0d0d;
-  --panel:#dcc79b;         /* light gold card */
-  --chip:#e7d6b0;
-  --text:#0b0b0b;          /* dark text on cards */
-  --ink:#f2f2f2;           /* light ink on page background */
-  --muted:#b5b5b5;
-  --acc:#c3a86a;           /* borders */
-  --radius:18px;
-  --shadow:0 2px 0 rgba(0,0,0,.2), 0 6px 20px rgba(0,0,0,.25);
-  --max:1100px;
-  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  --bg:#0f0f0f;
+  --card:#d9c49a;       /* light gold */
+  --card-text:#0e0e0e;  /* dark text on gold cards */
+  --ink:#f4f2ee;        /* light ink on dark bg */
+  --muted:#bcb6a6;
+  --pill:#e7d7b1;
+  --pill-ink:#10100e;
+  --ring:#c8b27c;
+  --ring-2:#6c5a2b;
+  --maxw: 1100px;
+  --radius: 18px;
 }
 
-*{ box-sizing: border-box }
-html,body{ height:100% }
-html{ -webkit-text-size-adjust:100% }
-body{
-  margin:0;
-  background: var(--bg);
-  color: var(--ink);
-  font: 16px/1.5 var(--font);
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%;height:auto}
+
+.hero{
+  max-width:var(--maxw);
+  margin:20px auto 10px;
+  padding:16px 16px 0;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.hero-left{display:flex;gap:14px;align-items:center}
+.logo{width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 0 0 rgba(0,0,0,0.0))}
+.title h1{margin:0;font-size:34px;line-height:1.05;font-weight:800}
+.title h2{margin:0;font-size:28px;font-weight:700;color:var(--ink)}
+.sub{margin:6px 0 0;color:var(--muted)}
+
+.hero-right{display:flex;align-items:center;gap:8px}
+
+.pill{
+  display:inline-block;
+  padding:12px 18px;border-radius:999px;background:var(--pill);
+  color:var(--pill-ink);font-weight:700;line-height:1;
+  border:1px solid rgba(0,0,0,0.05);
+}
+.pill:hover{outline:2px solid var(--ring);outline-offset:2px}
+.pill-strong{background:var(--card);border-color:var(--ring-2)}
+
+.links{
+  max-width:var(--maxw);
+  margin:8px auto 0;padding:10px 16px 0;
+  display:flex;flex-wrap:wrap;gap:14px;
+  border-top:2px solid var(--ring-2);
 }
 
-a{ color:#2bb1ff; text-decoration:none }
-a:hover{ text-decoration:underline }
-
-/* HEADER */
-.header{
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 20px 16px 10px;
-  display:flex;
-  align-items:center;
-  gap:16px;
+.bar{
+  max-width:var(--maxw);
+  margin:6px auto 0;padding:10px 16px 12px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
 }
-.logo{ width:44px; height:auto; flex:0 0 auto; display:block }
-.titlewrap{ flex:1 1 auto }
-.title{ margin:0; font-weight:800; font-size: clamp(22px, 3.8vw, 40px) }
-.sub{ color:var(--muted); margin-top:6px }
-
-/* Song button */
-.song-btn{
-  flex:0 0 auto;
-  border:0;
-  background: var(--chip);
-  color: var(--text);
-  padding: 10px 16px;
-  border-radius: 999px;
-  font-weight:700;
-  box-shadow: var(--shadow);
-}
-
-/* Chip links */
-.chipbar{
-  max-width: var(--max);
-  margin: 6px auto 16px;
-  padding: 0 12px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-}
-.chip{
-  background: var(--chip);
-  color: var(--text);
-  padding: 10px 14px;
-  border-radius: 999px;
-  font-weight: 700;
-  box-shadow: var(--shadow);
-}
-
-/* Toolbar */
-.toolbar{
-  max-width: var(--max);
-  margin: 0 auto 10px;
-  padding: 0 12px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
-.source-label{ color:var(--ink); font-weight:700 }
+.bar-label{opacity:.9}
 .source-select{
   appearance:none;
-  background:#171717;
-  color:#fff;
-  border:1px solid #3a3a3a;
-  border-radius:12px;
-  padding:10px 14px;
+  background:transparent;color:var(--ink);
+  padding:10px 14px;border:2px solid var(--ring-2);border-radius:12px;
   min-width:220px;
 }
-.updated{ margin-left:auto; color:var(--muted) }
+.updated{margin-left:auto;color:var(--muted)}
 
-/* Feed */
 .feed{
-  max-width: var(--max);
-  margin: 0 auto 40px;
-  padding: 0 12px 20px;
+  max-width:var(--maxw);
+  margin:6px auto 30px;padding:0 16px 16px;
+  display:grid;gap:12px;
 }
+
 .card{
-  background: var(--panel);
-  color: var(--text);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin: 0 0 12px 0;
-  border: 3px solid var(--acc);
-  box-shadow: var(--shadow);
+  background:var(--card);color:var(--card-text);
+  border-radius:16px;padding:18px 16px;
+  border:2px solid rgba(0,0,0,0.12);
 }
-.card-title{
-  color: var(--text);
-  font-weight: 800;
-  font-size: clamp(18px, 2.3vw, 26px);
-}
-.card-meta{
-  margin-top: 10px;
-  color: #2a2a2a;
-  font-weight: 600;
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  align-items:center;
-}
-.meta-source{ opacity:.9 }
-.dot{ opacity:.6 }
+.card-title{margin:0 0 10px 0;font-size:20px}
+.card-meta{display:flex;gap:8px;align-items:center;color:#332d22;font-weight:600}
+.meta-dot{opacity:.6}
 
-/* Empty message */
-.empty{
-  color: var(--muted);
-  text-align:center;
-  padding: 20px 0 30px;
-}
-
-/* Mobile tweaks */
-@media (max-width: 480px){
-  .song-btn{ padding: 9px 12px }
-  .chip{ padding: 9px 12px }
-  .card{ padding:14px }
+@media (max-width:700px){
+  .title h1{font-size:28px}
+  .title h2{font-size:22px}
+  .pill{padding:11px 16px}
+  .card-title{font-size:19px}
 }
