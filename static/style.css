@@ -1,198 +1,61 @@
-/* Purdue MBB — hardened front-end
-   - Single JS file (delete any app.js in repo root)
-   - Fixes iOS audio gesture + robust date parsing (no 1970)
-   - Stable source list + caching guard on items.json
-*/
-
-const SOURCE_SELECT = document.getElementById('sourceSelect');
-const FEED = document.getElementById('feed');
-const EMPTY = document.getElementById('empty');
-const UPDATED = document.getElementById('updatedAt');
-
-// --- Stable source list for the dropdown (8–10 good ones)
-const SOURCE_OPTIONS = [
-  "All sources",
-  "Hammer and Rails",
-  "Google News",
-  "ESPN",
-  "Yahoo Sports",
-  "Sports Illustrated",
-  "CBS Sports",
-  "PurdueSports.com",
-  "Journal & Courier",
-  "The Athletic"
-];
-
-// Seed dropdown (idempotent)
-SOURCE_SELECT.innerHTML = SOURCE_OPTIONS
-  .map((s, i) => `<option value="${s}" ${i === 0 ? "selected" : ""}>${s}</option>`)
-  .join("");
-
-// --- Fight song (user gesture requirement on iOS)
-(function wireFightSong() {
-  const btn = document.getElementById('fightSongBtn');
-  const audio = document.getElementById('fightSong');
-  if (!btn || !audio) return;
-
-  let playing = false;
-
-  const tryPlay = async () => {
-    try {
-      await audio.play();
-      playing = true;
-      btn.textContent = "⏸ Hail Purdue";
-    } catch (err) {
-      // Most common: iOS mute switch / no user gesture
-      alert("Could not play audio. If you’re on iPhone, make sure Silent Mode is OFF and tap again.");
-    }
-  };
-
-  btn.addEventListener('click', async () => {
-    if (!playing) {
-      await tryPlay();
-    } else {
-      audio.pause();
-      playing = false;
-      btn.textContent = "▶︎ Hail Purdue";
-    }
-  });
-
-  // Unlock on first user interaction (extra safety)
-  const unlock = () => {
-    audio.muted = false;
-    audio.play().then(() => { audio.pause(); audio.currentTime = 0; })
-      .catch(() => {/* ignore */});
-    window.removeEventListener('touchend', unlock);
-    window.removeEventListener('click', unlock);
-  };
-  window.addEventListener('touchend', unlock, { once: true });
-  window.addEventListener('click', unlock, { once: true });
-})();
-
-// --- Fetch + render items.json (with cache-buster)
-let ALL_ITEMS = [];
-
-async function loadItems() {
-  const url = `items.json?v=${Date.now()}`; // bust stale cache
-  let data;
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    data = await res.json();
-  } catch (e) {
-    // Fail soft: keep what we have, show message if empty
-    console.error("items.json fetch failed:", e);
-    UPDATED.textContent = "—";
-    FEED.innerHTML = "";
-    EMPTY.hidden = false;
-    return;
-  }
-
-  // items.json can be either an array or {items:[...]}; accept both
-  const raw = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
-
-  // Normalize and robustly parse dates
-  ALL_ITEMS = raw.map(normalizeItem).sort((a, b) => b.time - a.time);
-
-  render();
+:root{
+  --bg:#0f0f0e;
+  --card:#d9c6a3;
+  --ink:#131313;
+  --ink-weak:#333;
+  --pill:#e8d9b8;
+  --pill-ink:#1a1a1a;
+  --brand:#cdb27f;
 }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:#f5f4f1;font:400 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+img{max-width:100%;display:block}
 
-function normalizeItem(it) {
-  // Source/Title/URL keys vary a bit depending on the collector
-  const title = it.title || it.headline || "(Untitled)";
-  const url = it.link || it.url || "#";
-  const source = it.source || it.site || it.outlet || "Unknown";
-
-  // Try multiple date fields; fix epoch/invalid issues
-  const time = parseBestDate(
-    it.published || it.pubDate || it.date || it.updated || it.isoDate || it.time
-  );
-
-  return { title, url, source, time };
+.hero{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:16px;
+  align-items:center;
+  padding:20px 16px 8px;
 }
-
-function parseBestDate(val) {
-  // If it’s a number (ms) or numeric string, coerce
-  if (typeof val === "number") {
-    const d = new Date(val);
-    if (!isNaN(d)) return d.getTime();
-  }
-
-  if (typeof val === "string") {
-    // Common “Sep 8, 2025, 2:09:32 PM” or ISO strings
-    let d = new Date(val);
-    if (!isNaN(d)) return d.getTime();
-
-    // Try without commas
-    d = new Date(val.replace(/,/g, ""));
-    if (!isNaN(d)) return d.getTime();
-
-    // Try Date.parse directly
-    const t = Date.parse(val);
-    if (!Number.isNaN(t)) return t;
-  }
-
-  // As an absolute fallback, use “now” so we never show 1970
-  return Date.now();
+.logo{width:64px;height:auto}
+.title h1{
+  margin:0;
+  font-weight:800;
+  font-size:clamp(24px, 3.5vw + 12px, 40px);
+  line-height:1.05;
+  color:#f2efe6;
 }
+.title h1 span{font-weight:800}
+.sub{margin:6px 0 0;opacity:.8}
 
-function fmt(ts) {
-  const d = new Date(ts);
-  // If something slipped through and year is very old, guard it
-  if (d.getFullYear() < 1990) return "Just now";
-
-  return d.toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+.pill{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--pill);color:var(--pill-ink);
+  border:none;border-radius:999px;padding:.6rem 1.0rem;
+  text-decoration:none;font-weight:700;white-space:nowrap
 }
+.pill.primary{background:var(--brand)}
+.pill .play{display:inline-block;transform:translateY(-1px)}
+.chips{display:flex;flex-wrap:wrap;gap:.75rem;padding:10px 16px 0}
 
-function render() {
-  const pick = SOURCE_SELECT.value || "All sources";
-  const items = pick === "All sources"
-    ? ALL_ITEMS
-    : ALL_ITEMS.filter(i => i.source && i.source.toLowerCase().includes(pick.toLowerCase()));
-
-  UPDATED.textContent = ALL_ITEMS.length ? fmt(ALL_ITEMS[0].time) : "—";
-
-  if (!items.length) {
-    FEED.innerHTML = "";
-    EMPTY.hidden = false;
-    return;
-  }
-  EMPTY.hidden = true;
-
-  const html = items.map(i => `
-    <article class="card">
-      <a href="${i.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">
-        <div style="font-weight:900;font-size:1.15rem;line-height:1.25">${escapeHTML(i.title)}</div>
-        <div class="meta">
-          <span>${escapeHTML(i.source || "—")}</span>
-          <span>•</span>
-          <span>${fmt(i.time)}</span>
-        </div>
-      </a>
-    </article>
-  `).join("");
-
-  FEED.innerHTML = html;
+.filters{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;
+  padding:10px 16px 6px;color:#d8d6d2
 }
+.select{appearance:none;padding:.55rem .9rem;border-radius:12px;border:1px solid #3a3a3a;background:#131313;color:#f1efe9}
+.updated{margin-left:auto;opacity:.8}
 
-function escapeHTML(s) {
-  return String(s)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+.feed{display:grid;gap:12px;padding:10px 12px 18px}
+.card{
+  background:var(--card);color:var(--ink);
+  border-radius:14px;padding:16px 14px;box-shadow:0 1px 0 #000 inset
 }
+.card h3{margin:0 0 8px;font-size:20px;line-height:1.2}
+.meta{display:flex;gap:8px;align-items:center;color:var(--ink-weak);font-weight:600}
+.meta .dot{width:4px;height:4px;border-radius:50%;background:var(--ink-weak)}
+.card a{color:inherit;text-decoration:none}
+.card a:hover{text-decoration:underline}
 
-// Wire source filter
-SOURCE_SELECT.addEventListener('change', render);
-
-// Kick everything off
-loadItems();
-
-// Refresh periodically (keeps GH Pages fresh without thrashing)
-setInterval(loadItems, 5 * 60 * 1000);
+.foot{padding:22px 16px 40px;color:#a5a39f;text-align:center}
+.foot a{color:#b7b4ac}
