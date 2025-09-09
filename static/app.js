@@ -1,169 +1,214 @@
-// ---------- CONFIG (easy to reuse for other teams) ----------
-const ITEMS_URL = 'items.json';          // keep items.json in the repo root
-const AUDIO_URL = 'static/hail-purdue.mp3'; // exact filename; no spaces/uppercase
-const FOOTBALL_FILTER = /\bfootball|ross-ade|gridiron\b/i; // drop football posts
+<script>
+/* ---------------------------
+   Purdue MBB – front-end only
+   Fixes: stable sources list, US dates, clean titles (no underline)
+   --------------------------- */
 
-// ---------- AUDIO (user-gesture on iOS) ----------
-const playBtn = document.getElementById('playBtn');
-let audio;
-playBtn?.addEventListener('click', async () => {
+const ITEMS_URL = 'items.json';
+
+/** A hard, stable list so the dropdown never goes empty.
+ * We merge this with whatever appears in items.json. */
+const FIXED_SOURCES = [
+  'Yahoo Sports',
+  'Google News',
+  'Hammer and Rails',
+  'ESPN',
+  'Sports Illustrated',
+  'Journal & Courier',
+  'GoldandBlack',
+  'The Athletic',
+  'CBS Sports',
+  'Big Ten Network'
+];
+
+const els = {
+  select:  document.getElementById('source-select'),
+  updated: document.getElementById('updated-at'),
+  list:    document.getElementById('items-list'),
+};
+
+// ---- Utilities -------------------------------------------------------------
+
+function formatUS(date) {
   try {
-    if (!audio) audio = new Audio(AUDIO_URL);
-    // iOS can fail if on silent — but a user gesture still required
-    await audio.play();
-  } catch (err) {
-    alert('Could not play audio. On iPhone, ensure Silent Mode is off and tap again.\n\nAlso verify the file exists at static/hail-purdue.mp3');
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit'
+    }).format(date);
+  } catch {
+    return '';
   }
-});
+}
 
-// ---------- DOM ELEMENTS ----------
-const feedEl = document.getElementById('feed');
-const selectEl = document.getElementById('sourceSelect');
-const updatedEl = document.getElementById('updated');
-
-// ---------- UTIL ----------
-const fmtDate = (isoOrText) => {
-  // Try ISO first; if it fails, try Date.parse; if still bad, return '—'
-  let d = new Date(isoOrText);
-  if (isNaN(d)) {
-    const parsed = Date.parse(isoOrText);
-    d = new Date(parsed);
+/** iOS Safari is picky about non-ISO strings. Prefer isoDate; otherwise
+ * parse common “Sep 8, 2025 at 2:09 PM” style manually. */
+function toDate(obj) {
+  if (obj.isoDate) {
+    const d = new Date(obj.isoDate);
+    if (!isNaN(d)) return d;
   }
-  if (isNaN(d)) return '—';
-  return d.toLocaleString(undefined, {
-    month: 'short', day: 'numeric', year: 'numeric',
-    hour: 'numeric', minute:'2-digit'
+  if (obj.published || obj.pubDate) {
+    const s = String(obj.published || obj.pubDate);
+    // Try adding timezone if missing
+    let d = new Date(s);
+    if (!isNaN(d)) return d;
+
+    // Manual US parser: "Sep 8, 2025 at 2:09 PM" or "Sep 8, 2025, 2:09 PM"
+    const re = /([A-Za-z]{3,9})\s+(\d{1,2}),\s*(\d{4}).*?(\d{1,2}):(\d{2})\s*(AM|PM)/i;
+    const m = s.match(re);
+    if (m) {
+      const months = {
+        January:0, February:1, March:2, April:3, May:4, June:5,
+        July:6, August:7, September:8, October:9, November:10, December:11,
+        Jan:0, Feb:1, Mar:2, Apr:3, Jun:5, Jul:6, Aug:7, Sep:8, Sept:8, Oct:9, Nov:10, Dec:11
+      };
+      const mon = months[m[1]];
+      if (mon != null) {
+        let hr = Number(m[4]) % 12;
+        if (m[6].toUpperCase() === 'PM') hr += 12;
+        const dt = new Date(
+          Number(m[3]), mon, Number(m[2]),
+          hr, Number(m[5]), 0
+        );
+        if (!isNaN(dt)) return dt;
+      }
+    }
+  }
+  return null;
+}
+
+function unique(arr) {
+  return Array.from(new Set(arr.filter(Boolean)));
+}
+
+// ---- Rendering -------------------------------------------------------------
+
+function buildCard(item) {
+  const a = document.createElement('article');
+  a.className = 'news-card';
+
+  const title = document.createElement('h3');
+  title.className = 'item-title';
+  const link  = document.createElement('a');
+  link.href = item.link;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.textContent = item.title || '(untitled)';
+  title.appendChild(link);
+
+  const meta = document.createElement('div');
+  meta.className = 'item-meta';
+  const src = document.createElement('span');
+  src.className = 'meta-source';
+  src.textContent = item.source || '—';
+  const dot = document.createElement('span');
+  dot.textContent = ' • ';
+  const time = document.createElement('time');
+  if (item._date) time.textContent = formatUS(item._date);
+
+  meta.appendChild(src);
+  meta.appendChild(dot);
+  meta.appendChild(time);
+
+  a.appendChild(title);
+  a.appendChild(meta);
+
+  return a;
+}
+
+function render(items, sourceFilter) {
+  els.list.innerHTML = '';
+  const filtered = sourceFilter && sourceFilter !== 'All sources'
+    ? items.filter(i => (i.source || '').toLowerCase() === sourceFilter.toLowerCase())
+    : items;
+
+  filtered.forEach(i => els.list.appendChild(buildCard(i)));
+}
+
+// ---- Bootstrap -------------------------------------------------------------
+
+async function main() {
+  let data = [];
+  try {
+    const resp = await fetch(ITEMS_URL, {cache: 'no-store'});
+    data = await resp.json();
+  } catch (e) {
+    console.error('items.json fetch failed', e);
+    data = [];
+  }
+
+  // Normalize items
+  const items = (data || []).map(x => {
+    const obj = {
+      title: x.title ?? x.headline ?? '',
+      link:  x.link  ?? x.url      ?? '#',
+      source: x.source ?? x.site ?? x.feed ?? '',
+    };
+    obj._date = toDate(x);
+    return obj;
   });
-};
 
-const byRecency = (a,b) => {
-  const da = Date.parse(a.date || a.pubDate || 0) || 0;
-  const db = Date.parse(b.date || b.pubDate || 0) || 0;
-  return db - da;
-};
+  // Updated stamp: show the newest good date if present,
+  // otherwise use "just now" so it never says 1970.
+  const newest = items
+    .map(i => i._date)
+    .filter(Boolean)
+    .sort((a,b) => b - a)[0];
+  els.updated.textContent = newest ? formatUS(newest) : 'just now';
 
-// Dedup by URL (keep latest)
-const dedup = (items) => {
-  const seen = new Map();
-  for (const it of items) {
-    const key = (it.link || it.url || '').trim();
-    if (!key) continue;
-    const prev = seen.get(key);
-    if (!prev || byRecency(it, prev) < 0) seen.set(key, it);
-  }
-  return [...seen.values()];
-};
+  // Stable sources list = FIXED_SOURCES ∪ discovered
+  const discovered = unique(items.map(i => i.source));
+  const allSources = unique(['All sources', ...FIXED_SOURCES, ...discovered]);
 
-// ---------- RENDER ----------
-const render = (items, source='*') => {
-  feedEl.innerHTML = '';
-  let list = items.slice();
-
-  // Filter out football cross-posts
-  list = list.filter(it => !FOOTBALL_FILTER.test(it.title || ''));
-
-  if (source && source !== '*') {
-    list = list.filter(it => (it.source || '').toLowerCase() === source.toLowerCase());
+  // Populate dropdown once, in order
+  els.select.innerHTML = '';
+  for (const s of allSources) {
+    const opt = document.createElement('option');
+    opt.value = opt.textContent = s;
+    els.select.appendChild(opt);
   }
 
-  list.sort(byRecency);
+  // Keep previous selection if still present
+  const saved = localStorage.getItem('sourceFilter');
+  if (saved && allSources.includes(saved)) els.select.value = saved;
 
-  for (const it of list) {
-    const card = document.createElement('article');
-    card.className = 'card';
+  // Initial render
+  render(items, els.select.value);
 
-    const title = (it.title || '').trim();
-    const href  = (it.link || it.url || '').trim();
+  // Wire up changes
+  els.select.addEventListener('change', () => {
+    localStorage.setItem('sourceFilter', els.select.value);
+    render(items, els.select.value);
+  });
 
-    const h3 = document.createElement('h3');
-    h3.className = 'card-title';
+  // Expose minimal hook for the play button (non-breaking)
+  window.__playHailPurdue = async function() {
+    const candidates = [
+      'static/fight song.mp3',      // your file name (with space)
+      'static/fight%20song.mp3',    // URL-encoded fallback
+      'static/hail-purdue.mp3',     // conventional name fallback
+    ];
+    const src = await (async () => {
+      for (const url of candidates) {
+        try {
+          const r = await fetch(url, {method: 'HEAD', cache: 'no-store'});
+          if (r.ok) return url;
+        } catch {}
+      }
+      return null;
+    })();
 
-    if (href) {
-      const a = document.createElement('a');
-      a.href = href;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.textContent = title || 'Untitled';
-      h3.appendChild(a);
-    } else {
-      h3.textContent = title || 'Untitled';
+    if (!src) {
+      alert('Could not play audio. Make sure the MP3 exists in /static (e.g., "fight song.mp3" or "hail-purdue.mp3").');
+      return;
     }
 
-    const meta = document.createElement('div');
-    meta.className = 'card-meta';
-    const src = (it.source || it.outlet || '').trim() || '—';
-    const when = fmtDate(it.date || it.pubDate || it.published || '');
-    meta.innerHTML = `${src} <span class="dot"></span> ${when}`;
-
-    card.append(h3, meta);
-    feedEl.appendChild(card);
-  }
-
-  updatedEl.textContent = `Updated: ${fmtDate(new Date().toISOString())}`;
-};
-
-// ---------- LOAD ----------
-(async function init(){
-  try {
-    const res = await fetch(ITEMS_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Failed to fetch ${ITEMS_URL}`);
-    const data = await res.json();
-
-    // Normalize structure – accept either {items:[...]} or [...]
-    const raw = Array.isArray(data) ? data : (data.items || []);
-    const clean = dedup(
-      raw.map(x => ({
-        title: x.title || x.headline || '',
-        link:  x.link  || x.url || '',
-        source: x.source || x.outlet || x.feed || '',
-        date: x.date || x.pubDate || x.published || ''
-      }))
-    );
-
-    // Populate source dropdown
-    const sources = Array.from(new Set(clean
-      .map(i => (i.source || '').trim())
-      .filter(Boolean)
-    )).sort((a,b)=>a.localeCompare(b));
-
-    // Reset options safely
-    selectEl.innerHTML = '<option value="*">All sources</option>';
-    for (const s of sources) {
-      const opt = document.createElement('option');
-      opt.value = s;
-      opt.textContent = s;
-      selectEl.appendChild(opt);
-    }
-
-    // First paint
-    render(clean, '*');
-
-    // Interactions
-    selectEl.addEventListener('change', () => {
-      render(clean, selectEl.value);
+    const audio = new Audio(src);
+    audio.play().catch(() => {
+      alert('Could not play audio. On iPhone, make sure Silent Mode is off and tap again.');
     });
+  };
+}
 
-    // Light auto-refresh (client-side) every 15 min without breaking the UI
-    setInterval(async () => {
-      try {
-        const r = await fetch(ITEMS_URL, { cache: 'no-store' });
-        if (!r.ok) return;
-        const d = await r.json();
-        const nxt = Array.isArray(d) ? d : (d.items || []);
-        const cleaned = dedup(nxt.map(x => ({
-          title: x.title || x.headline || '',
-          link:  x.link  || x.url || '',
-          source: x.source || x.outlet || x.feed || '',
-          date: x.date || x.pubDate || x.published || ''
-        })));
-        render(cleaned, selectEl.value);
-      } catch {}
-    }, 15 * 60 * 1000);
-
-  } catch (err) {
-    console.error(err);
-    updatedEl.textContent = 'Updated: —';
-    feedEl.innerHTML =
-      '<div class="card"><h3 class="card-title">Couldn’t load items.json</h3><div class="card-meta">Make sure items.json is in the repo root and is valid JSON.</div></div>';
-  }
-})();
+document.addEventListener('DOMContentLoaded', main);
+</script>
