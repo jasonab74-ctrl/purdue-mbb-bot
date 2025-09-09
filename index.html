@@ -1,60 +1,56 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Purdue Boilermakers — Men’s Basketball</title>
-  <link rel="preload" as="image" href="static/logo.png">
-  <link rel="stylesheet" href="static/style.css">
+
+  <!-- Always use relative paths (no leading /) so GitHub Pages finds them -->
+  <link rel="preload" href="static/style.css?v=7" as="style" />
+  <link rel="stylesheet" href="static/style.css?v=7" />
+
+  <!-- favicon is optional -->
+  <link rel="icon" href="static/logo.png" />
 </head>
 <body>
   <header class="hero">
-    <img class="logo" alt="Purdue P logo" src="static/logo.png">
-    <div class="title">
-      <h1>Purdue Boilermakers — <br><span>Men’s Basketball</span></h1>
-      <p class="sub">Live team feed · auto-updates</p>
+    <img class="logo" src="static/logo.png" alt="Purdue P logo" />
+    <div class="hero-titles">
+      <h1>Purdue Boilermakers <span class="dash">—</span><br />Men’s Basketball</h1>
+      <p class="tagline">Live team feed · auto-updates</p>
     </div>
-    <button id="fightBtn" class="pill primary" type="button">
-      <span class="play">►</span> Hail Purdue
+    <button id="playBtn" class="pill primary" aria-label="Play Hail Purdue">
+      ▶︎ Hail Purdue
     </button>
-    <!-- One, single audio element. Keep the path and filename exactly. -->
-    <audio id="fightAudio" src="static/hail-purdue.mp3" preload="none" playsinline></audio>
   </header>
 
   <nav class="chips">
     <a class="pill" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
     <a class="pill" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
-    <a class="pill" href="https://purduesports.evenue.net/" target="_blank" rel="noopener">Tickets</a>
-
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/tickets" target="_blank" rel="noopener">Tickets</a>
     <a class="pill" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
     <a class="pill" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
     <a class="pill" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
     <a class="pill" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
     <a class="pill" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
-    <a class="pill" href="https://www.espn.com/mens-college-basketball/rankings" target="_blank" rel="noopener">AP Top 25</a>
+    <a class="pill" href="https://www.ncaa.com/rankings/basketball-men/d1/associated-press" target="_blank" rel="noopener">AP Top 25</a>
     <a class="pill" href="https://www.youtube.com/results?search_query=purdue+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
     <a class="pill" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
     <a class="pill" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
-    <a class="pill" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
+    <a class="pill" href="https://www.cbsnews.com/sports/ncaab/teams/PURD/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
   </nav>
 
-  <section class="filters">
-    <label for="sourceSel">Source:</label>
-    <select id="sourceSel" class="select">
-      <option value="__all__" selected>All sources</option>
+  <section class="controls">
+    <label for="sourceSelect" class="lbl">Source:</label>
+    <select id="sourceSelect" class="select">
+      <option value="*">All sources</option>
     </select>
-
-    <div class="updated">
-      Updated: <span id="updatedTs">—</span>
-    </div>
+    <div id="updated" class="updated" aria-live="polite">Updated: —</div>
   </section>
 
   <main id="feed" class="feed" aria-live="polite"></main>
 
-  <footer class="foot">
-    <a href="https://jasonab74-ctrl.github.io/purdue-mbb-bot/" target="_self" rel="noopener">jasonab74-ctrl.github.io</a>
-  </footer>
-
-  <script defer src="static/app.js"></script>
+  <!-- Single, authoritative JS -->
+  <script defer src="static/app.js?v=7"></script>
 </body>
 </html>
