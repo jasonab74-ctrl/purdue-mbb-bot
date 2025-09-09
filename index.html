@@ -2,75 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Purdue Boilermakers — Men’s Basketball</title>
-  <link rel="preload" href="static/hail-purdue.mp3" as="audio" type="audio/mpeg">
-  <link rel="stylesheet" href="style.css" />
+  <link rel="preload" href="static/hail-purdue.mp3" as="audio">
+  <link rel="icon" href="static/logo.png">
+  <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
   <header class="hero">
-    <img class="team-logo" src="static/logo.png" alt="Purdue logo" />
-    <div class="title-wrap">
-      <h1 class="title">Purdue Boilermakers <span class="dash">—</span> <span>Men’s Basketball</span></h1>
-      <p class="sub">Live team feed · auto-updates</p>
+    <div class="hero-left">
+      <img class="logo" src="static/logo.png" alt="Purdue logo" />
+      <div class="title">
+        <h1>Purdue Boilermakers</h1>
+        <h2>— Men’s Basketball</h2>
+        <p class="sub">Live team feed · auto-updates</p>
+      </div>
     </div>
 
-    <!-- Fight song -->
-    <button id="fightBtn" class="pill pill--primary" type="button" aria-pressed="false">
-      <span id="fightIcon">▶︎</span> Hail Purdue
-    </button>
-    <!-- Keep the audio element in the DOM (no autoplay). iOS requires a user gesture. -->
-    <audio id="fightSong" playsinline preload="auto">
-      <!-- If you keep the file name different, change this src only -->
-      <source src="static/hail-purdue.mp3" type="audio/mpeg" />
-    </audio>
+    <div class="hero-right">
+      <button id="play-anthem" class="pill pill-strong">▶ Hail Purdue</button>
+      <audio id="anthem" src="static/hail-purdue.mp3" preload="none"></audio>
+    </div>
   </header>
 
-  <!-- Quick links (unchanged) -->
-  <nav class="chips">
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
-    <a class="chip" href="https://purduesports.com/sports/2024/10/31/tickets" target="_blank" rel="noopener">Tickets</a>
-    <a class="chip" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
-    <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
-    <a class="chip" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
-    <a class="chip" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
-    <a class="chip" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
-    <a class="chip" href="https://apnews.com/hub/ap-top-25-college-basketball-poll" target="_blank" rel="noopener">AP Top 25</a>
-    <a class="chip" href="https://www.youtube.com/results?search_query=purdue+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
-    <a class="chip" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
-    <a class="chip" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
-    <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
+  <nav class="links">
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/schedule">Schedule</a>
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/roster">Roster</a>
+    <a class="pill" href="https://purduesports.evenue.net/">Tickets</a>
+
+    <a class="pill" href="https://www.reddit.com/r/Boilermakers/">Reddit — r/Boilermakers</a>
+    <a class="pill" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers">ESPN Team</a>
+    <a class="pill" href="https://kenpom.com/team.php?team=Purdue">KenPom</a>
+    <a class="pill" href="https://www.sports-reference.com/cbb/schools/purdue/">Sports-Reference</a>
+    <a class="pill" href="https://bigten.org/standings.aspx?path=mbball">Big Ten Standings</a>
+    <a class="pill" href="https://www.espn.com/mens-college-basketball/rankings">AP Top 25</a>
+    <a class="pill" href="https://www.youtube.com/results?search_query=purdue+basketball+highlights">Highlights</a>
+    <a class="pill" href="https://247sports.com/college/purdue/">247Sports</a>
+    <a class="pill" href="https://purdue.rivals.com/">Rivals</a>
+    <a class="pill" href="https://www.cbssports.com/college-basketball/teams/PURDUE/purdue-boilermakers/">CBS Purdue</a>
   </nav>
 
-  <!-- Sources + last updated -->
-  <section class="toolbar">
-    <label class="label" for="sourceSelect">Source:</label>
-    <select id="sourceSelect" class="select">
-      <option value="*">All sources</option>
-      <!-- The JS will also inject any sources seen in items.json so this list never “rolls back” -->
-      <option>PurdueSports.com</option>
-      <option>Journal & Courier</option>
-      <option>GoldandBlack.com</option>
-      <option>Hammer and Rails</option>
-      <option>The Athletic</option>
-      <option>ESPN</option>
-      <option>Yahoo Sports</option>
-      <option>Sports Illustrated</option>
-      <option>CBS Sports</option>
-      <option>Big Ten Network</option>
-      <!-- Safe wildcard fallback below, added by script if needed -->
+  <section class="bar">
+    <label for="source" class="bar-label">Source:</label>
+    <select id="source" class="source-select" aria-label="News source">
+      <!-- Options are injected & kept stable by app.js -->
     </select>
-
-    <div class="updated">
-      <span class="label">Updated:</span>
-      <time id="updatedAt">—</time>
-    </div>
+    <span class="updated">Updated: <span id="updated">—</span></span>
   </section>
 
-  <!-- News list -->
-  <main id="list" class="list" aria-live="polite"></main>
+  <main id="feed" class="feed" aria-live="polite"></main>
 
-  <script src="app.js"></script>
+  <template id="item-tpl">
+    <article class="card">
+      <a class="card-link" target="_blank" rel="noopener">
+        <h3 class="card-title"></h3>
+      </a>
+      <div class="card-meta">
+        <span class="meta-source"></span>
+        <span class="meta-dot">•</span>
+        <time class="meta-date"></time>
+      </div>
+    </article>
+  </template>
+
+  <script src="static/app.js" defer></script>
 </body>
 </html>
