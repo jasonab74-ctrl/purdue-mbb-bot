@@ -2,258 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Purdue Boilermakers — Men’s Basketball</title>
-  <meta name="color-scheme" content="dark light" />
-
-  <!-- Brand / theme -->
-  <style>
-    :root{
-      --bg:#0e0e0d;            /* deep black-brown */
-      --card:#d7c29a;          /* light gold for article cards */
-      --chip:#e7d7b7;          /* softer gold for chips */
-      --text:#f9f6ef;          /* off-white text */
-      --muted:#b6a98f;         /* muted gold/gray for meta */
-      --accent:#cbb17a;        /* button hover */
-      --border:#3d382e;
-      --shadow:0 2px 10px rgba(0,0,0,.25);
-      --radius:18px;
-      --max:900px;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    a{color:inherit;text-decoration:none}          /* no underlines */
-    img{max-width:100%;display:block}
-    .wrap{max-width:var(--max);margin:0 auto;padding:24px 16px 28px}
-    header{display:grid;grid-template-columns:auto 1fr auto;gap:12px 14px;align-items:center;margin-bottom:18px}
-    header .logo{width:46px;height:46px;border-radius:10px;overflow:hidden;background:#1b1a17;display:flex;align-items:center;justify-content:center}
-    header .logo img{width:100%;height:100%;object-fit:contain}
-    h1{margin:0;font-weight:800;font-size:clamp(28px,5.8vw,44px);letter-spacing:.2px}
-    .sub{margin-top:2px;color:var(--muted)}
-    .row{display:flex;flex-wrap:wrap;gap:14px}
-    .chip{background:var(--chip);color:#1c1913;padding:12px 18px;border-radius:999px;box-shadow:var(--shadow);font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
-    .chip:active{transform:translateY(1px)}
-    .right{justify-content:flex-end}
-    .bar{height:2px;background:var(--accent);opacity:.6;margin:20px 0 10px;border-radius:2px}
-
-    /* Controls row */
-    .controls{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin:6px 0 8px}
-    label{font-weight:700}
-    select{width:100%;background:#171614;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:14px 16px;appearance:none}
-    .updated{color:var(--muted);text-align:right;font-weight:600}
-
-    /* Article list */
-    .list{display:grid;gap:14px;margin-top:8px}
-    .card{background:var(--card);color:#1b1710;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
-    .title{font-weight:800;font-size:1.15rem;margin:0 0 8px}
-    .meta{display:flex;gap:12px;align-items:center;color:#2b261d;font-weight:600}
-    .dot::before{content:"•";opacity:.55;margin:0 6px 0 0}
-    @media (min-width:680px){
-      .row.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-      .controls{grid-template-columns:1fr auto}
-    }
-
-    /* Fight song button */
-    .btn{border:0;border-radius:999px;padding:12px 18px;background:var(--chip);color:#1b1710;font-weight:800;box-shadow:var(--shadow);cursor:pointer}
-    .btn:hover{background:var(--accent)}
-  </style>
+  <link rel="preload" href="static/fight-song.mp3" as="audio">
+  <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo">
-        <!-- Keep your logo at static/logo.png -->
-        <img src="static/logo.png" alt="Purdue P logo" />
-      </div>
-      <div>
-        <h1>Purdue Boilermakers — Men’s Basketball</h1>
-        <div class="sub">Live team feed · auto-updates</div>
-      </div>
-      <div>
-        <button id="fightSongBtn" class="btn">▶ Hail Purdue</button>
-      </div>
-    </header>
-
-    <div class="row grid3">
-      <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
-      <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
-      <a class="chip" href="https://purduesports.com/sports/mens-basketball/tickets" target="_blank" rel="noopener">Tickets</a>
-
-      <a class="chip" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
-      <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
-      <a class="chip" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
-
-      <a class="chip" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
-      <a class="chip" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
-      <a class="chip" href="https://www.ncaa.com/rankings/basketball-men/d1/associated-press" target="_blank" rel="noopener">AP Top 25</a>
-
-      <a class="chip" href="https://www.youtube.com/results?search_query=Purdue+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
-      <a class="chip" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
-      <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
+  <header class="hero">
+    <img class="hero__logo" src="static/logo.png" alt="Purdue P logo" />
+    <div class="hero__text">
+      <h1>Purdue Boilermakers <span class="dash">—</span> <span class="nowrap">Men’s Basketball</span></h1>
+      <p class="sub">Live team feed · auto-updates</p>
     </div>
 
-    <div class="bar"></div>
+    <button id="songBtn" class="pill pill--cta" type="button" aria-pressed="false">
+      <span class="pill__icon" aria-hidden="true">►</span>
+      <span>Hail Purdue</span>
+    </button>
 
-    <div class="controls">
-      <div>
-        <label for="sourceSel">Source:</label>
-        <select id="sourceSel">
-          <option value="ALL">All sources</option>
-        </select>
-      </div>
-      <div class="updated" id="updated">Updated: —</div>
+    <!-- Audio element (iOS requires a user gesture; we hook to the button) -->
+    <audio id="fightAudio" src="static/fight-song.mp3" preload="auto"></audio>
+  </header>
+
+  <nav class="links">
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
+    <a class="pill" href="https://purduesports.com/sports/mens-basketball/tickets" target="_blank" rel="noopener">Tickets</a>
+
+    <a class="pill" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
+    <a class="pill" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
+    <a class="pill" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
+
+    <a class="pill" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
+    <a class="pill" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
+    <a class="pill" href="https://www.ncaa.com/rankings/basketball-men/d1/associated-press" target="_blank" rel="noopener">AP Top 25</a>
+
+    <a class="pill" href="https://www.youtube.com/results?search_query=purdue+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
+    <a class="pill" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
+    <a class="pill" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
+    <a class="pill" href="https://n.rivals.com/college-teams/purdue-boilermakers" target="_blank" rel="noopener">Rivals</a>
+  </nav>
+
+  <section class="bar">
+    <label for="sourceSelect" class="bar__label">Source:</label>
+    <select id="sourceSelect" class="select"></select>
+
+    <div class="bar__spacer"></div>
+    <div class="updated">
+      <span class="muted">Updated:</span>
+      <time id="updatedAt" class="muted">—</time>
     </div>
+  </section>
 
-    <div id="list" class="list" aria-live="polite"></div>
-  </div>
+  <main id="feed" class="feed" aria-live="polite"></main>
 
-  <!-- Fight song (toggle play/pause) -->
-  <audio id="fightSong" preload="none" src="static/hail-purdue.mp3"></audio>
+  <footer class="footer">
+    <a href="https://jasonab74-ctrl.github.io/purdue-mbb-bot/" target="_blank" rel="noopener">jasonab74-ctrl.github.io</a>
+  </footer>
 
-  <script>
-    // ---------- Fight song toggle ----------
-    (function(){
-      const audio = document.getElementById('fightSong');
-      const btn   = document.getElementById('fightSongBtn');
-
-      function setBtn(paused){
-        btn.textContent = paused ? '▶ Hail Purdue' : '⏸ Pause Hail Purdue';
-      }
-      setBtn(true);
-
-      btn.addEventListener('click', async () => {
-        try{
-          if (audio.paused) {
-            await audio.play();
-            setBtn(false);
-          } else {
-            audio.pause();
-            setBtn(true);
-          }
-        }catch(e){
-          alert('Could not play audio. On iPhone, make sure Silent Mode is off and tap again.\n\nAlso verify the file exists at static/hail-purdue.mp3');
-        }
-      });
-
-      audio.addEventListener('ended', () => setBtn(true));
-      audio.addEventListener('pause', () => setBtn(true));
-      audio.addEventListener('play',  () => setBtn(false));
-    })();
-
-    // ---------- Articles (items.json) ----------
-    (async function(){
-      const listEl    = document.getElementById('list');
-      const updatedEl = document.getElementById('updated');
-      const sel       = document.getElementById('sourceSel');
-
-      // Fetch the items.json produced by your GitHub Action (collector)
-      let items = [];
-      try{
-        const res = await fetch('items.json', { cache: 'no-store' });
-        const json = await res.json();
-
-        // Support both {"items":[...]} and bare [...]
-        items = Array.isArray(json) ? json : (json.items || []);
-      }catch(e){
-        console.error('Failed to load items.json', e);
-      }
-
-      // Defensive normalization (avoid Jan 1970 issue if date missing)
-      const toDate = (v) => {
-        if (!v) return null;
-        // Try ISO or RFC first
-        let t = Date.parse(v);
-        if (!Number.isNaN(t)) return new Date(t);
-        // Try epoch seconds
-        if (typeof v === 'number') {
-          if (String(v).length <= 10) return new Date(v * 1000);
-          return new Date(v);
-        }
-        return null;
-      };
-
-      items = items.map(it => {
-        const d = toDate(it.published || it.date || it.updated || it.pubDate);
-        return {
-          title: it.title || '(untitled)',
-          link:  it.link  || it.url || '#',
-          source: it.source || it.source_name || it.feed || 'Unknown',
-          source_id: it.source_id || it.id || it.feed_id || (it.source || 'unknown').toLowerCase().replace(/\s+/g,'-'),
-          date: d ? d : new Date(),   // if invalid, fall back to now (prevents 1970)
-        };
-      });
-
-      // Sort newest first and cap to 50 (rolling window)
-      items.sort((a,b) => b.date - a.date);
-      items = items.slice(0,50);
-
-      // Build dropdown from present sources
-      const uniqueSources = Array.from(new Map(
-        items.map(i => [i.source_id, i.source])
-      ).entries()).map(([id,name]) => ({id,name}))
-       .sort((a,b)=>a.name.localeCompare(b.name));
-
-      uniqueSources.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.textContent = s.name;
-        sel.appendChild(opt);
-      });
-
-      // Render function (with filter)
-      const render = () => {
-        const filter = sel.value;
-        listEl.innerHTML = '';
-        const filtered = filter === 'ALL' ? items : items.filter(i => i.source_id === filter);
-
-        filtered.forEach(it => {
-          const card = document.createElement('article');
-          card.className = 'card';
-
-          const a = document.createElement('a');
-          a.href = it.link;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          const h = document.createElement('h3');
-          h.className = 'title';
-          h.textContent = it.title;
-          a.appendChild(h);
-
-          const meta = document.createElement('div');
-          meta.className = 'meta';
-          const src = document.createElement('span');
-          src.textContent = it.source;
-          const dt  = document.createElement('time');
-          // American style date/time
-          dt.textContent = it.date.toLocaleString('en-US', {
-            month:'short', day:'numeric', year:'numeric',
-            hour:'numeric', minute:'2-digit'
-          });
-          meta.appendChild(src);
-          const dot = document.createElement('span');
-          dot.className = 'dot';
-          meta.appendChild(dot);
-          meta.appendChild(dt);
-
-          card.appendChild(a);
-          card.appendChild(meta);
-          listEl.appendChild(card);
-        });
-
-        // Updated stamp is "now" (time page pulled)
-        const now = new Date();
-        updatedEl.textContent = 'Updated: ' + now.toLocaleString('en-US', {
-          month:'short', day:'numeric', year:'numeric',
-          hour:'numeric', minute:'2-digit'
-        });
-      };
-
-      sel.addEventListener('change', render);
-      render();
-    })();
-  </script>
+  <script src="static/app.js" defer></script>
 </body>
 </html>
