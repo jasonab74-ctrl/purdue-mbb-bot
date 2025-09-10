@@ -1,4 +1,4 @@
-/* ----- 8–10 fixed Purdue MBB sources for a stable dropdown ----- */
+/* ===== Fixed Purdue MBB sources for a stable dropdown ===== */
 const SOURCES = [
   { key: 'All sources', label: 'All sources' },
   { key: 'Yahoo Sports', label: 'Yahoo Sports' },
@@ -10,17 +10,39 @@ const SOURCES = [
   { key: 'GoldandBlack', label: 'GoldandBlack' },
   { key: 'The Athletic', label: 'The Athletic' },
   { key: 'CBS Sports', label: 'CBS Sports' },
-  { key: 'Big Ten Network', label: 'Big Ten Network' }
+  { key: 'Big Ten Network', label: 'Big Ten Network' },
 ];
 
-/* DOM */
-const feedEl        = document.getElementById('feed');
-const sel           = document.getElementById('sourceSelect');
-const updatedEl     = document.getElementById('updatedAt');
-const songBtn       = document.getElementById('songBtn');
-const fightAudio    = document.getElementById('fightAudio');
+/* ——— Aliases so filtering works even if feed text varies slightly ——— */
+const SOURCE_ALIASES = {
+  'Yahoo Sports':      [/^yahoo/i],
+  'Google News':       [/^google/i],
+  'Hammer and Rails':  [/hammer\s*and\s*rails/i, /hammer\s*&\s*rails/i],
+  'ESPN':              [/^espn/i],
+  'Sports Illustrated':[/sports\s*illustrated/i, /^si\b/i],
+  'Journal & Courier': [/journal/i, /courier/i],
+  'GoldandBlack':      [/gold.*black/i],
+  'The Athletic':      [/athletic/i],
+  'CBS Sports':        [/cbs/i],
+  'Big Ten Network':   [/big\s*ten.*network/i, /\bbttn?\b/i]
+};
 
-/* Build dropdown from the fixed list (never “rolls back”) */
+function matchesSource(itemSource, pickKey) {
+  if (!itemSource) return false;
+  if (pickKey === 'All sources') return true;
+  const src = String(itemSource).trim();
+  const tests = SOURCE_ALIASES[pickKey] || [];
+  return tests.some(re => re.test(src));
+}
+
+/* ===== DOM ===== */
+const feedEl     = document.getElementById('feed');
+const sel        = document.getElementById('sourceSelect');
+const updatedEl  = document.getElementById('updatedAt');
+const songBtn    = document.getElementById('songBtn');
+const fightAudio = document.getElementById('fightAudio');
+
+/* ===== Build dropdown (never “rolls back”) ===== */
 (function buildDropdown(){
   sel.innerHTML = '';
   for (const s of SOURCES) {
@@ -32,51 +54,63 @@ const fightAudio    = document.getElementById('fightAudio');
   sel.value = 'All sources';
 })();
 
-/* Load items.json (cache-bust to avoid old GH Pages cache) */
+/* ===== Load items.json (cache-busted so GH Pages doesn’t serve old data) ===== */
 async function loadItems(){
   const cacheBust = `?v=${Date.now().toString().slice(0,10)}`;
   const res = await fetch(`items.json${cacheBust}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const items = await res.json();
-  return Array.isArray(items) ? items : (items.items || []);
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.items || []);
 }
 
-/* Robust date parsing (handles ISO, RFC822, “Sep 8, 2025 at 7:01 AM”, etc.) */
-function parseDate(d){
-  if (!d) return null;
-  // strip " at " if present
-  const cleaned = typeof d === 'string' ? d.replace(/\sat\s/i, ' ') : d;
-  const t = Date.parse(cleaned);
+/* ===== Robust date parsing (kills the 1970 bug) ===== */
+function parseDate(raw){
+  if (!raw) return null;
+
+  // normalize things like "Sep 9, 2025 at 4:04 PM" → "Sep 9, 2025 4:04 PM"
+  const s = typeof raw === 'string' ? raw.replace(/\sat\s/i, ' ') : raw;
+  const t = Date.parse(s);
   if (!Number.isNaN(t)) return new Date(t);
-  try { return new Date(cleaned); } catch { return null; }
+
+  try { return new Date(s); } catch { return null; }
 }
 
-/* Render feed cards (50 most recent) */
-let allItems = [];
+/* ===== Format date: simple US style (no time) ===== */
+function formatDateUS(d){
+  return d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+}
+
+/* ===== Render ===== */
+let ALL = [];
+
 function render(){
   const pick = sel.value;
-  let items = allItems;
+  let items = ALL.slice();
 
+  // Filter by selected source
   if (pick && pick !== 'All sources') {
-    items = items.filter(it => (it.source || '').toLowerCase() === pick.toLowerCase());
+    items = items.filter(it => matchesSource(it.source, pick));
   }
 
-  // Sort newest first
-  items.sort((a,b) => (parseDate(b.isoDate || b.date) ?? 0) - (parseDate(a.isoDate || a.date) ?? 0));
-  items = items.slice(0, 50);
+  // Sort newest first; drop anything without a valid date
+  items = items
+    .map(it => ({ it, dt: parseDate(it.isoDate || it.date || it.pubDate) }))
+    .filter(x => x.dt instanceof Date && !Number.isNaN(x.dt.getTime()))
+    .sort((a,b) => b.dt - a.dt)
+    .slice(0, 50);
 
-  // Updated time = newest item date (fallback to now)
-  const newest = items.find(it => parseDate(it.isoDate || it.date));
-  updatedEl.textContent = newest ? formatLocal(parseDate(newest.isoDate || newest.date)) : '—';
+  // Updated = newest item date (fallback “—”)
+  updatedEl.textContent = items[0]?.dt ? formatDateUS(items[0].dt) : '—';
 
-  // Cards
+  // Paint
   feedEl.innerHTML = '';
-  for (const it of items) {
+  for (const { it, dt } of items) {
     const card = document.createElement('article');
     card.className = 'card';
 
     const h3 = document.createElement('h3');
     h3.className = 'item-title';
+
     const a = document.createElement('a');
     a.href = it.link;
     a.target = '_blank';
@@ -86,14 +120,16 @@ function render(){
 
     const meta = document.createElement('div');
     meta.className = 'meta';
+
     const src = document.createElement('span');
     src.textContent = it.source || '—';
+
     const dot = document.createElement('span');
     dot.textContent = '•';
+
     const when = document.createElement('time');
-    const dt = parseDate(it.isoDate || it.date || it.pubDate);
-    when.dateTime = dt ? dt.toISOString() : '';
-    when.textContent = dt ? formatLocal(dt) : '—';
+    when.dateTime = dt.toISOString();
+    when.textContent = formatDateUS(dt);
 
     meta.append(src, dot, when);
     card.append(h3, meta);
@@ -101,31 +137,24 @@ function render(){
   }
 }
 
-function formatLocal(d){
-  // Example: Sep 9, 2025 at 4:04 PM
-  const opts = { year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' };
-  return `${d.toLocaleDateString(undefined, opts)} at ${d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'})}`;
-}
-
-/* Init */
+/* ===== Init ===== */
 (async function(){
   try {
-    allItems = await loadItems();
+    ALL = await loadItems();
   } catch (e) {
     console.error('Failed to load items.json', e);
-    allItems = [];
+    ALL = [];
   }
   render();
 })();
 
-/* Interactions */
 sel.addEventListener('change', render);
 
-/* Fight song: play / pause toggle (iOS requires user gesture) */
+/* ===== Fight song play/pause (uses static/fight-song.mp3) ===== */
 songBtn.addEventListener('click', async () => {
-  try{
+  try {
     if (fightAudio.paused) {
-      await fightAudio.play();
+      await fightAudio.play();                     // iOS requires user tap
       songBtn.setAttribute('aria-pressed', 'true');
       songBtn.querySelector('.pill__icon').textContent = '❚❚';
       songBtn.lastElementChild.textContent = 'Pause';
@@ -136,9 +165,8 @@ songBtn.addEventListener('click', async () => {
       songBtn.querySelector('.pill__icon').textContent = '►';
       songBtn.lastElementChild.textContent = 'Hail Purdue';
     }
-  }catch(err){
-    // Give a helpful hint without crashing
-    alert('Could not play audio. On iPhone, make sure Silent Mode is off and tap again. Also verify that static/fight-song.mp3 exists.');
+  } catch (err) {
+    alert('Could not play audio. On iPhone, ensure Silent Mode is off and tap again.\nAlso verify the file is at static/fight-song.mp3');
     console.warn(err);
   }
 });
