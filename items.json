@@ -1,5 +1,5 @@
 {
-  "updated": "2025-09-30T08:28:01.219699+00:00",
+  "updated": "2025-09-30T08:50:36.271126+00:00",
   "items": [
     {
       "title": "Boilerball Adds Two for 2026 Recruiting Class",
@@ -212,12 +212,6 @@
       "published": 1758658396
     },
     {
-      "title": "Want to meet Purdue basketball players? Here's how you can see the Boilermakers - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxObTg3M3JKVzJPX29FR3N4aVV0UkZ0OFJxYUpmQ1BhZkltbGpWR2JTX1QwNW80Ry0xN1dCSktfcF9IamxuOV9UX2ZjQ1pBeEM2aXlleEtfTC0yX1ZmYnNlODVRVTduTFotQnlneVIzRXFpZUs3NjhTUnB0ZXVrRm83TjdCY0RvUWhweW01bXlDSl9LNnpfWWNpVUhuUG9jRE9EeGZXWC1TVHlyeFE1ZkJPSXNWemo5OFZyN2VTaXNsNG9WUzQ0LW1nUnFjUmZyM1pRT3c?oc=5",
-      "source": "Journal & Courier",
-      "published": 1758656388
-    },
-    {
       "title": "Three Purdue Players Included Among Top 40 in College Basketball - Sports Illustrated",
       "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPZUFreG9UUGpPM3BVWHJpMjB6QTJUbUtjLXh5bnNCYWZpREQ0elVKZ3E5amlrRTZIWmVoTi11anBsOVV6cnZvdThsMkQxdEVaV0ZZbE5DNVM0TFhlQXNhUVR0RHp5cHdyUTB3Rm50VlRnYlJwWWxtd0VISWdWaXV4UkJCbnZTeGZLSjJXVG45VHlMN2p2cEFZZUxOdHQwUThVSXBta1Z1aFRZNE45RHc?oc=5",
       "source": "Google News",
@@ -228,6 +222,12 @@
       "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxPZk8wbDk4UWQtQzczQktMV1prd3I1dWFJQTR5b1ZUSFhmTjRwbFRZbFp4ZU5mV2FqdXBIV19YcHpKUkgtZ05SLTV1blRzcExMYzdSZHJzWTBRby1SSm9YZ2R5WTdmd3VYQUtzdndMMVZIanY0WDZKeTZWdURwTzlxVFVvbHRMa0UwYmNjTnY2ZmR6SVNTS2ZJYjBranQ?oc=5",
       "source": "Google News",
       "published": 1758632266
+    },
+    {
+      "title": "Journal & Courier Events - Illinois Fighting Illini at Purdue Boilermakers Womens Basketball - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxNN3ctVFF2dERFdklkcEc0NUxoQ0pacG1uN3BudlRValpjVm1YMGdZRV9YVXVEYWE1aGtkdXlTWHZMMndXdG9DRmxoN2xoZEwxTXM4R0xGN1JjOXNVNV9Oa19tekFSN3FjaE8wajFzdmVhMFladmtxUkR2LVh6RnJ0SXFFUmRNWERkVFpqNjc5ZWNVV1N3dVBWVkllaURCOWhud1AtOGNVMnpGYklKa2p3TEFpQ2FtMWxWdjM4blNmWDItN1BvUHdZYWs2RWNvdUpoUVhGQnplN1pVYlV6?oc=5",
+      "source": "Journal & Courier",
+      "published": 1758611465
     },
     {
       "title": "Analyst Jon Rothstein Makes Bold Prediction for Purdue Guard CJ Cox - Sports Illustrated",
@@ -596,6 +596,12 @@
       "published": 1748934000
     },
     {
+      "title": "Indiana All-Star from 2023 Saige Stahl joins Purdue women's basketball - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQWnNORnJBR3ctM1BMdkk4aWtwYUkybF9PcVpNX3o2UUNzeEw0VlFBcTB5elJqaDhGTENZdEYtRXFiVlhTQ0E0YXk5OVRrTWpSTlM0elBRdkg1NkdWU1BNamEybGNzLXRBcm56cW9QV3h5UzRFX0pydW5zVWRwUUF1aWhvVHNhS1U5YTZjMDZ2R1hyN01fcVlENC1KLUNqNDZZUUdva1ZKLXBiQ1pzMnhEMUdGbW81SUpUa1VOWkc0RUlJbzlJdER6TnNXQ2VPMFZBM0Fz?oc=5",
+      "source": "Journal & Courier",
+      "published": 1748674800
+    },
+    {
       "title": "Purdue women's basketball adds Israel guard Hila Karsh - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxNMkJVN0N4SXZDVG1qenhNQzFzaGhtdGNpbmxIcnZ3VUhnN2tHejhtblRCM2tld0pXRjQ1MGxFeWx0RUdmcjI1ZkdpQldyVkFTbUppRzdpbjFIcHpPQTk2WUw0ODc1OVl4eWVuM2JFdXRuN3RGT0tJYXVhTGRfalJPVFg1SHpKRTRwRWp5Qmw4NC0tMVN3ZnVsRzFfMTVZYWVEeENjRjBkWFJlWE9WQy1xS2tRY2tvRk93clN3V00zTTZuclg2bG5yalhsVVJ4SmgwMGlNQnJwMGhxVU10MmZfc3NKcTdtZjQ?oc=5",
       "source": "Journal & Courier",
@@ -624,12 +630,6 @@
       "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxQNldNRmhIc1BpZC1URGtTY2xnR2NDUUc2dkxMVm9JQkdneFRIMWp2UEhnLUNidnNxZFZqUTdQTVhzNUZzU3NPSV9kNURtRURsSHZXNVIybnJEOVZCYmtJeXFZdTA2WU9iSmhMeFRkelJUblo5d19NcXdhNU9xYmMwN3dkMGFQMWpzYXpmcjZ1aVVPSC0zcWh3VFo0TUEyU2xraE8yMUhUcEdXVzhSeE1wbXJHUTRwMTdzRnNWUW45amNDYmZ3WmlINF9PMUNlcThLQ0t5ckR4VXBaT25Lem5US09R?oc=5",
       "source": "Journal & Courier",
       "published": 1746082800
-    },
-    {
-      "title": "Purdue women's basketball 2025-26 Big Ten schedule is set. What stands out? - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMihgJBVV95cUxNSGZHQ3lMWTd2X2dxSTNGanhNdndESGxELTgwOVBmVWtXU2JJSWlxZS1JR2dPY0tQank0b1RQTXVRZUUzYXI5UWxDd0tDaEp3ZHJfbzdIQ0JJRmc4R1pEZGdwU2dHN3RwVF96eFEyUDNqc3V3YUZBS0g0Ni16bnRFSHZndVJlWDFPNUQ2NEpoYzcwaF9Ea19vRE4xdnFYeEdtRHRSMU1SWXg3MXcxSG5GWVpQVmZqWnc0UHpyc2JHX1VFcVIxeVdKNE5xLXFyaS1ONXV5SDB6TU5HdDhYeXEwanRhUThQZGdPUGpMQU1xTlczZFhhUHhQOXEtdloybGsyRVZoTGx3?oc=5",
-      "source": "Journal & Courier",
-      "published": 1745996400
     },
     {
       "title": "Big Ten Unveils 2025-26 Men’s Basketball Conference Opponents - Purdue Boilermakers",
@@ -758,12 +758,6 @@
       "published": 1742972400
     },
     {
-      "title": "Jordyn Poole has entered the transfer portal: who is left at Purdue women's basketball? - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxPRDFURGN1SWx2cDdDaTdyQnZzU2ttOC1HdlU3UkpqNVNMbnpnczg4VmMtRnRzNmpoZnJEVEhSWE5FTnpkRnF2a2lLVmpudkVmZU5CVEQxZ0FsMndxekhYU0pWbFBDOEpraENPMW9pbXd6TjItMnFYX0doV1RaR2VKRndndlQ3ZkxHRGxhNDI5R2VReTE4bk82b2FBVGEyWlpNTXI0VU1WS01hX1FzajUxd295ZWZabUtsZU85Y0NiR1Z5VFA3QWRGMjlWdGowbW44MWpDVEhjdVRveWl2YkE?oc=5",
-      "source": "Journal & Courier",
-      "published": 1742886000
-    },
-    {
       "title": "Purdue basketball vs Houston prediction: Our pick for 2025 NCAA Tournament Sweet 16 - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxNaUhpSTdwX2h6WjFJd2Z6dTFFLXAxckNLRk5vdTZQNS1rTEdHR2hJMkRmSjFoTEZIRm81a1R2ZzdoMy1nRmJXRVBHZVJBZnFFSFFhR055VnRZZGRaUDcybjN2enAtTFk1VWtQWjFLejVIUnRWVTF2amxzS2xUd3BKMmZiekZNbjY5N3NRV1FieWM1S0c3c010UEZSVEpnQzZMOHJvelBrQVltZjZXNWgtOXBQcXlDNHFVVGl3NWhmUlBVekdLejdoVm9qLVpRV3RVZWloM2FQMmRjV2NCVmNYU01aQXFuNEE5dENj?oc=5",
       "source": "Journal & Courier",
@@ -842,12 +836,6 @@
       "published": 1742108400
     },
     {
-      "title": "PHOTOS: Purdue basketball falls to Michigan in Big Ten Tournament - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxOSk5kWjRqaHZmdUZ2SGNJSkZwaTBoSlVQdkN5SFU2TE0zVnJQaWZYSFhfckpuX19jRW9wQzFoZTBUOVJ6X1lsVjFUdVloZWlNR2NnNnBwd3o1aDJYRXJmaERLa1NaWlJkekxzcEphR3ZZM2p1WUZmZktSdmZqX2pDek5BS0ZBWUFncF9La21KaXBtUXMxeWtneUdGS1Nha1p4UXkzaE95M1BiczlQcWxXTjRIcTY1WHNQQ3BpZzVObUNtc0VwOXhLNmplLTVPU09mLXJnZm5iMmE5SXJ1WFB3eENPRVBzUQ?oc=5",
-      "source": "Journal & Courier",
-      "published": 1741935600
-    },
-    {
       "title": "Michigan defense suffocates Purdue basketball, leading to early Big Ten Tournament exit - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxNbVQzNUtCT2FWM09UczFXVElxTGFhZDVlTXZzRUlYalNtZHFBTFlQNUZtSDFWNUtZd0VQeVRjZ3d3dG9POHQ1YlhFdHlmV0Z1MVBxbjdPUDQxa1BWMjNkQ3p1aE9fQUhqSmxwd1VLa3JyMWVnU0JqUGhhU0RTeEFuRXNhdzJ3SGptZ0hiQmVDTnhVOHpfXy0xWlRKZElsM3RRSko1by16S25lNDVzak8tMjNEZGVTUkloazBnNkdrUTRIZ1g5ZXlpZVBPNHdpVWNrWExNMzZBQlVxRjE0bmxJ?oc=5",
       "source": "Journal & Courier",
@@ -876,6 +864,18 @@
       "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxORFltaTVjWWNCN0g0OFhFSzU3ZXdLa2NqRG9mc0NneHZxeDFzMk1vUUJGdGE2TnRlQVY5YTBubXkxZHJkOUphWmhZUEF1NXdqYUw5UnFmWG1zampEQjhsSWFXeF9GcjhzbEx6eTVtSDlZZFJPaTJNZkVubW1nUDZSdmxXejRiY3JNTElDcFl0Q2Jzd1dReVNwLUhFb2djX0M5NEs3Z05hT1d1SGI1R2h5RDNjbXF3ZmJYR0VEb0VXUk1XQUk2eVlqRjFva2czOEZERXJEdFIzTmtIYWxZYkM2NlJDclpibkE?oc=5",
       "source": "Journal & Courier",
       "published": 1741676400
+    },
+    {
+      "title": "Purdue basketball’s Braden Smith on loss at Illinois, moving forward - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxNQ3pjSGtwSFlzWTRXMllzTzhjZnJDdmR6SURvMVJLckFCanM3MG41OXY4QTJqenhUTlFGamgxaXlaZmIxeXhHb19SaFRqdUw0UDEtbnRsU2lERmo4TFl4M2xQdlZwQ1FqN3Q5MWFGS21EbUFKSU9SLWJSOGNYVnYxeWN3X2MtYmhNb19xM1JmakxSTGc1WWNQUDFjSUEwN0ItNld2WHJvc29kQnJqaXJkWlZlZUlvSl9SQUVOX2NCTTNLeVQtUnNURmpSLUJyTWotcWRnWXZ4RnIzbW13emFTaTQwTnhRMURwd0ZN?oc=5",
+      "source": "Journal & Courier",
+      "published": 1741420800
+    },
+    {
+      "title": "Braden Smith's near triple-double not enough as Purdue basketball falls at Illinois - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxOOWZrcWJpWklmdDlLYTdDOUNhZ0trTDVjaE1veW9KNGJNRXpKNDJLSTRpS1o1V1lBUHQyc0FiMG8wRlQ1RUxaVU56NlRERUFlU0dkZDhRcE9kNjRtV0taTXYtc0I1dEYxT1diYVNBMzFzZWtSQnhJQ3hFVG1yNnQyVVhhVC1taXkxVzNsNXJlWG9xRXJ1blc0a0JQeW5xZjBHcmhQQWtuOGlTYWEzS2NuSUlZbkZPS3k3clVGa1UxNEFXQk9CR2ZHZGJPY2RvY3ZXUjZsT3pRck9HckNCQlE?oc=5",
+      "source": "Journal & Courier",
+      "published": 1741334400
     },
     {
       "title": "Illinois vs. Purdue odds, prediction, line: 2025 college basketball picks, March 7 best bets from proven model - CBS Sports",
@@ -914,12 +914,6 @@
       "published": 1741075200
     },
     {
-      "title": "Purdue basketball’s Braden Smith, Gicarri Harris, Fletcher Loyer on Rutgers win - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxQOUZzRnVqODlUaUZYdmZ2S05PcFY4ZF9reU80QlphOFpXMUVsUmxtOXVta18za3F4cnk3VngwWFRUcFdNNERUZDhub0daeWNQeTA0cF94N1h1UFZnSjBzQ05ZMXBLS0hzUnhQZ1NFWENrUVRvejBqWi1oOFRyR25kYU1UMEFBYmZaUWhuak5WejVJeFNlQ0hYd1YzQVZzZU50RWNGYjdzMWVxYTJGUXBycjdESFVfRG9XeVY4ak5raE0yMDY2UWJ5WTJTUFJhSzd3dUY3aFpiaDBXMDg0M3IyYVQyM3d6ZEllekE?oc=5",
-      "source": "Journal & Courier",
-      "published": 1741075200
-    },
-    {
       "title": "Top 50 greatest moments in Purdue women's basketball history - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPRDBqdER5cGRfWlRMY2dISFl3RjRZRDdBNWpUblVtTTdMRl84MzJEVmJFMlJYaFZnTEhENEViVDFSQmk2OEVTdzNNMlB6blcta28tWnZXSnExNGtHQTRrald3dDFqR3BNN3RzWDdGZlUtUjdVeVVHRUF4ZXlSWUJuZ1p5ZnJrX1IyeWJSb0lYQkdpTXZqZ2lQeGZlZV9DZG5YNFZCckFWRUFTSnE3UXJ6d3VUWWdmWVEyd3l6N2htSlJIX08tZzdVOUVycDlybVU?oc=5",
       "source": "Journal & Courier",
@@ -938,10 +932,28 @@
       "published": 1740729600
     },
     {
+      "title": "Trey Kaufman-Renn grows into leader Purdue basketball needs to make March Madness run - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxOWVVFaklEMkRKdnJlYkYzVzZIQXV3MUFwVzg4cjZMcW5uTFB5ZzVkVkFLUWQ0U19fUGEwTGZOMUg3ZE80dmN5OV9uNEI5QWVfWE9iclZodGQtcTgyUXpXTUE0VnFVOGZsS1lqc3ZhYWp0cVdQczVNeWVnZ3lnZGM1RUs1ZWhienVDM0RHSzNhcFJob2hsanFHOUg4Q0poYWh2R21scHgtUjBSTjJxZXhwczJfcmR3OWNPUDdZZlllaHpGdkNDaGlqT2Flcy1xeGV6SEhWU3ZmQks3N3N4Mlo0OWhB?oc=5",
+      "source": "Journal & Courier",
+      "published": 1740729600
+    },
+    {
+      "title": "Purdue basketball vs. UCLA: Two programs linked by college basketball icon John Wooden - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxOMzVkUzJFekFmbUN2cnFSTlJiSXNkVGJDYW5FeDFNQlZoMkxpX1BuVDVqMWJGLXJLTlB0ZzkzRkQ3WVNnejB1VElCT2xlbEVKSGVGcjBHMmk3UDA5V1R3UC1pTndYbF9sNVZrbGcyQ3R6UGZPSU0xend6bTVzNGcwZ0xUeFYxZVpsNlVxNTFqa1ExNENqRUhNY2hzQl95anRUSW80ZDBqVi1vVjBQY2JZRjUxUmU1cVVLSUpva0ltOGtDa2hmczlqcUJUbjUxS25QOG1OX242dW1Jdw?oc=5",
+      "source": "Journal & Courier",
+      "published": 1740729600
+    },
+    {
       "title": "Three college basketball best bets, free 6-1 parlay picks for Friday, Feb. 28: Model backing Purdue and more - CBS Sports",
       "link": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxNN3dGcmthMVNLbXRpRU42M3EyZEF5NUV1enVtazl4X1NPdlU4ei1oVV9NMlZ1TFh1T25LbzkxWVIzVHdacFdzSzVTZF9OYkJOOFJqMHNQdE93X0dnVXdBYjlJSm45OTVrTE1GVmNPOGZENWkwSmRaVXNwazJfSUhKaldSR2V2VzdnekR0LTFhQjNaZF9HUWE5alN0cXB4NGVPTE9LRnp6ZVh2UEVTcUpwOXF3cDV0TE5fRGVUMlh3clNvaGpjR04zblRFWHFtVmZMXzRjM3AycHpNMVAwOHk0Tjl5a2l1VmptY1dF?oc=5",
       "source": "CBS Sports",
       "published": 1740729600
+    },
+    {
+      "title": "Purdue basketball halftime show to feature robotic dogs equipped for U.S. Defense - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxOZDQyY05JY0Mzb1h3eGlEOUxMUTl2Yy15Zjc0N2dHcGRYandWUXhqSU1DSG1laGlGdVhHRW9Jcmdyc3BIU0g4TmJsS1FqdXVRbFhYMlVvdWl3c0c4enB5OHFVQnpTa0lvdTZLeVBKaEg4c09IYWxIc21LMFpJSUtXeFluN3JHRS1ycDBCa0U3ektnWnBsUEpucDZmZWNzQzlPU0NwTks4R1NFdUoxdWxjMm9wQ2hEemducDNfbjJFYmdBMHJ3NTl5MlJINnNXY0VyMlE?oc=5",
+      "source": "Journal & Courier",
+      "published": 1740643200
     },
     {
       "title": "Composure, a Purdue basketball staple, missing for Boilermakers as losses pile up - Journal & Courier",
@@ -998,12 +1010,6 @@
       "published": 1739606400
     },
     {
-      "title": "Purdue basketball coach Matt Painter previews Wisconsin - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOWlJiRWFuX2w3VzFzNEVOZkZfeVFJUklCOGNYQndDUmlycktlTmozQlFNdmJmNWg5aG1WVFpLakdkRnc3eEE0d0I2UzVQSlVkVWtsbGFBcDF3eThybm5SMjNyWGt3WnpqS1lySWhpR1JITUFKbW5hWHdBOEU5ZDd3bVZmb1JDb21YcWpEUjZTOEw3SURmb2puNGR3dGF1RkU3RzdzVDRDaFlhbGVCcFhCdUNkcFo3LWx0eE1PRUtDSE1jaE5mX3RtamhaMkNFSEIzV1I4aGVYUjB0dkd1?oc=5",
-      "source": "Journal & Courier",
-      "published": 1739520000
-    },
-    {
       "title": "Purdue basketball lets double-digit lead slip away, loses at Michigan 75-73 - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxOUUctTC1pQUNseFdybTIwcGl6NnI5VmRZLWhNdFgybU5TVEhQMFY0TlA1UFNFdkZvaG8zYzd4dmdnalFVZWhoQmRhdEJVUEtXd181YmJmMnNqaFBYN054RDAza1g1SW9WT3dfLU1FZV8xYjJ1S25Sa1JxdmFVLVJ5c0hkUEJSUG1yTkFXRkZSWWVKVTluVzV2bUgyOE5COGg0UUktdkpOdnFoQklzbTR4Y1UzWm50Q0RTOVFmM1pBQVpQX1FYMVNjdjNwZlpwa1kwOG83dDAyLXpKRVNibmI1VlhOMlpxVF9EM2FpcV9oV0NZNXF4?oc=5",
       "source": "Journal & Courier",
@@ -1040,24 +1046,6 @@
       "published": 1738828800
     },
     {
-      "title": "Purdue basketball coach Matt Painter previews USC - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxNTnJpZ01UNHNJUTdnVkJjZFQxSzBKdHgzYjNtMUsxQmhBVGRFMTRGbUZMWlJ5VXVGbTNqdVE2Mmxlek5oYkhKU04zRmFnRFF0SzBWbUd6MTdWLUlaS2JWU3BZY041TXpvYjF2RmU2RHcwMXZnWHdYbEg5WU1BRk40MWN0V1R1Ukp3UkFXWTZBYXA1MVFnWGw5amhqUzFDdUY4R2J0Qy1fTkQzQ2FZWDFHMUJpUXJBUU56aGhZN3EzdEhNNU9obUNDZTc0V0d3TVFEc2JhVA?oc=5",
-      "source": "Journal & Courier",
-      "published": 1738828800
-    },
-    {
-      "title": "Purdue basketball coach Matt Painter previews Iowa - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxOTWpCTXY1YkdRV0pMUzZuUzh2SkEtRVVfdUFyQXQ3bEJDUG9sMFJiZE12dTRBY2dtcVlOZ1RfVEZKUGxuRDdtdG52eWpEWWVieVNGZThOeEE5VEJzdzZiSGR2aHAtX19TTVJHYlhkcWxGMExRSkp6Y3dRXzZubzVfNWtNQzlKNmYxVmlPQmVSWkt1ZzBkdlppVllXcUE2dWlIendDa0xyOHUzM0dyUzVCVzAxanZJVWR0SUYxUnNraWdZR29LSVdiNnZpSlFQTkY0eHdzVmhR?oc=5",
-      "source": "Journal & Courier",
-      "published": 1738569600
-    },
-    {
-      "title": "See photos of the action as Purdue basketball hosts Indiana - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQSjVLc1dDbkt0QjJlcC16YU1RNFlNcTBocVBZVUpsb01jdl9xaXJDUERLV1djQ3VpVGpfRHNOa1g2N28zdVdzbm9PV2hRR2p4cVk2VlpyNGRJUjhwdWFCNlNvYUFpN0ZaRDNNeC1Wb1llY2tQcENFaDlYNlZZajNaQl9fajE0bFRxYlllMmZHYXptOVJjdGdDYXE0Nm5WTkRsUDdJNlM3TVNVQzZTdTdXbmszVmNrak5MVTY0RHgtVXk2VVpiWGtGRmZRQ1k?oc=5",
-      "source": "Journal & Courier",
-      "published": 1738310400
-    },
-    {
       "title": "Watch Purdue Boilermakers vs. Indiana Hoosiers: TV channel, live stream info, start time - CBS Sports",
       "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPc2Yxd3BhZ2hYMFdVQ3BjUDZzMFN4bHZ0bDhUVk5zZHViYkpsVVVhT21tM3ZnbzdwTFdWNTJGYnNRMHctQ3VCZWlJYzlvNVBKeENOMkVDYl82N09WazZWYUtRWnlUeU5nVlo3Ul92Q1ZVNHdqVHBfX3FSSFhYNXpSNTBvV1RZZG1OUGdsR0pvSDQwSDBraEUwcnpyelZBVS11OW9hS2N0NHFTMzFkaTU3UnZhMU1CU3h6NDRfWUFsVU9yTFZxY1hqVXFiSmVUYmhfX2RhUzZlbGM1VTNi?oc=5",
       "source": "CBS Sports",
@@ -1082,24 +1070,6 @@
       "published": 1737705600
     },
     {
-      "title": "Purdue vs. Michigan odds, prediction: 2025 college basketball picks, Jan. 24 best bets from proven model - CBS Sports",
-      "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxNYThDakppOC1Ra09FX3JVWXZkZWZlX1lyYmlQMTcydFlZUjlZYTYtSVdtanpuUmVpdkNZb3ZIUlQyUU5hQU0xV28yNGZDNTJ3WVJITktYV0hDbWNNay1iTjFFQlRsQXJVNE10QW5RM1k4QzhwSF9aTWRJUkp5U0ZCTlRwMmViU0FKZlZsUXRBR3FJMDRDQkRsbWRDZlA0ZVhabGdYRFNxazQ3TzI1ZWVFMUdfaUtwZURRQmtpUnljdWFKazNLb09fU2ktaEZIcmR0TVhqUnFZZ09PZEVGckpsMWZISGo?oc=5",
-      "source": "CBS Sports",
-      "published": 1737705600
-    },
-    {
-      "title": "Purdue basketball coach Matt Painter previews Michigan, bouncing back from loss - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxPVnRYWHBacldMcDVCT3FlUWNQVmdvSDh6NDFyejRGcGNaX1gxSXVLUFJmMHhTUlVCa1dCVTBSTXV6WXNNR1Z5S1k4R21YLWNDX2d6U0FNWVVJa3hNbkdra2tLdjZfUjZBZ21vaEdBak1QRU9GUk5kckU2Y0RKOHRJT01OWnlPOERQVDV6cGx0T3YxX2RkY3cyM21hVHdRTWVwVjNoeHF1a01sbXhmRDJUYkhhMGx5NGEwSjFnb1U4bGRudXFNVl9Ua1dydG9qLU9qdjZKel93cXRBUFk?oc=5",
-      "source": "Journal & Courier",
-      "published": 1737619200
-    },
-    {
-      "title": "Purdue women's basketball guards revel in Seattle Storm experience on weekend road trip - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxOWjdlRjZmT0dnMmhnSm9oSlp3aVFxREpFTzVIdmF2N1ZieVZhUTB0MmltaFFrb3B2MUw4U21ENzBCU0s2U2dyOHNmLTB2XzRQMEMzSTBMLUpuam9PTW51cldxS2NLdUVSRDB0SnI0VEtHeS10M2R5T09LQUpyYXlYNFJka3llb3FkU2VUNGUtTEs2V0t0UWJXS1lWdG01a0xrTWJ4aVpyVUFVeTJsZWhDLUlkbjFoeWF0Y0pFWHR2ZktTdEFJSWk1UUprRnJpV01fNFBjN3BqMWMxWmZYTjZBV20yVHhzX3kwQWtKc21PUU1zUXFE?oc=5",
-      "source": "Journal & Courier",
-      "published": 1737532800
-    },
-    {
       "title": "PHOTOS: Purdue Boilermakers men's basketball falls to Ohio State Buckeyes rally - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxPN0o3MU52clgxVkI3TDR3X0Y3U3ZwXzNfSmlLWDZPaE9vLURkcGRxNE5NeEp3X2xfLWx3NDhKWlNmY0RlenZoZFVsSHdYSkFhRmhreUROSXlGdkVPcTFDbURHdVhkRDlWOEp1dmZUTVM3dDJmRjdYX1dnVzh0Ul9QR1RwWUMzNm1pRGRHMDZLTENqTnNDT096M2ExUzdZVzBiVW1vWE1WT0hBX0ZZTFpiWXRSamZKUFU5d0RmYzNGVTJmaVJoWUpHd3hWakh0LWtDUlowT2FIWlZZVUY1Y0xWUXNISVJ0dw?oc=5",
       "source": "Journal & Courier",
@@ -1108,6 +1078,12 @@
     {
       "title": "See photos from the Big Ten basketball action between Purdue and Nebraska - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxNcFVJUnhwLTRuUm93clVOT0Q0NW5iNXBSSkVaLWNtTzc4YUtMNXhLOFctSXF0QjlOTERLeXFtdm44Tk92TlJ1VXBRZnVsbHVCYlFXUHlzNUFVZWc5ZVllb3pSUjRtM1JoMFA4YnBuckNQSjVKdHA5UlQ1T181amp6bkNUNkJCX2ZwUTRUb3RBVWVmN0JUUnhkUlRKOENtSENtbEdzcmhMbER6WUZaeGV3UWxTeVJ3X2pwcDNPVUpwZkJRbDJxSG1rd015X2lZYm10cS1HdWh6UGJ1aUpCN19McU1kMFBDQjVq?oc=5",
+      "source": "Journal & Courier",
+      "published": 1736668800
+    },
+    {
+      "title": "Powered by freshman CJ Cox, Purdue basketball stays hot, pummels Nebraska - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxQVC1TMWljT1hlTjBLYWVqaG54QzRnVUdzYVBycVVwcTJOdERUalp1SG1pT2ZHRlJabENtcUdETFNmanpGS0tYTy0zZUNLQWJ5aVY0N2hUYWpxcmo5cDd4Y3pqMWV0azdIbTFfZ1dPTDk2ZDFDQUVjbWE5N0wxSm4ySlByalg0QnJaNTVYVEZBZWxhbG1HaUFQNGY0cVR4blJuaVhEcHpmX0dtMk53bDZuV1drVE42emFQZlVBaHdUSVZuaVMwaGc5Y2ZDaDZhZEcwNE9oT1RiLUtiVlVqWHUtMFBOa1Y2T05K?oc=5",
       "source": "Journal & Courier",
       "published": 1736668800
     },
@@ -1152,6 +1128,12 @@
       "link": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxNSXpGdlNCck1qREVtSmFObGFCVVcxTVRmZ2lETlZFWkVDVEZvcU5waFhYd3F6SlE4OFcxM3E1VVo2MzNRdGZETmpaTkhfR0VVZHRJc3BaWVRfRHo3T3l0WE02cGxvMFk1WkVQd05fSE5EaDJwcF84WVZrTmdEYTl6UFlBV3FJSGxxa1ZFTzRzM0J2YW0zdThtelByNV85eWdNRjdVZi1HTUUyWEJTQnJTU2h6alplVUljNF9nSjNMLWU3Z3VDOWJCbU1iOTQtME9oQ29YOEM0NllFdGdDeWJTbQ?oc=5",
       "source": "Journal & Courier",
       "published": 1735372800
+    },
+    {
+      "title": "Purdue basketball’s Matt Painter, Braden Smith, Trey Kaufman-Renn on loss to Texas A&M - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxNV1FUb1NmVjlMaEFfWi1ONUFYa3h4OFUxV1pVTGFMRkM1S2plVlRLN2JzY18zaHJYSF9ZN0E1NTV1S19WeGZYY3puc3pVYVdReHEzNnVxZkZWeWlITFYzU0xGbmYzMjhyQU5QamdYdUhRbXo1Yy1sU28xYml0RjBIQ0hCSk5nU3VUbkFvOHVFVGJUWlNUOGtiUVdtdHZieTlIQlNNbHl0OVIybWkxWXg5X2FldWpYOFlTYlhYNVRuOE44aXlUeTBwdVh1b01iTzRLRmk3eVRrdUhhcVVNUHlaODJOT3JnZU0?oc=5",
+      "source": "Journal & Courier",
+      "published": 1734163200
     },
     {
       "title": "Isaiah Thompson left Purdue basketball looking for opportunity. Another brought him back - Journal & Courier",
@@ -1262,10 +1244,10 @@
       "published": 1729658049
     },
     {
-      "title": "Sun King beer honoring former Purdue basketball coach Gene Keady to be released Oct. 18 - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxOU0Q0bENNcGpFelJMUlN4TkxtZG81QjA4OUhTZm1SRktOOEtmTXVQWjVYVTZHa2RDeGE4UE96cWk1ODREZ0RzMEE1djgxTkEzampWekJhc2R4bDBSaEVHMmwwTXRkakRnYUFYM3p6TEhicmE3bnVIbjhBRzF2MlJPTFhlR0NqSWI2N3JCV2VhWnlXOXVGTG9sX214dl9RQW9pMXhieXVzcHlYNXc0azltVU5TSEJidHZpVTY4NG44LTlrU0VHUFNpVXZ3NUJlNnZBS0lpdg?oc=5",
+      "title": "Former Purdue basketball coach Gene Keady celebrates the release of 'Play Hard Lager' - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxNRV81QnRkdFVTc0RVbUNfdnFXYTN0ako5MHNpVmlOUWRjS1FVcUxFUnA2aElZX1VBbFF5azRTaVlHUnM0Q1otOUlSa2dPa2NoekYwaVNQOFI4UmdaWFpBalc4blR2WmJZTVp6Y2pBTXBmMnd6TEdqTzJBUkt4c2tubE1CS1VtWFc3QVVySTRvNWxZU0dDRUMzeldjOHA4WjhKaHJIcjV6T09wSnp1Y091TlBsRU9INDRyZlNsbnRleTBmTXZPZjNXNUVXRmtfZjd0?oc=5",
       "source": "Journal & Courier",
-      "published": 1728370800
+      "published": 1728630000
     },
     {
       "title": "Ella Collier - Purdue Boilermakers Guard - ESPN",
@@ -1278,12 +1260,6 @@
       "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxObDJKWGFJLWxfWm9XNWJRN1YtVTBzWW1ySlNiREhheXhGekNVVGpOM0lMazZFM3FFb2NOSzVXclpMWlpoS3JocG9rVjlpTW5lVXJmTnFZVlFGaTFUanRYZVJ6Mk96cF9FUnpKc0ktVVlJN1lzQmJ6VFFFUlBvTWxsQUprWUM0enNmcmt4QS1HeUlpek5udzVtbDBQRXkwUm1YZFdEd2s4U2NNUzBlMlEyRUlMbU1PS0x5R3FCY2NVS05GTGhpdTVNMUU4Tk85Z2hJcENpT3FyelFwR0U0c1JvOFBNMkE?oc=5",
       "source": "CBS Sports",
       "published": 1727852400
-    },
-    {
-      "title": "Purdue basketball preps for season with practice at Mackey Arena - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxNWDNxRW40YXBFY3RFWDBWWVNMWVRRVUV2c1ZSZzlISzlfSUlBVUI1SjBES2l6bWxwRkF3NU9mcUpaT1o4dkEwN3NaM2lhV2FRcC1Yd3NUNTE4TWJHSWE4U1RpWFg1azMyUHppbGVDd2JYQWNmR2hOakNtQnZtekRyVWtONUh2ejAwanVBdEotVWZuSmhLWEY5NFduU1BCWVlUNTZ4N1IyWDlycmNxSmxJdTZpWk1hVGlxNXNsMGRpVVFiRkQ2Q0M0TTZSSTBkaXpjRGJ6V2R6NS1jOUZ6T2xucG1DSEdxUQ?oc=5",
-      "source": "Journal & Courier",
-      "published": 1727074800
     },
     {
       "title": "Purdue women's basketball announces full schedule for 2024-25 season - Journal & Courier",
@@ -1316,22 +1292,10 @@
       "published": 1718866800
     },
     {
-      "title": "How Purdue basketball's Gicarri Harris can compete in the 2024 Olympics - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMijAJBVV95cUxNRk1CSVI3SmRZYmR6d05kLVY0MWMtYjlPXzhDWHNNVFdwalpxZFUtdzVscGxzVmVxdk1pMDZ1OWtWSXBIWEE5MjVfYlh2TWY0Y2JJS2UxZGFqNUM5X1NLRkY1bHdNOFpFY0xJcE96b3Y4aWNLTDdRUVJmRDFyeEF2c21pc2NSME5zRVQ4UHhVUThZNjVEWkM2LTZDOWtFQzNRSUxxSDRSLTFvMFB6YlBVYUZwVm1VaXoxWHhkNWdqQV9JbGtHZjliOU1STUtEbDJEbEZjOUxYN3UyRGFhQWVIR2ItdXM4c1JSdjdKendUdTZaZkxLUVpPNG92b2ltNW15YnZaM0RLSUpxYjV3?oc=5",
-      "source": "Journal & Courier",
-      "published": 1718607600
-    },
-    {
       "title": "Purdue basketball offers 2025 four-star forward Sebastian Williams-Adams - On3",
       "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOaW9oejhfaVkxcktOWmM3R05TbEJ2TXlHbTBFbTgxTjBnT0dyTlVvYjRhWnpVTS1jeHctQW50UVU5Tl8xbGpsYTU3UFpmTkUza3pfUmVza2NjN2QwSDMxSEhqS290NnB3UElKbkpDYVgzMmxwRUJEcmhYYUt0cmRmZE1OV01pcGxGTG1QUTRPZXlNdlB1T3ZLbHNfc2JJcWpOLXRNU1ZB?oc=5",
       "source": "Rivals",
       "published": 1718348400
-    },
-    {
-      "title": "Purdue basketball's Lance Jones, in pursuit of NBA dream, works out with Indiana Pacers - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPWm9ydmZIa3FTRFh2STdKOW5TbDlUYmFFY0hfWlRaNkZQaFRiZ3BVS2J1UUE1TklDaUlRZlFxb0tDak5yQ1B6OXVKTTJBYUp3N0NaWVREVjBqTWtBRGZRYkN5dTNmOUs4SE43ZkcwazdVc3hzaFA1cHpuTEo4czBPcVM4bF96NndUMjJjR1pPT1ZPUTgzemtzN1RIT0pQcGh5aGg4Q1A2YUk0Q2hpMVptX2J5OENUMm83YkF1SkpnNDd1cU81LVRGbk5pOTBCUHdFTC1wcEl6ejNuOHdTN0VGbEFNQU9nRFE?oc=5",
-      "source": "Journal & Courier",
-      "published": 1717484400
     },
     {
       "title": "Purdue basketball offers 2025 four-star guard Braylon Mullins - On3",
@@ -1340,16 +1304,16 @@
       "published": 1716188400
     },
     {
+      "title": "New Purdue women's guard Ella Collier splits time between basketball, substitute teaching - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxQZkJIZnd5X3J3bmF6MW9tTFAtZWExR0RJb2V6N05ZYW9GYTNyZ2Qzc0swZjJXM24zQVBwSkl1dURFZ2VpTXJhV0pHS003djBCWVlHc19lamdYcG1TX3p0TkZjNm91eG1tc09FNFo2VjNpVzhNQTExbzBGQ01oN2xLTHJHLW8wNnY4bkZqc2I4VEFIemhKTWdpYkE3WDh4NnhSX19teDYtamt2OHZrelJBS1RDaXZPMk1lc0tGbWtGU1hCVlM1N25qWHdIUThFVXRhNzA5TzQ4ZnNYbTF0Z0J0SUdfUVMtQXJwd1g3OE9XRTk3SUl6Y0E?oc=5",
+      "source": "Journal & Courier",
+      "published": 1715238000
+    },
+    {
       "title": "Purdue basketball transfer portal roster changes: Who's staying, going - Yahoo Sports",
       "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNXzBjTWlMZEhLWnVQQW1lRFc2QUZBWU5DZ0dTeUxvWHNCRDctQjd1cEFBUnVIa0xIM2RGc08yTzBlREUyUW9kdjY3M2ZDYldRdTJHbDlyWXJXRzFBQmpDSENxS3BlRUtYb3A3djAyUEd5QzhPdUIyQnZibWpSWklJYXQ0VTllWEE?oc=5",
       "source": "Yahoo Sports",
       "published": 1714374000
-    },
-    {
-      "title": "‘It adds a sense of pride:’ Purdue basketball’s run to title game has foundation in Indiana - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxQaUZYb3poV3hYVW9kUk5iUUVVZk41elp5cnFuYjZZTUZib3Fxd0w2MXRPbUJhTDZtWUp3Z3E0clZuQ3Zjcy1tRGJ2OVBaVHNDYVhKeE5EQ0U5S3dwY3l3X2ZwV1B5VGxJVnVtM1FCVjFJMGlpUlZ1U1NyZ05rcGZUQ2RNMTVYb01GazhlVXFrcS05U2pGbjRNS292YzJfTUVidWFFX2xUZi1fTG82Znp0bTdfUS1icUJYX3RyQmYwNDdjbU5zSFJlVnJpTUZOQkpvMXVuTnZycjZyMjVxYUE?oc=5",
-      "source": "Journal & Courier",
-      "published": 1712559600
     },
     {
       "title": "Zach Edey will not return to Purdue for 2024-25: Championship game caps all-time great college career - CBS Sports",
@@ -1376,16 +1340,22 @@
       "published": 1712214000
     },
     {
+      "title": "Fans celebrate return of Final Four bound Purdue Boilermakers at Purdue Airport - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxOT0dlVjJWUGN2SWZXWVVRaU5mYUM5NmtrUWR4SGw2WWY1bm9EbnhubHo1anQ3VUdfRTc0dUttZjVGTHZzZ1FtYnVIbklVQndJX0szZkY2RE5OYUk0VFZGNm51enBpT2dlYlRBc0k2WHRLLXBVWExxLXpBQnJUNGh6MXFielAtaG84TGM4MDVnWjNGdWZmVjRMcFRaQXB6YTB0OEhkdzJHX3ByeW5QQnNDbXVKLXBkaUs0YzB5V0h6aUpEVjE4TFQ1aW5LbFJpWnJabE5kZHJhWHR6YjZweVpKZlUwVDYwdw?oc=5",
+      "source": "Journal & Courier",
+      "published": 1711868400
+    },
+    {
+      "title": "Trash talker? Purdue basketball's Fletcher Loyer prefers label as a winner in March Madness - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxNX1ozZ1dHVTBrVzd3dWFtQm9maFlEc0JvNk1RTnltMVNzUkJGeFNXaWs4U25UVnJjOHlqNXhWRFB4aEdPVzlaQm9ia0loLXAzRWRHeXRxNkxEX3JKeWNxNXJhTTZIUjVaWC1fZ0piVEV0UHNLOE1qVUNRbDhVTUVWeFhyd043SFd6R3FzTktWMGEzQ2RMdTZyWGQ5WVRGNTRRcm1wc0JwTnFMS3o3OGtLTWVza0IxbEN1ZTAwTjJxc2tybWZHemMxUXYyTU1jWFhaY0tYVkYta1FoeTBRLWNvbXdiSHNVNzVO?oc=5",
+      "source": "Journal & Courier",
+      "published": 1711609200
+    },
+    {
       "title": "Purdue vs. Grambling odds, score prediction: 2024 NCAA Tournament picks, March Madness bets by proven model - CBS Sports",
       "link": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxOeEJZeHRFQmF0bkY5WWVIcmF6UVdPUlZmV2k5eE5saHFFRjlDUGFGbVkteGhKRm42d1RmZGlYZkVmT0QwLUZHd1JXeHYtV2syZENzcFNhLUljdjliU19udk1fcUo0S202NWFtS0lGU3BkaDV0ZEt5LTBNT0JtZDROLUY3NHVJXzdUU2RtbHJ4dThLaGRPSUN2T19qVFp3eVItRGZwWWNaeEtHR1BaNmo4TTNscVRyanNtWWJsTzhuRThDQ1lHYzhlRWFQQ042UExMcE8xeUdCc0NkdV9GU2dzQkhoYS1nUU5BZnc?oc=5",
       "source": "CBS Sports",
       "published": 1711090800
-    },
-    {
-      "title": "Zach Edey discusses breaking Purdue basketball’s all-time scoring record, NCAA tournament - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxPcHEwbFpacG0wb0NwQjc5RXFSNWVmdjlhYXVCYWU1X0tjZ19VVGItUHZxbG83Mk1USWdRSU5YQVk0X3JMUHliZnBoZDRCbkxERGlZT01UanpyRmZ1ZmxTb1BhSHpqNmJJLXJDQ1JlMnl6blhpR3dlcDhmTC1aOEVsc0h0UEVNYUxsTkJyc0RUZzZaS2ZSekZXNFY3V0pjN2FJT0w3TVlpVnh5dVRQNjJzNGI3WHpmbWlTWmJKSHFsQ0ptSEcyQkdTeGNtZGhUUXNITzNyRFNteG1SeGctaHo3TGJraVFOdw?oc=5",
-      "source": "Journal & Courier",
-      "published": 1710572400
     },
     {
       "title": "Purdue retires Zach Edey's jersey after he leads No. 3 Boilermakers past Wisconsin in home finale - CBS Sports",
@@ -1400,6 +1370,12 @@
       "published": 1708934400
     },
     {
+      "title": "Former Purdue player Ryan Berning teaches basketball fundamentals to beginners - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxOX2U4SmE2LVIzM2NTNVpxUk1waDllZU05a21tMHotOWdEZXB0eHBvWmJRMU15R0cwcGhWUW9IUlh6aEZlZkpwTy1oVUNMNjBicFpIMU01WlY4NnJpLVFVZERNQjhoVE0zdHBFZjR3WThaVkhHbDJWbWx0cjBJbGVGRV9maWxDVG1WRTRGOXcwbVA4ZE50bXVSY2c0TjFYVE9XVmFEWlI1NUh0QjlwMHBYbnJzLXNRWWlhSG1DeW9qNDM1MVhMNFdIcXk5T0dwRzJ5SndfRWhKRQ?oc=5",
+      "source": "Journal & Courier",
+      "published": 1707897600
+    },
+    {
       "title": "Women's basketball - Purdue offers 2026 in-state guard Myah Epps - On3",
       "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNdmNvQ2t2bWtqNEN0Z1F4VnRIZkxIaTUzOUYyWnVLQ1VOaWlpOGtTdWl5OHNibGdFdHRBeWtLczhheG1rZ0xOVGhoRnBqaXItM21MYTg1ZjZWNWx0UnlNX0kza1YxQ3UwOV9IRzVlcGRuMmFjdnljT0ZadDBVTzA4NnFfbzVLcmxmblBoSExKVW5VLWlHbVp0RQ?oc=5",
       "source": "Rivals",
@@ -1410,6 +1386,12 @@
       "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxNT0p3MnBMVlYxTkgxWWo1WHZRb3g3SjJab0dzbXpYUUJFUGRiVEQwQjR6YUJIcWlMM3Q1c1Q0bXB4eGM3Y19Xb1hjRVhZcjV5bC0yTE01QXd4MGhfMGFtNWttY2VGYXZuNWhPMUQ2MFpPTndtMlRGaUFFYTAzVUtITllIMWVpaEJrU3VRY2t0eUZDMHU3MUFCdFY2YldEeFJ2eGdacW9HVDdlaE9ZeE1HeW9ZLUZ3MzRQWkYwV2Q4RmlEVjBla3JHVjI4ZV9mUWFxQU43T0MzTUpyQnJjZjJDQUF0TEQ?oc=5",
       "source": "CBS Sports",
       "published": 1707033600
+    },
+    {
+      "title": "Purdue basketball coach Katie Gearlds previews Nebraska - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOU1JxMFdyckNXOENsQy1hWDlkUmc5R1Q0MmNmRkVFbUt6bFNyM1VuSVM3eHNrdXQzaTJfUEdwbWpGVFkzZjF3WV9yRldyQzY2NFB5MmFMeXRyMHFGaWxxdWNZZHZhY1FYZHZEMENNcEt4X3V2RkNBREE1c0NkNG4xSXRISGZTbmdHRmFxbXNxUVJydktjdGd0LUtXX0lQUGtQY1JtVzczd3ROS2FnaldBbGVRX0xoTk55Ym45N2k0YlBKUEtDajhKZ3RDc2NQYnBfOTlGYnc0U1FiWjVN?oc=5",
+      "source": "Journal & Courier",
+      "published": 1706601600
     },
     {
       "title": "2026 guard Gabe Sularski updates recruitment, talks Purdue and Matt Painter - On3",
@@ -1430,10 +1412,22 @@
       "published": 1704182400
     },
     {
+      "title": "Purdue basketball trimester report: Depth a strength, defending athletic guards is not - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxQZEgzTG5ETTRRTU56VWlnclV2akhGcHowck5DWGpUemFhbjhROG45R1d1eXNZVWtNOGJtOUNVWk9lZkVhcVhELWF0d0lfdXFLYUlxd0lfYjVxUUI0aVpxc2cxRHVpcW40ZmhHdU5hNUdhS2s2OG0wRXU0WkpqYy05cTRNYXJNVTF5R3QtcEU0Z2pHZkFnRjlmel9Ca19JUUpDVkVPWkh2cFhDLTFDd2NvZ2hIelZfNFAtdGZMQXR2WjhLZXJISEpuNVZxd0RMMXpUeWRzcjRka3hkOVVacUdN?oc=5",
+      "source": "Journal & Courier",
+      "published": 1703145600
+    },
+    {
       "title": "College basketball rankings: Purdue rebounds after Northwestern upset, races past Iowa for first Big Ten win - CBS Sports",
       "link": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxOWlBjNUlGTmdSRHZpSkY2VnpMbVNKVVExODd3Vmc3TGl4ckhzejd2MjRvZU14ZXp6a2ROa0lEbnItOHplM0J3M2l4YURlZmZYRkR0dEU2a2VvVGZNSzNwSUl2M2FOLWw0azVLM0luMFF0ZjdkOFVHaTAzR0g3T2tXcE5aUkhkNEJXUlBmc1MwbUlMSHV4SWVhdy1SMWRZUFppUXoxMm5BZ21NY1BYUG5SNXZFNXlQMFlNSGh2Ni1tWXgyaFhUUXhkUUZ6MVJwaVVDcU4zelA3YnRiQldyeGp0N3ZTRTZYOWRtQlk4YnhB?oc=5",
       "source": "CBS Sports",
       "published": 1701763200
+    },
+    {
+      "title": "'It's one you grow up watching': Purdue basketball ready for Maui Invitational - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxQdEJDU1JFSUlqZWlZLXdJUGdpdGVUREJLR3FyaUJ0dDIyYkh6b2UxU1ZybzZCeFFjVktaTGdacDVYQTBCRC1OUE45a1BSX1p2M1BRbmFXa1hsdE4xSThyN3ZVclUtUTl1ZWhmamp6Nl9VU1VrLTNwWjZSMlNyNXQxcG5WcktDcUtMUUtST3laNEJJUzhaS0d0WklIMnVpeG9YbWttREJZcFpTdGdNa281TGhsRWFFaUtvYmQzZ0xRcTRXRkZyaEJ0YXFPeFk4NjIyX1dXQjhxYkM3V0lRdFVRc2xOZlk2NUV6QlRUTA?oc=5",
+      "source": "Journal & Courier",
+      "published": 1700380800
     },
     {
       "title": "Thin at center: Purdue's Edey slimmer; eyes NBA - ESPN",
@@ -1478,12 +1472,6 @@
       "published": 1689709867
     },
     {
-      "title": "Zach Edey discusses decision to return to Purdue basketball - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxPWlR4ZmFLRHk0ZVlreU5BVTdLbmsxWWdGTG16NlFPMElkbnRjM3gtQ3YyN0FVall0STZZeENxOGdQcHJPdkZOb2doXzNNY3dGTkEzV2ZGcFp5WnpvRmhxYnFsaTk1NDlRSUdacGR3MjFxYXNBd3pLNmtocS1kR2VXTi1ZYkRNRzdONXl6UHVqckY5LUNWSEZMdUFqNmRJRG9ITVJGNFJKRUxrUGUtc2VlYWREbU1tNG44bnFSYWZRT2Z3QWdRdVdjUXA2UQ?oc=5",
-      "source": "Journal & Courier",
-      "published": 1686812400
-    },
-    {
       "title": "Purdue Basketball Summer Practices Start: Full Run-Down - On3",
       "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNM2hGQzNJSGZsc3daUFAxZjVKNjhwMFRCeFc3Vko2RHZ5TDZpSktnRE1HbE40LVQ1UWIzUlpXNFRMUUhWS2lFTG9RN0tHOVBwQzlDVDRuU0J3MWppbklJUU1fZTg4ME1zVnNJV3V5N3lydzk1TDFUc0V1Tzl1aDRYZUJkMG4zQ1NOUnhyMmlB?oc=5",
       "source": "Rivals",
@@ -1496,10 +1484,22 @@
       "published": 1685602800
     },
     {
+      "title": "Zach Edey skips NBA draft, will return to play with Purdue - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNQmpQaVJkazdOZWJnVkZpZDRIOVlLcGZxMEFCUU5JNjRBUV9BZXFHX2s5bl8xb3NETHpaNWF3X0lVRW1xQ2pvSnd0Z1U1a08zYXRhTTJJUlBTdlpfeVNQZVVpNXNqZHNHQWNPSEV4aEh3NjdXY2trUEwyeWNOVmRWM3R2YXVaUWRqZjlvNUowTHZwV2dmOU9YRGhNRkJ0dXNHZS05VjREdWphRGViNkVlbTVKQ0RBa2FqOWN3XzB3N1RLZm1HMXpKYkdRdWpCWTRVd1BCcms3aw?oc=5",
+      "source": "Journal & Courier",
+      "published": 1685516400
+    },
+    {
       "title": "4-Star Forward Raleigh Burgess Commits to Purdue - On3",
       "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQVWhPNTZGSTc0ZlRRNVZxTmVxOTBLVlE0U0dKZE1rWW0xVWtnZHVLNVprcnltLWlhbU80WFM1NFBEd054RExyUUV2QmwyUlczblBTRTJRckdRV1JfZ05ndUVCbHI3WmtkSUY4MjJfOHJUSTZ6dXpELS1semRQdE1oa2M1TTB0UQ?oc=5",
       "source": "Rivals",
       "published": 1682924400
+    },
+    {
+      "title": "March Madness 2023: Purdue left searching for answers after another devastating exit from NCAA Tournament - CBS Sports",
+      "link": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxQcFkxZDRMbVRQZlJxU3Q4WkIxakdaeWV6a1lxT0VxMU4tX211Wk1UWHI3ejJUX2ktMnM0WFE3QVluNUlPaVpkT1pZS2NJcjAzZ3VJaFhtcjRsUGZVVnpVd3NDbzQySHBtR05fVDdwUTluMUFkemNQSjRWSXR3VlRYcWFVNUgtSnBMX0hsNWstT0N3Z0NHUTRIUUxRWmpzd0RmVWJuTGliZTVyNGl2NWkzeGdmYWJRVGJ4WFV4dWhDYnIwcjZkV3NKQnl4aXRFdGNXWTNPVDNJVmw4MkJSZFd2TEFPV3JNN3dGcm0w?oc=5",
+      "source": "CBS Sports",
+      "published": 1679122800
     }
   ]
 }
