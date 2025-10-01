@@ -1,87 +1,170 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Sports App Project — Team Hub</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Purdue Basketball — News and Feeds</title>
 
-  <meta name="theme-color" content="#0b0f14" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="static/icons/favicon.svg" type="image/svg+xml"/>
+  <!-- Favicon / Touch Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#cfb87c">
+  <meta name="theme-color" content="#0b0b0b">
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="static/css/pro.css" />
+  <!-- iOS PWA hints (lets iOS use your icon + nicer standalone title) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Purdue Hoops">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <!-- Web App Manifest (Android/Chrome + some iOS helpers) -->
+  <link rel="manifest" href="/static/manifest.webmanifest">
+
+  <link rel="stylesheet" href="/static/style.css"/>
+  <meta name="color-scheme" content="light dark">
 </head>
 <body>
-  <header class="app-header">
-    <img id="team-logo" class="team-logo" alt="Team Logo" src="" />
-    <h1 id="site-title">Team Hub</h1>
-    <button id="refresh" class="pill-btn" aria-label="Refresh">Refresh</button>
+  <!-- Header with Purdue logo + wordmark -->
+  <header class="site-header">
+    <div class="brand">
+      <img
+        class="logo"
+        src="/static/purdue-logo.png"
+        alt="Purdue logo"
+        width="44"
+        height="44"
+        onerror="this.onerror=null;this.src='/static/logo.png'"/>
+      <div class="titles">
+        <h1>Purdue Basketball — News and Feeds</h1>
+        <div class="updated">
+          Updated: <span id="updatedText" data-iso="{{ updated or '' }}">—</span>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <nav class="tabs" aria-label="Sections">
-    <button class="chip active" data-tab="news">News</button>
-    <button class="chip" data-tab="videos">Videos</button>
-    <button class="chip" data-tab="rankings">Rankings</button>
-    <button class="chip" data-tab="schedule">Schedule</button>
-    <button class="chip" data-tab="nil">NIL</button>
-    <button class="chip" data-tab="insider">Insider</button>
-  </nav>
-
-  <section id="ticker" class="ticker" aria-label="Top headlines">
-    <div class="ticker__track" id="ticker-track"></div>
+  <!-- Utility bar: Fight Song -->
+  <section class="utility-bar">
+    <div class="left">
+      <button id="fightSongBtn" class="btn btn-gold btn-large">Fight Song</button>
+      <audio id="fightSong" preload="none" src="/static/fight-song.mp3"></audio>
+    </div>
+    <div class="right"></div>
   </section>
 
-  <main id="content">
-    <section id="news" class="tab visible">
-      <h2>Latest Headlines</h2>
-      <div id="carousel" class="carousel" aria-label="Headline carousel"></div>
-      <div id="news-grid" class="grid"></div>
-    </section>
+  <!-- Quick links -->
+  <nav class="pills">
+    {% for link in static_links %}
+      <a class="pill" href="{{link.url}}" target="_blank" rel="noopener">{{link.label}}</a>
+    {% endfor %}
+  </nav>
 
-    <section id="videos" class="tab">
-      <h2>Latest Videos</h2>
-      <div id="video-grid" class="grid"></div>
-    </section>
+  <!-- News Sources -->
+  <section class="sources-search">
+    <details class="sources-details">
+      <summary>News Sources</summary>
+      <ul class="sources">
+        {% for s in sources %}
+          <li><a href="{{s.url}}" target="_blank" rel="noopener">{{s.name}}</a></li>
+        {% endfor %}
+      </ul>
+    </details>
+  </section>
 
-    <aside class="sidebar">
-      <section id="rankings" class="widget">
-        <h3>Rankings & Analytics</h3>
-        <div id="rankings-body" class="widget-body"></div>
-      </section>
+  <!-- Feed -->
+  <main id="feed">
+    {% if items and items|length > 0 %}
+      {% for it in items %}
+        <article class="card" data-title="{{ it.title|e }}" data-src="{{ it.source|e }}">
+          <div class="card-top">
+            <span class="src">{{ it.source }}</span>
+            <time class="time" data-iso="{{ it.published or '' }}">
+              {{ it.published[:16].replace('T',' ') if it.published }}
+            </time>
+          </div>
 
-      <section id="schedule" class="widget">
-        <h3>Schedule</h3>
-        <div id="schedule-body" class="widget-body"></div>
-      </section>
+          <h3 class="title">
+            <a class="title-link" href="{{ it.link }}" target="_blank" rel="noopener">
+              {{ it.title }}
+            </a>
+          </h3>
 
-      <section id="nil" class="widget">
-        <h3>NIL Leaderboard</h3>
-        <div id="nil-body" class="widget-body"></div>
-      </section>
-
-      <section id="insider" class="widget">
-        <h3>Insider & Beat Writers</h3>
-        <div id="insider-body" class="widget-body"></div>
-      </section>
-    </aside>
+          {% if it.summary %}
+            <p class="summary">{{ it.summary|striptags }}</p>
+          {% endif %}
+        </article>
+      {% endfor %}
+    {% else %}
+      <p class="empty">No items yet. Checking for updates…</p>
+    {% endif %}
   </main>
 
-  <footer class="app-footer">
-    <small>Sports App Project • JSON-driven • Auto-updating</small>
+  <footer class="site-footer">
+    <span>Auto-checks for updates every minute</span>
   </footer>
 
-  <!-- JS -->
-  <script src="static/js/pro.js" defer></script>
-
-  <!-- Service worker -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(()=>{});
-      });
+    // Format "Updated" to US-friendly text
+    (function(){
+      const el = document.getElementById('updatedText');
+      if (!el) return;
+      const iso = el.getAttribute('data-iso');
+      if (!iso) return;
+      const dt = new Date(iso);
+      if (!isNaN(dt)) {
+        const formatted = dt.toLocaleString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit'
+        });
+        el.textContent = formatted;
+      }
+    })();
+
+    // Fight Song
+    const audio = document.getElementById('fightSong');
+    const songBtn = document.getElementById('fightSongBtn');
+    songBtn?.addEventListener('click', async () => {
+      if (!audio) return;
+      try {
+        if (audio.paused) { audio.currentTime = 0; await audio.play(); }
+        else { audio.pause(); audio.currentTime = 0; }
+      } catch {}
+    });
+
+    // Short, single-line time per card
+    function fmt(dt){
+      try{
+        const d = dt.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+        const t = dt.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+        return d + " • " + t;
+      }catch{return "";}
     }
+    document.querySelectorAll('.time[data-iso]').forEach(el=>{
+      const iso = el.getAttribute('data-iso');
+      if(!iso) return;
+      const dt = new Date(iso);
+      if(!isNaN(dt)) el.textContent = fmt(dt);
+    });
+
+    // Silent auto-refresh
+    const baseline = {
+      count: document.querySelectorAll('#feed .card').length || 0,
+      updated: document.getElementById('updatedText')?.getAttribute('data-iso') || ""
+    };
+    async function silentRefresh(){
+      try{
+        const r = await fetch('/items.json', {cache:'no-store'});
+        if(!r.ok) return;
+        const j = await r.json();
+        const latestCount = (j.items||[]).length;
+        const latestUpdated = j.updated || "";
+        if ((latestCount > baseline.count) || (baseline.updated && latestUpdated && baseline.updated !== latestUpdated)) {
+          location.reload();
+        }
+      }catch{}
+    }
+    setInterval(silentRefresh, 60000);
   </script>
 </body>
 </html>
