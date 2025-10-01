@@ -1,134 +1,196 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
-Purdue MBB collector — hardened
-- Pulls from a fixed list of basketball-focused feeds (see feeds.py)
-- Normalizes source names so the dropdown stays stable
-- Filters OUT football and unrelated posts
-- Writes items.json with: {updated, items:[{title,link,source,published}]}
+Purdue collector — gentle filter + stable pipeline
+
+- Accepts FEEDS as list of dicts {"name","url"} or tuples (name, url)
+- Fetch entries with a browser-like UA
+- Gentle filter:
+    • Block obvious football-only items (unless they clearly mention basketball)
+    • Block obvious archive/rankings posts (e.g., 1990–2009 “rankings/poll”)
+      ONLY when they do not mention Purdue
+    • Keep anything with basketball cues OR Purdue cues
+- Normalize, sort newest→oldest, dedupe, cap at MAX_ITEMS (50)
+- Write items.json with updated timestamp
 """
+
+import os
+import json
+import time
 from datetime import datetime, timezone
-import json, time, hashlib
+from email.utils import parsedate_to_datetime
+from typing import Dict, Any, List, Tuple
+
 import feedparser
 
-from feeds import FEEDS
+MAX_ITEMS = 50
+APP_DIR = os.path.dirname(__file__)
+ITEMS_PATH = os.path.join(APP_DIR, "items.json")
 
-# Canonical source names (keeps dropdown stable)
-CANON = {
-    "Hammer and Rails": "Hammer and Rails",
-    "Journal & Courier": "Journal & Courier",
-    "GoldandBlack.com": "GoldandBlack.com",
-    "The Athletic": "The Athletic",
-    "ESPN": "ESPN",
-    "Yahoo Sports": "Yahoo Sports",
-    "Sports Illustrated": "Sports Illustrated",
-    "CBS Sports": "CBS Sports",
-    "Big Ten Network": "Big Ten Network",
-    "AP Top 25": "AP Top 25",
-    "Google News": "Google News",
-}
+# Pretend to be a real browser (helps Google/Bing/Reddit)
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+)
 
-# Terms that strongly indicate FOOTBALL or non-MBB
-EXCLUDE_ANY = [
-    "football", "pigskin", "qb", "quarterback", "running back", "linebacker",
-    "tight end", "ross-ade", "gridiron", "ncaa football", "cfb", "b1g football",
-    "drew brees", "kickoff", "touchdown",
+# ---- Feeds ----
+try:
+    from feeds import FEEDS
+except Exception as e:
+    raise SystemExit(f"[collect.py] Could not import feeds.py: {e}")
+
+def _coerce_feeds(feeds_any: Any) -> List[Tuple[str, str]]:
+    """Normalize FEEDS to a list of (name, url)."""
+    out: List[Tuple[str, str]] = []
+    for item in feeds_any:
+        if isinstance(item, dict):
+            name = (item.get("name") or item.get("source") or "").strip()
+            url  = (item.get("url") or "").strip()
+        else:
+            try:
+                name, url = item
+                name, url = (name or "").strip(), (url or "").strip()
+            except Exception:
+                name, url = "", ""
+        if name and url:
+            out.append((name, url))
+    return out
+
+FEEDS_NORM: List[Tuple[str, str]] = _coerce_feeds(FEEDS)
+
+# ---- Filter (gentle) ----
+BASKETBALL_CUES = [
+    "basketball","mbb","men's basketball","mens basketball","men’s basketball",
+    "painter","matt painter",
+    "edey","zach edey",
+    "braden smith","fletcher loyer",
+    "trey kaufman-renn","kaufman-renn","tkr",
+    "caleb furst","mason gillis","camden heide","myles colvin","oscar cluff",
+    "jack benter","omer mayer","gicarri harris","raleigh burgess","daniel jacobsen",
+    "liam murphy","sam king","aaron fine","jace rayl","jack lusk","c.j. cox","cj cox"
 ]
+PURDUE_CUES = ["purdue","boilermaker","boilermakers","boilers"]
+FOOTBALL_CUES = ["football"," fb "]  # keep minimal, checked against padded text
+ARCHIVE_WORDS = ["ranking","rankings","poll","preseason"]
 
-# Soft MBB terms (we’ll require at least one when “purdue” is present)
-INCLUDE_ANY = [
-    "basketball", "mbb", "boilermakers", "matt painter", "zach edey",
-    "mackey", "big ten", "b1g", "ncaa", "hoops", "guard", "forward", "center",
-]
+def _txt(*parts: str) -> str:
+    return " ".join(p or "" for p in parts).lower()
 
-def text_in(s, words):
-    s = (s or "").lower()
-    return any(w in s for w in words)
+def allow_item(title: str, summary: str) -> bool:
+    """
+    Gentle allow-list:
+      1) If football-only (no basketball cue) → drop.
+      2) If looks like old/other-league rankings (1990–2009 + 'ranking/poll')
+         without Purdue mention → drop.
+      3) Keep if basketball cues OR Purdue cues present.
+      4) Otherwise drop neutral noise.
+    """
+    t = _txt(title, summary)
 
-def allow_item(title, summary, source_name):
-    t = (title or "") + " " + (summary or "")
-    l = t.lower()
+    has_ball = any(k in t for k in BASKETBALL_CUES)
+    has_pu   = any(k in t for k in PURDUE_CUES)
+    has_foot = any(k in f" {t} " for k in FOOTBALL_CUES)
 
-    # Hard reject football/non-MBB
-    if text_in(l, EXCLUDE_ANY):
+    # (1) Pure football → drop
+    if has_foot and not has_ball:
         return False
 
-    # Must relate to Purdue
-    if "purdue" not in l and "boilermaker" not in l and "mackey" not in l:
+    # (2) Very gentle archive/rankings block (e.g., 2006/2007 rankings) if no Purdue
+    has_archive_word = any(w in t for w in ARCHIVE_WORDS)
+    # cover 1990–2009 explicitly (common in archive reposts)
+    has_old_year = any(f" {y} " in f" {t} " for y in range(1990, 2010))
+    if has_archive_word and has_old_year and not has_pu:
         return False
 
-    # If it doesn’t explicitly say “basketball”, allow if it matches other MBB context
-    if ("basketball" not in l) and (not text_in(l, INCLUDE_ANY)):
-        return False
+    # (3) Keep if Purdue or basketball is present
+    if has_ball or has_pu:
+        return True
 
-    return True
+    # (4) Otherwise drop neutral clutter
+    return False
 
-def canonical_source(name):
-    if not name:
-        return "Unknown"
-    # Exact map first
-    if name in CANON:
-        return CANON[name]
-    # Heuristics
-    lower = name.lower()
-    if "hammer and rails" in lower: return "Hammer and Rails"
-    if "journal" in lower and "courier" in lower: return "Journal & Courier"
-    if "goldandblack" in lower: return "GoldandBlack.com"
-    if "athletic" in lower: return "The Athletic"
-    if "sports illustrated" in lower or "si.com" in lower: return "Sports Illustrated"
-    if "yahoo" in lower: return "Yahoo Sports"
-    if "espn" in lower: return "ESPN"
-    if "cbs sports" in lower: return "CBS Sports"
-    if "big ten network" in lower or "btn" in lower: return "Big Ten Network"
-    if "news.google" in lower: return "Google News"
-    return name.strip()
+# ---- Helpers ----
+def parse_when(entry: Dict[str, Any]) -> datetime:
+    """Parse a date from the feed entry, defaulting to 'now' in UTC."""
+    for key in ("published_parsed", "updated_parsed"):
+        dt = entry.get(key)
+        if dt:
+            try:
+                return datetime.fromtimestamp(time.mktime(dt), tz=timezone.utc)
+            except Exception:
+                pass
+    for key in ("published", "updated"):
+        val = entry.get(key)
+        if val:
+            try:
+                return parsedate_to_datetime(val).astimezone(timezone.utc)
+            except Exception:
+                pass
+    return datetime.now(tz=timezone.utc)
 
-def parse_time(entry):
-    # try multiple places
-    if getattr(entry, "published_parsed", None):
-        return int(time.mktime(entry.published_parsed))
-    if getattr(entry, "updated_parsed", None):
-        return int(time.mktime(entry.updated_parsed))
-    return int(time.time())
-
-def main():
-    items = []
-    seen_links = set()
-
-    for name, url in FEEDS:
-        d = feedparser.parse(url)
-        for e in d.entries:
-            title = getattr(e, "title", "") or ""
-            summary = getattr(e, "summary", "") or getattr(e, "description", "") or ""
-            link = getattr(e, "link", "") or ""
-            if not link:
-                continue
-            # de-dupe by link hash
-            h = hashlib.sha1(link.encode("utf-8")).hexdigest()
-            if h in seen_links:
-                continue
-
-            source = canonical_source(name or getattr(d.feed, "title", "") or "")
-            if not allow_item(title, summary, source):
-                continue
-
-            seen_links.add(h)
-            items.append({
-                "title": title.strip(),
-                "link": link,
-                "source": source,
-                "published": parse_time(e),
-            })
-
-    # Sort newest first
-    items.sort(key=lambda x: x["published"], reverse=True)
-
-    payload = {
-        "updated": datetime.now(timezone.utc).isoformat(),
-        "items": items[:250],  # cap for payload size
+def normalize_item(source_name: str, entry: Dict[str, Any]) -> Dict[str, Any]:
+    title = (entry.get("title") or "").strip()
+    link = (entry.get("link") or "").strip()
+    summary = (entry.get("summary") or entry.get("description") or "").strip()
+    when = parse_when(entry)
+    return {
+        "title": title,
+        "link": link,
+        "source": source_name,
+        "summary": summary,
+        "published": when.isoformat(),
+        "published_ts": int(when.timestamp()),
     }
 
-    with open("items.json", "w", encoding="utf-8") as f:
+def dedupe(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen_links, seen_titles, out = set(), set(), []
+    for it in items:
+        L = (it.get("link") or "").strip().lower()
+        T = (it.get("title") or "").strip().lower()
+        if L and L in seen_links:  continue
+        if T and T in seen_titles: continue
+        seen_links.add(L); seen_titles.add(T); out.append(it)
+    return out
+
+def fetch_feed(name: str, url: str) -> List[Dict[str, Any]]:
+    parsed = feedparser.parse(url, request_headers={"User-Agent": USER_AGENT})
+    entries = parsed.get("entries") or []
+    items: List[Dict[str, Any]] = []
+    for e in entries:
+        item = normalize_item(name, e)
+        if allow_item(item["title"], item["summary"]):
+            items.append(item)
+    return items
+
+def collect() -> List[Dict[str, Any]]:
+    """Fetch all feeds, filter, sort, dedupe, cap."""
+    all_items: List[Dict[str, Any]] = []
+    for name, url in FEEDS_NORM:
+        try:
+            batch = fetch_feed(name, url)
+            print(f"[collect] {name}: kept {len(batch)}")
+            all_items.extend(batch)
+        except Exception as ex:
+            print(f"[collect] Feed failed: {name} ({url}) -> {ex}")
+            continue
+    all_items.sort(key=lambda x: x.get("published_ts", 0), reverse=True)
+    all_items = dedupe(all_items)
+    return all_items[:MAX_ITEMS]
+
+def write_items(items: List[Dict[str, Any]], path: str = ITEMS_PATH) -> None:
+    payload = {
+        "updated": datetime.now(tz=timezone.utc).isoformat(),
+        "count": len(items),
+        "items": items,
+    }
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
+
+def main():
+    items = collect()
+    write_items(items)
+    print(f"[collect.py] Wrote {len(items)} items to {ITEMS_PATH}")
 
 if __name__ == "__main__":
     main()
