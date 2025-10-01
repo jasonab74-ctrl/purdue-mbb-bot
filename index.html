@@ -1,62 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Purdue Boilermakers — Men’s Basketball</title>
-  <link rel="icon" href="./static/logo.png" />
-  <meta name="theme-color" content="#111111" />
-  <link rel="stylesheet" href="./static/style.css?v=1" />
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sports App Project — Team Hub</title>
+
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="static/icons/favicon.svg" type="image/svg+xml"/>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="static/css/pro.css" />
 </head>
 <body>
-  <header class="hero">
-    <div class="brand">
-      <img src="./static/logo.png" alt="Purdue logo" class="logo" />
-      <div class="titleblock">
-        <h1 class="title">Purdue Boilermakers <span class="dash">—</span> Men’s Basketball</h1>
-        <p class="subtitle">Live team feed · auto-updates</p>
-      </div>
-    </div>
-
-    <button id="songBtn" class="pill" type="button" aria-pressed="false">
-      <span class="pill__icon" aria-hidden="true">►</span>
-      <span>Hail Purdue</span>
-    </button>
-    <audio id="fightAudio" src="./static/fight-song.mp3" preload="none"></audio>
+  <header class="app-header">
+    <img id="team-logo" class="team-logo" alt="Team Logo" src="" />
+    <h1 id="site-title">Team Hub</h1>
+    <button id="refresh" class="pill-btn" aria-label="Refresh">Refresh</button>
   </header>
 
-  <nav class="chips">
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/schedule" target="_blank" rel="noopener">Schedule</a>
-    <a class="chip" href="https://purduesports.com/sports/mens-basketball/roster" target="_blank" rel="noopener">Roster</a>
-    <a class="chip" href="https://purduesports.evenue.net/" target="_blank" rel="noopener">Tickets</a>
-    <a class="chip" href="https://www.reddit.com/r/Boilermakers/" target="_blank" rel="noopener">Reddit — r/Boilermakers</a>
-    <a class="chip" href="https://www.espn.com/mens-college-basketball/team/_/id/2509/purdue-boilermakers" target="_blank" rel="noopener">ESPN Team</a>
-    <a class="chip" href="https://kenpom.com/" target="_blank" rel="noopener">KenPom</a>
-    <a class="chip" href="https://www.sports-reference.com/cbb/schools/purdue/" target="_blank" rel="noopener">Sports-Reference</a>
-    <a class="chip" href="https://bigten.org/standings.aspx?path=mbball" target="_blank" rel="noopener">Big Ten Standings</a>
-    <a class="chip" href="https://www.espn.com/mens-college-basketball/rankings" target="_blank" rel="noopener">AP Top 25</a>
-    <a class="chip" href="https://www.youtube.com/results?search_query=Purdue+men%27s+basketball+highlights" target="_blank" rel="noopener">Highlights</a>
-    <a class="chip" href="https://247sports.com/college/purdue/" target="_blank" rel="noopener">247Sports</a>
-    <a class="chip" href="https://purdue.rivals.com/" target="_blank" rel="noopener">Rivals</a>
-    <a class="chip" href="https://www.cbssports.com/college-basketball/teams/PUR/purdue-boilermakers/" target="_blank" rel="noopener">CBS Purdue</a>
+  <nav class="tabs" aria-label="Sections">
+    <button class="chip active" data-tab="news">News</button>
+    <button class="chip" data-tab="videos">Videos</button>
+    <button class="chip" data-tab="rankings">Rankings</button>
+    <button class="chip" data-tab="schedule">Schedule</button>
+    <button class="chip" data-tab="nil">NIL</button>
+    <button class="chip" data-tab="insider">Insider</button>
   </nav>
 
-  <section class="controls">
-    <label class="source-label" for="sourceSelect">Source:</label>
-    <select id="sourceSelect" class="select"></select>
-
-    <div class="updated">
-      <span class="updated__label">Updated:</span>
-      <span id="updatedAt" class="updated__value">—</span>
-    </div>
+  <section id="ticker" class="ticker" aria-label="Top headlines">
+    <div class="ticker__track" id="ticker-track"></div>
   </section>
 
-  <main id="feed" class="feed" aria-live="polite"></main>
+  <main id="content">
+    <section id="news" class="tab visible">
+      <h2>Latest Headlines</h2>
+      <div id="carousel" class="carousel" aria-label="Headline carousel"></div>
+      <div id="news-grid" class="grid"></div>
+    </section>
 
-  <footer class="footer">
-    <a href="https://jasonab74-ctrl.github.io/purdue-mbb-bot/" target="_blank" rel="noopener">jasonab74-ctrl.github.io</a>
+    <section id="videos" class="tab">
+      <h2>Latest Videos</h2>
+      <div id="video-grid" class="grid"></div>
+    </section>
+
+    <aside class="sidebar">
+      <section id="rankings" class="widget">
+        <h3>Rankings & Analytics</h3>
+        <div id="rankings-body" class="widget-body"></div>
+      </section>
+
+      <section id="schedule" class="widget">
+        <h3>Schedule</h3>
+        <div id="schedule-body" class="widget-body"></div>
+      </section>
+
+      <section id="nil" class="widget">
+        <h3>NIL Leaderboard</h3>
+        <div id="nil-body" class="widget-body"></div>
+      </section>
+
+      <section id="insider" class="widget">
+        <h3>Insider & Beat Writers</h3>
+        <div id="insider-body" class="widget-body"></div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="app-footer">
+    <small>Sports App Project • JSON-driven • Auto-updating</small>
   </footer>
 
-  <script src="./static/app.js?v=8" defer></script>
+  <!-- JS -->
+  <script src="static/js/pro.js" defer></script>
+
+  <!-- Service worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(()=>{});
+      });
+    }
+  </script>
 </body>
 </html>
