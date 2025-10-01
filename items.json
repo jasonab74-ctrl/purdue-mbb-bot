@@ -1,5 +1,5 @@
 {
-  "updated": "2025-10-01T23:17:01.085190+00:00",
+  "updated": "2025-10-01T23:38:11.356659+00:00",
   "count": 50,
   "items": [
     {
@@ -63,8 +63,8 @@
       "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQVmlHS295OTNGcmhTSUJ4Q3ZvZkFmVkRzcmlDdHpaQmpmMkoyZTdDQW9RU2xNeU1XYmlsZ1c4bVFoRnRONlRMcy03ejlDek1SWms0SWZMbnoyZ19ZV0Ryc2tOV0JtR2Y0RXVDeHpHSDluRUxONi1aQ0YwUURoeWxScjBjT19ncEI4Y0VUQi1VYTNRMWZ2Q1pFUjg3a0EtNEdBMlE?oc=5",
       "source": "Google News — Purdue Basketball",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMiogFBVV95cUxQVmlHS295OTNGcmhTSUJ4Q3ZvZkFmVkRzcmlDdHpaQmpmMkoyZTdDQW9RU2xNeU1XYmlsZ1c4bVFoRnRONlRMcy03ejlDek1SWms0SWZMbnoyZ19ZV0Ryc2tOV0JtR2Y0RXVDeHpHSDluRUxONi1aQ0YwUURoeWxScjBjT19ncEI4Y0VUQi1VYTNRMWZ2Q1pFUjg3a0EtNEdBMlE?oc=5\" target=\"_blank\">The Butterfly Effect for Purdue Basketball: COVID</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2025-10-01T17:43:24+00:00",
-      "published_ts": 1759340604
+      "published": "2025-10-01T17:26:52+00:00",
+      "published_ts": 1759339612
     },
     {
       "title": "Candid Coaches: Which school made the best college basketball coaching hire in 2025? - CBS Sports",
@@ -267,6 +267,14 @@
       "published_ts": 1759177819
     },
     {
+      "title": "Here's a formula to determine where your team's all-time program ranks.",
+      "link": "https://www.reddit.com/r/CollegeBasketball/comments/1ntrhbv/heres_a_formula_to_determine_where_your_teams/",
+      "source": "Reddit — r/CollegeBasketball (Purdue search)",
+      "summary": "<!-- SC_OFF --><div class=\"md\"><p>You've definitely had this discussion at least once: who is the best college basketball program of all time? Who are the top five? Where does my team fall? I did the math and the stats grinding for you, and I came up with a formula to help aid you in this discussion.</p> <p>The formula is as follows: </p> <p>score= wins(x0.5) + weeks ranked(x0.75) + weeks ranked #1(x1.25) + all-america selections (x1.5) + NPOY (x3) + NBA/ABA players (x1.25) + NBA/ABA first round draft picks (x1.75) + NCAA tournament appearances (x1.5) + NCAA tournament wins (x1.25) + sweet 16s (x2.5) + final fours (x5) + national championships (x10)</p> <p>notes about the formula: </p> <ul> <li>Double selections for All-America and NPOY count twice. For example: Zach Edey counts as 2 NPOYs for Purdue.</li> <li>NBA/ABA players include anyone who has played in at least one minute of a regular season or playoff game.</li> <li>I'm counting vacated wins in the totals. The games still happened.</li> </ul> <p>So, according to my formula, the top ten programs of all time are:</p> <ol> <li>Kentucky (score of 2995.5)</li> <li>UNC (2909.5) </li> <li>Duke (2810.75) </li> <li>Kansas (2645.75) </li> <li>UCLA (2525.25) </li> <li>Indiana (1961.25) </li> <li>Louisville (1900) </li> <li>Arizona (1870) </li> <li>Syracuse (1864.25) </li> <li>Michigan State (1726.75)</li> </ol> <p>A few interesting notes from the data:</p> <ul> <li>The highest ranked program without a national championship is Illinois at 14, while the lowest ranked program with one is City College of New York at 243. The lowest ranked program with a national championship that still fields a Division 1 team is Loyola Chicago at 101.</li> <li>Highest without a final four is Tennessee at 28, lowest with is Florida Atlantic at 294.</li> <li>Highest without a sweet 16 is Nebraska at 102, lowest with is FGCU at 318.</li> <li>Highest without a NCAA tournament win is also Nebraska, lowest with is Abilene Christian at 328.</li> <li>Highest without a tournament appearance is Army at 140, lowest with is Kennesaw State at 337.</li> <li>The overall worst program in Division 1 right now is West Georgia, with a score of 3. This is only because they've played a single season, winning six games.</li> </ul> <p>That's all I've got for now. If you have any suggestions to the formula you want to make, let me know and I'll consider it. I put a lot of effort into this as a hobby so hopefully it makes at least a handful of you fascinated. If you're interested in looking at the entire spreadsheet, it's linked <a href=\"https://docs.google.com/spreadsheets/d/1Ulp2bldyappjd4j257ZjfyQEyNGbr4izhZqfe0w6WxI/edit?usp=sharing\">here.</a> I'll do my best to update it every week during the season. Huge shoutout to basketball reference for having literally all of these stats.</p> </div><!-- SC_ON --> &#32; submitted by &#32; <a href=\"https://www.reddit.com/user/SnooBunnies6054\"> /u/SnooBunnies6054 </a> <br /> <span><a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1ntrhbv/heres_a_formula_to_determine_where_your_teams/\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1ntrhbv/heres_a_formula_to_determine_where_your_teams/\">[comments]</a></span>",
+      "published": "2025-09-29T19:27:59+00:00",
+      "published_ts": 1759174079
+    },
+    {
       "title": "ESPN FPI After Week 5 — Purdue Moves Up After Bye Week - Sports Illustrated",
       "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQQWpOZEczSEphNjlFZWh5MlpybGg0SXVoVjhBbExXbUZrN3lpMVpzTFJfX3FnVGIzZm0ya0EwWDA3ejJhZzh6VFBxNkFWdEhtSktaV19VZHNla25WQVlPdV9jbUFHYnJVOWJrN0NkU1o2OEJGbllwT2dNNjFKOFpFb3dHUFdBRENsSDBRSEZuQmR2enpwdlY5WHMtRQ?oc=5",
       "source": "Sports Illustrated — Purdue (MBB search)",
@@ -299,6 +307,14 @@
       "published_ts": 1759122465
     },
     {
+      "title": "3* 2026 PF Rivers Knight Commits to Purdue",
+      "link": "https://www.reddit.com/r/Boilermakers/comments/1nt3n9v/3_2026_pf_rivers_knight_commits_to_purdue/",
+      "source": "Reddit — r/Boilermakers",
+      "summary": "&#32; submitted by &#32; <a href=\"https://www.reddit.com/user/ohverychill\"> /u/ohverychill </a> <br /> <span><a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1nt3md3/3_2026_pf_rivers_knight_commits_to_purdue/\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/Boilermakers/comments/1nt3n9v/3_2026_pf_rivers_knight_commits_to_purdue/\">[comments]</a></span>",
+      "published": "2025-09-29T00:02:21+00:00",
+      "published_ts": 1759104141
+    },
+    {
       "title": "Rivers Knight becomes 3rd 2026 recruit for Purdue men's basketball - Purdue Exponent",
       "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxON21QYncxbGN6dFNqak9qUDRMeUg5Z2xqbHREWHB5MVJTa3hXVmxKaVppb01YRHoxLTNHajFjZHByNUFBUjRJU0lvTXJzNWljRko1Tk5tV2x2UjBScERENkZHb2NIZWlzRG9iek4xanhGU3NIU2V2SGNBNVVqejV1bnRRanNqRVNIWWctd29VT2V1VFI3aGZGd2JQVVRhSkpyOUZfUi05S1R1UEtwLWtMNmdJemg3ZzFPZHZ0VjdhbERnVmJIaHlJcnhveW44TUdJWms4?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -313,6 +329,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMihwFBVV95cUxPSXRwM3pXQnk4UGtjenlfbmM1RG9FdGpfOUpMVkZXNkVQSGpIeGNVLUt2NFFDaWQ4X2FfQ2pNRFB2dFQ0RVZ3STI4SV81elVXcS1ubTVMNk80OE9fOF9BbjcwajgtZk5QSWpWOERLUlNXMXJmYlVZcVdXaUQ1aFVRVFdLWXpsUUU?oc=5\" target=\"_blank\">Purdue 2026 Power Forward Commits</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
       "published": "2025-09-28T22:40:47+00:00",
       "published_ts": 1759099247
+    },
+    {
+      "title": "Spring Sublet - Private Master Bedroom + Private Bath - Share Great House 1 Mile from Campus $1,100",
+      "link": "https://www.reddit.com/r/Boilermakers/comments/1nt12zh/spring_sublet_private_master_bedroom_private_bath/",
+      "source": "Reddit — r/Boilermakers",
+      "summary": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Boilermakers/comments/1nt12zh/spring_sublet_private_master_bedroom_private_bath/\"> <img alt=\"Spring Sublet - Private Master Bedroom + Private Bath - Share Great House 1 Mile from Campus $1,100\" src=\"https://b.thumbs.redditmedia.com/9bxwNg0vNcPKHWEaHAGuxQfsjbZmf3MhZ4y2SZGCPJQ.jpg\" title=\"Spring Sublet - Private Master Bedroom + Private Bath - Share Great House 1 Mile from Campus $1,100\" /> </a> </td><td> &#32; submitted by &#32; <a href=\"https://www.reddit.com/user/SoCalRedditer\"> /u/SoCalRedditer </a> <br /> <span><a href=\"https://www.reddit.com/r/PurdueHousing/comments/1ns4poj/spring_sublet_private_master_bedroom_private_bath/\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/Boilermakers/comments/1nt12zh/spring_sublet_private_master_bedroom_private_bath/\">[comments]</a></span> </td></tr></table>",
+      "published": "2025-09-28T22:05:03+00:00",
+      "published_ts": 1759097103
     },
     {
       "title": "How Rivers Knight's commitment to Purdue basketball impacts roster, recruiting class - IndyStar",
@@ -377,30 +401,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi4AFBVV95cUxOM0FlM0RWbVJCM0lXNHVobG52UEt4WGwzRGVUQjlpR1FiRTBaWXN4SDRmeFpjbldLOEhrbzBIc2VZTlg4ZFZPWUVlUlNqMnM2SXg3TFFZSW5FUlZaQkNEV1FIVkw3R1lsVlFFWWpxWm9sQkZyZ2NxTDFwMjJlc3F2Z0l0VjJoNmt4NFFLbWZuXzl3cGtYVzZFS0tkR2drdVVVaFdlNkl0ai1FTXNIVVJuUjBJNVRrZjFXSjVaRVBEWVI3UVpXSDR1MkhnTTQxWkNfVnUwc0JVb3psZzNwTU1yQQ?oc=5\" target=\"_blank\">GoldandBlack com Saturday Simulcast — Purdue Basketball preseason practice and the season to come</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
       "published": "2025-09-27T17:23:17+00:00",
       "published_ts": 1758993797
-    },
-    {
-      "title": "Former Purdue star Zach Edey expected to have delayed start to second NBA season due to injury - IndyStar",
-      "link": "https://news.google.com/rss/articles/CBMiggJBVV95cUxQVkhVZDRTWjhNWkpoSXlENmpNbFJWYS1WYlVONDcxSm9XRVVXU1doVlJ2WXFkQmZDTlVuV2szTTl5SmRCU3FxajZKN2MzYklKNGR6N1Z1VGNSem05dEROMEtRcjlBdXEtbk1OWDZKVmhQYjQzQ3B5SGVPNy1Xd2JJOXMtb1pfaWdCT3FVUHltU1g3Q2doYnlFNHJYWFhfVXl0blVCNGoyeDllNVlIbjY4SlZwZ2VodkJvbHhnQXRNMlhrcVA0ZHFxbkNOV0JidHh4MVVBNkJ2R3BhYkNuanpFY2FBY1oxdW9PakR0ck8tbmVXbDh2STZJa01iaks1b012dHc?oc=5",
-      "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiggJBVV95cUxQVkhVZDRTWjhNWkpoSXlENmpNbFJWYS1WYlVONDcxSm9XRVVXU1doVlJ2WXFkQmZDTlVuV2szTTl5SmRCU3FxajZKN2MzYklKNGR6N1Z1VGNSem05dEROMEtRcjlBdXEtbk1OWDZKVmhQYjQzQ3B5SGVPNy1Xd2JJOXMtb1pfaWdCT3FVUHltU1g3Q2doYnlFNHJYWFhfVXl0blVCNGoyeDllNVlIbjY4SlZwZ2VodkJvbHhnQXRNMlhrcVA0ZHFxbkNOV0JidHh4MVVBNkJ2R3BhYkNuanpFY2FBY1oxdW9PakR0ck8tbmVXbDh2STZJa01iaks1b012dHc?oc=5\" target=\"_blank\">Former Purdue star Zach Edey expected to have delayed start to second NBA season due to injury</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">IndyStar</font>",
-      "published": "2025-09-27T16:49:56+00:00",
-      "published_ts": 1758991796
-    },
-    {
-      "title": "2026 Basketball Composite Team Rankings - 247Sports",
-      "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNMjVCSHpCaFdydzh1M1FTRVl0MnZ6c3JvUlpMUmNBUDdRR1VXRVI1Y2tQZ2x0OUF0SDRGNngzbzFnRjExVE96NXp2aVNzRzgyQmFpTDdmSDVJZU5nRnVjWmFDcUpubFpNVHk5dTN3S3pWdXk1dS15YWxyemxyUXVMUXZKWjBtYU1uUVhiREFtZjdudw?oc=5",
-      "source": "247Sports — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMikgFBVV95cUxNMjVCSHpCaFdydzh1M1FTRVl0MnZ6c3JvUlpMUmNBUDdRR1VXRVI1Y2tQZ2x0OUF0SDRGNngzbzFnRjExVE96NXp2aVNzRzgyQmFpTDdmSDVJZU5nRnVjWmFDcUpubFpNVHk5dTN3S3pWdXk1dS15YWxyemxyUXVMUXZKWjBtYU1uUVhiREFtZjdudw?oc=5\" target=\"_blank\">2026 Basketball Composite Team Rankings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
-      "published": "2025-09-27T04:05:39+00:00",
-      "published_ts": 1758945939
-    },
-    {
-      "title": "2026 Recruit Ivy Basketball Team Rankings - 247Sports",
-      "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxNYl9DM01TQ1dtU3ZuNHY0VmN4X2xsdnNUUlM5OWoxeF9Rb0pNY2Y1djRMU2U4WWRUTVRqYmk5ek5VX0hRcE9hazhkT0NtZXg4bFQtU2lHZDJCTlZCSm12Nm81NllWelRiLUpTNFVMVXY2MGdVNDY5SkZ6RWt1SEp6RkhkUFVhQUR3d1FNSzRsUTZoc0x5TFRLamEtWWE1dw?oc=5",
-      "source": "247Sports — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMingFBVV95cUxNYl9DM01TQ1dtU3ZuNHY0VmN4X2xsdnNUUlM5OWoxeF9Rb0pNY2Y1djRMU2U4WWRUTVRqYmk5ek5VX0hRcE9hazhkT0NtZXg4bFQtU2lHZDJCTlZCSm12Nm81NllWelRiLUpTNFVMVXY2MGdVNDY5SkZ6RWt1SEp6RkhkUFVhQUR3d1FNSzRsUTZoc0x5TFRLamEtWWE1dw?oc=5\" target=\"_blank\">2026 Recruit Ivy Basketball Team Rankings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
-      "published": "2025-09-26T23:00:00+00:00",
-      "published_ts": 1758927600
     }
   ]
 }
