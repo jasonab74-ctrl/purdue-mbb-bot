@@ -2,86 +2,305 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Sports App Project — Team Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1017" />
+  <title>Purdue Boilermakers Hub</title>
 
-  <meta name="theme-color" content="#0b0f14" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="static/icons/favicon.svg" type="image/svg+xml"/>
+  <link rel="stylesheet" href="./static/css/app.css?v=12" />
+  <link rel="stylesheet" href="./static/css/mobile-tweaks.css?v=12" />
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="static/css/pro.css" />
+  <meta name="description" content="Purdue Boilermakers Men's Basketball Hub — live Purdue MBB headlines, schedule, roster, rankings, and insider links auto-updated via GitHub Actions.">
+  <link rel="icon" href="./static/img/favicon.png">
+
+  <style>
+    .pill.active{ box-shadow: inset 0 0 0 2px rgba(242,201,76,.25); border-color: rgba(242,201,76,.35); background:#172233; }
+    .pill[disabled]{ opacity:.45; cursor:not-allowed!important; pointer-events:none; }
+    .pill .count{ color:var(--muted); margin-left:.35rem; font-size: var(--fs-0); }
+    .empty-note{ padding:12px; border-radius:10px; background:#0e1623; color:var(--muted); }
+    .load-more-row{ display:flex; justify-content:center; margin:16px 0 4px; }
+    .btn{ appearance:none; border:1px solid rgba(255,255,255,.12); background:#101a28; color:#e8eef9; border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer; }
+    .btn:hover{ background:#132033; }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .btn-secondary{ background:#0f1622; }
+    .game{ padding:10px 12px; border-radius:12px; background:#0f1622; margin:8px 0; }
+    .game-title{ font-weight:700; }
+    .game-sub{ color:var(--muted); font-size: var(--fs-0); }
+  </style>
 </head>
+
 <body>
-  <header class="app-header">
-    <img id="team-logo" class="team-logo" alt="Team Logo" src="" />
-    <h1 id="site-title">Team Hub</h1>
-    <button id="refresh" class="pill-btn" aria-label="Refresh">Refresh</button>
+  <header class="topbar">
+    <div class="brand-badge"><div class="brand-dot"></div></div>
+    <div class="brand-title">Boilermakers</div>
   </header>
 
-  <nav class="tabs" aria-label="Sections">
-    <button class="chip active" data-tab="news">News</button>
-    <button class="chip" data-tab="videos">Videos</button>
-    <button class="chip" data-tab="rankings">Rankings</button>
-    <button class="chip" data-tab="schedule">Schedule</button>
-    <button class="chip" data-tab="nil">NIL</button>
-    <button class="chip" data-tab="insider">Insider</button>
-  </nav>
+  <main class="wrap">
+    <div class="grid">
+      <!-- NEWS -->
+      <section id="news" class="panel" aria-labelledby="news-title">
+        <div class="panel-hd"><h2 id="news-title">Top Headlines</h2></div>
+        <div class="panel-subnote">Refreshed every 30 min • Auto-updated via GitHub Actions</div>
 
-  <section id="ticker" class="ticker" aria-label="Top headlines">
-    <div class="ticker__track" id="ticker-track"></div>
-  </section>
+        <div class="pills" id="newsPills" role="tablist" aria-label="Filter headlines" style="margin-top:10px;">
+          <button class="pill active" data-tier="all" role="tab" aria-selected="true" aria-controls="cards">all<span class="count"></span></button>
+          <button class="pill" data-tier="official" role="tab" aria-selected="false" aria-controls="cards">official<span class="count"></span></button>
+          <button class="pill" data-tier="insiders" role="tab" aria-selected="false" aria-controls="cards">insiders<span class="count"></span></button>
+          <button class="pill" data-tier="national" role="tab" aria-selected="false" aria-controls="cards">national<span class="count"></span></button>
+        </div>
 
-  <main id="content">
-    <section id="news" class="tab visible">
-      <h2>Latest Headlines</h2>
-      <div id="carousel" class="carousel" aria-label="Headline carousel"></div>
-      <div id="news-grid" class="grid"></div>
+        <div id="hero" class="hero"></div>
+        <div id="cards" class="card-grid" style="margin-top:12px;"></div>
+
+        <!-- Load more (kept; starts at 10 visible) -->
+        <div class="load-more-row">
+          <button id="loadMoreBtn" class="btn btn-secondary" aria-live="polite" hidden>Load more</button>
+        </div>
+      </section>
+
+      <!-- RIGHT RAIL -->
+      <aside class="rail">
+        <section id="rankings" class="panel">
+          <h3>Rankings</h3>
+          <div class="simple-list" id="rankingsList"><div>AP Top 25: —</div><div>KenPom: —</div></div>
+          <div id="rankingsStamp" class="footer-note" style="margin-top:6px;"></div>
+        </section>
+
+        <section id="schedule" class="panel">
+          <h3>Upcoming Schedule</h3>
+          <div id="scheduleList" class="simple-list"></div>
+          <div id="schedStamp" class="footer-note" style="margin-top:6px;"></div>
+        </section>
+
+        <section id="insiders" class="panel">
+          <h3>Insider / Beat Links</h3>
+          <div id="insiderList" class="simple-list">No insider items (yet).</div>
+        </section>
+      </aside>
+    </div>
+
+    <!-- ROSTER -->
+    <section id="roster" class="panel" style="margin-top:18px;">
+      <h3>Roster</h3>
+      <div id="rosterGrid" class="roster"><div class="muted small">No roster data.</div></div>
     </section>
 
-    <section id="videos" class="tab">
-      <h2>Latest Videos</h2>
-      <div id="video-grid" class="grid"></div>
+    <!-- VIDEOS -->
+    <section id="videos" class="panel" style="margin-top:18px;">
+      <h3>Latest Videos</h3>
+      <div id="videoGrid" class="card-grid"><div class="muted small">No videos found.</div></div>
     </section>
-
-    <aside class="sidebar">
-      <section id="rankings" class="widget">
-        <h3>Rankings & Analytics</h3>
-        <div id="rankings-body" class="widget-body"></div>
-      </section>
-
-      <section id="schedule" class="widget">
-        <h3>Schedule</h3>
-        <div id="schedule-body" class="widget-body"></div>
-      </section>
-
-      <section id="nil" class="widget">
-        <h3>NIL Leaderboard</h3>
-        <div id="nil-body" class="widget-body"></div>
-      </section>
-
-      <section id="insider" class="widget">
-        <h3>Insider & Beat Writers</h3>
-        <div id="insider-body" class="widget-body"></div>
-      </section>
-    </aside>
   </main>
 
-  <footer class="app-footer">
-    <small>Sports App Project • JSON-driven • Auto-updating</small>
-  </footer>
+  <footer class="footer-fixed">© 2025 Boilermakers Hub • Auto-updated every 30 min</footer>
 
-  <!-- JS -->
-  <script src="static/js/pro.js" defer></script>
-
-  <!-- Service worker -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(()=>{});
-      });
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const esc=(s="")=>(s+"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+  const timeAgo=(ts)=>{ if(!ts)return""; if(ts<1e12)ts*=1000; const d=Date.now()-ts,m=Math.floor(d/6e4); if(m<60)return m+"m ago"; const h=Math.floor(m/60); if(h<24)return h+"h ago"; return Math.floor(h/24)+"d ago"; };
+  async function loadJson(p){ try{const r=await fetch(p+"?v="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0; return await r.json();}catch{return null;} }
+
+  /* ---------------- Headlines: robust Purdue MBB only, always up to 10 ---------------- */
+  const POS_MBB=["men's basketball","mens basketball","mbb","basketball","hoops","matt painter","mackey","paint crew","zach edey","braden smith","fletcher loyer","caleb furst","ncaa","big ten","march madness","exhibition","tournament"];
+  const HINT_PATH=/\/(mbb|m-basketball|mens?-basketball|men-basketball|basketball|college-basketball|ncaa-basketball)\//i;
+  const NEG_FB=["football","fball","nfl","qb","quarterback","running back","wide receiver","offensive line","defensive line","touchdown","ross-ade","ryan walters","hudson card","coach walters"];
+  const PU_DOMAINS=["purduesports.com","hammerandrails.com","goldandblack","247sports","rivals","yahoo","cbssports","espn"];
+  const PU_TOKENS=["purdue","boilermaker","west lafayette","mackey"];
+
+  function hasAny(str, arr){ str=str.toLowerCase(); return arr.some(k=>str.includes(k)); }
+  function notFootball(it){
+    const t=(it.title+" "+(it.summary||"")+" "+(it.link||"")).toLowerCase();
+    if (NEG_FB.some(k=>t.includes(k))) return false;
+    if ((it.link||"").toLowerCase().includes("/football")) return false;
+    return true;
+  }
+  function isBasketballSignal(it){
+    const t=(it.title+" "+(it.summary||"")).toLowerCase();
+    return HINT_PATH.test((it.link||"")) || hasAny(t, POS_MBB) || /\/men-?s?-?basketball/i.test(t);
+  }
+  function isPurdueish(it){
+    const t=(it.title+" "+(it.summary||"")+" "+(it.source||"")+" "+(it.link||"")).toLowerCase();
+    if (hasAny(t, PU_TOKENS)) return true;
+    const host=(new URL(it.link||"https://x.invalid")).hostname.replace(/^www\./,"").toLowerCase();
+    return PU_DOMAINS.some(d=>host.includes(d));
+  }
+
+  // Three-pass widening: Strong -> Normal -> Soft (still non-football)
+  function pickPurdueMBB(items){
+    if(!items?.length) return [];
+    const sorted = items.slice().sort((a,b)=> (b.ts < 1e12 ? b.ts*1000 : b.ts) - (a.ts < 1e12 ? a.ts*1000 : a.ts));
+    const clean = sorted.filter(notFootball);
+
+    const strong = clean.filter(it => isBasketballSignal(it) && isPurdueish(it));
+    if (strong.length >= 10) return strong;
+
+    const normal = clean.filter(it => (hasAny((it.title+" "+(it.summary||"")).toLowerCase(), ["purdue","boilermaker"]) && isBasketballSignal(it)));
+    const merged1 = uniqBy([...strong, ...normal], k=>k.link);
+    if (merged1.length >= 10) return merged1;
+
+    const soft = clean.filter(it => isBasketballSignal(it));
+    return uniqBy([...merged1, ...soft], k=>k.link);
+  }
+
+  function uniqBy(arr, keyFn){
+    const seen=new Set(); const out=[];
+    for(const a of arr){ const k=keyFn(a); if(seen.has(k)) continue; seen.add(k); out.push(a); }
+    return out;
+  }
+  function byTier(items,t){ return t==="all" ? items : items.filter(i=>i.tier===t); }
+
+  let NEWS_ALL=[], CURRENT_TIER="all", VISIBLE_COUNT=10, STEP=10;
+
+  function drawNews(){
+    const hero=$("#hero"), cards=$("#cards"), insiderList=$("#insiderList"), loadBtn=$("#loadMoreBtn");
+    const filtered = byTier(NEWS_ALL, CURRENT_TIER);
+    if (!filtered.length){
+      hero.innerHTML = `<div class="empty-note">No Purdue Men's Basketball headlines right now. New stories will appear here automatically.</div>`;
+      cards.innerHTML=""; loadBtn.hidden=true; insiderList.textContent="No insider items (yet)."; return;
     }
+    const sliceCount = Math.min(VISIBLE_COUNT, filtered.length);
+    const view = filtered.slice(0, sliceCount);
+    const h=view[0];
+    hero.innerHTML=`
+      <a class="hero-img" href="${esc(h.link)}" target="_blank" rel="noopener">
+        ${h.image?`<img src="${esc(h.image)}" alt="">`:""}
+      </a>
+      <div class="hero-meta">
+        <span class="small muted">${esc(h.tier)} • ${esc(h.source)}</span><br/>
+        <a href="${esc(h.link)}" target="_blank" class="hero-title">${esc(h.title)}</a><br/>
+        <span class="small muted">${timeAgo(h.ts)}</span>
+      </div>`;
+    cards.innerHTML=view.slice(1).map(it=>`
+      <div class="card">
+        ${it.image?`<div class="card-thumb"><img src="${esc(it.image)}" alt=""></div>`:""}
+        <div class="card-body">
+          <div class="card-kickers">
+            <span class="kicker">${esc(it.tier)}</span>
+            <span class="kicker src">${esc(it.source)}</span>
+          </div>
+          <a href="${esc(it.link)}" target="_blank" class="card-title">${esc(it.title)}</a>
+          <div class="card-meta">${timeAgo(it.ts)} • ${esc(it.source)}</div>
+        </div>
+      </div>`).join("");
+
+    const insiderItems = NEWS_ALL.filter(i=>i.tier==="insiders");
+    $("#insiderList").innerHTML = insiderItems.length
+      ? insiderItems.slice(0,6).map(i=>`<a class="link-card" href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title)}</a>`).join("")
+      : "No insider items (yet).";
+
+    loadBtn.hidden = sliceCount >= filtered.length;
+    loadBtn.textContent = loadBtn.hidden ? "No more stories" : "Load more";
+  }
+
+  function updatePills(){
+    const counts={
+      all: NEWS_ALL.length,
+      official: NEWS_ALL.filter(i=>i.tier==="official").length,
+      insiders: NEWS_ALL.filter(i=>i.tier==="insiders").length,
+      national: NEWS_ALL.filter(i=>i.tier==="national").length
+    };
+    $$("#newsPills .pill").forEach(b=>{
+      const t=b.dataset.tier, n=counts[t]??0;
+      b.querySelector(".count").textContent=` (${n})`;
+      b.disabled=(t!=="all" && n===0);
+      b.classList.toggle("active", t===CURRENT_TIER);
+      b.setAttribute("aria-selected", t===CURRENT_TIER ? "true" : "false");
+      b.title = t==="all" ? "Show all" : (n ? `Show ${t} only` : `No ${t} items`);
+    });
+  }
+
+  async function initNews(){
+    const data=await loadJson("static/data/news.json");
+    const raw=(data?.items||[]).slice();
+    NEWS_ALL = pickPurdueMBB(raw);        // ranked & widened if needed
+    VISIBLE_COUNT = 10;                    // show 10 by default
+    drawNews();
+    updatePills();
+
+    $("#newsPills").addEventListener("click", (e)=>{
+      const btn=e.target.closest(".pill"); if(!btn||btn.disabled) return;
+      const tier=btn.dataset.tier; if(tier===CURRENT_TIER) return;
+      CURRENT_TIER=tier; VISIBLE_COUNT=10;
+      drawNews(); updatePills();
+      $("#news").scrollIntoView({behavior:"smooth", block:"start"});
+    });
+    $("#loadMoreBtn").addEventListener("click", ()=>{ VISIBLE_COUNT += STEP; drawNews(); });
+  }
+
+  /* ---------------- Rankings (unchanged) ---------------- */
+  function fmtUpdated(ts){ if(!ts) return ""; const d=new Date(ts<1e12?ts*1000:ts); return d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});}
+  async function initRankings(){
+    const el=$("#rankingsList"), stamp=$("#rankingsStamp"), data=await loadJson("static/data/rankings.json");
+    const apRank=data?.ap?.rank??data?.ap_rank??"—", apUrl=data?.ap?.url||"https://apnews.com/hub/ap-top-25-mens-college-basketball-poll", apNote=data?.ap?.note||"";
+    const kpRank=data?.kenpom?.rank??data?.kenpom_rank??"—", kpMain="https://kenpom.com/", kpTeam="https://kenpom.com/team.php?team=Purdue", kpNote=data?.kenpom?.note||"";
+    const updatedTs=data?.updated??data?.ap?.updated??data?.kenpom?.updated??null;
+    el.innerHTML=`<div>AP Top 25: <a href="${esc(apUrl)}" target="_blank" rel="noopener">${esc(apRank.toString())}</a>${apNote?` <span class="muted small">(${esc(apNote)})</span>`:""}</div>
+                  <div>KenPom: <a href="${esc(kpMain)}" target="_blank" rel="noopener">${esc(kpRank.toString())}</a> <a href="${esc(kpTeam)}" target="_blank" rel="noopener" class="muted small">(team)</a>${kpNote?` <span class="muted small">(${esc(kpNote)})</span>`:""}</div>`;
+    stamp.textContent=updatedTs?`Last updated ${fmtUpdated(updatedTs)}`:"";
+  }
+
+  /* ---------------- Schedule (restored) ---------------- */
+  function parseISO(d){ const x=new Date(d); return isNaN(x.getTime())?null:x; }
+  function formatLocal(dt){
+    if(!dt) return "";
+    return dt.toLocaleString(undefined,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true})+" local";
+  }
+  function gameBlock(g){
+    const when = typeof g.ts==='number' ? new Date(g.ts<1e12?g.ts*1000:g.ts) : (parseISO(g.dateTime) || null);
+    const loc = g.location || g.arena || g.venue || "";
+    const site = g.site || g.homeAway || g.venue_type || "";
+    const title = g.opponent || g.title || g.name || "TBD";
+    const details = g.link || g.url || g.tickets || g.gamecast || null;
+    return `<div class="game">
+      <div class="game-title">${esc(title)}</div>
+      <div class="game-sub">${esc(site||"")}</div>
+      <div class="game-sub">${formatLocal(when)}</div>
+      ${loc?`<div class="game-sub">Location: ${esc(loc)}</div>`:""}
+      ${details?`<div class="game-sub"><a target="_blank" rel="noopener" href="${esc(details)}">Game details ↗</a></div>`:""}
+    </div>`;
+  }
+  async function initSchedule(){
+    const list=$("#scheduleList"), stamp=$("#schedStamp");
+    // Try overrides then team schedule then generic
+    const over = await loadJson("static/data/schedule_overrides.json") || {};
+    const team = await loadJson("static/teams/purdue-mbb/schedule.json") || {};
+    const gen  = await loadJson("static/data/schedule.json") || {};
+
+    // Merge arrays that might exist under different keys
+    const arr = []
+      .concat(over.games||over.items||[])
+      .concat(team.games||team.items||[])
+      .concat(gen.games||gen.items||[]);
+
+    const now = Date.now();
+    const upcoming = arr
+      .map(g => {
+        const ts = g.ts ?? (parseISO(g.dateTime||g.datetime||g.start)||null)?.getTime();
+        return {...g, _ts: ts};
+      })
+      .filter(g => g._ts && g._ts >= now - 3*3600*1000)     // keep future & just-started
+      .sort((a,b)=>a._ts-b._ts)
+      .slice(0,5);
+
+    if(!upcoming.length){
+      list.innerHTML = `<div class="muted small">No upcoming games.</div>`;
+      stamp.textContent = "";
+      return;
+    }
+    list.innerHTML = upcoming.map(gameBlock).join("");
+    const latestTs = Math.max(...upcoming.map(g=>g._ts));
+    stamp.textContent = `Updated ${fmtUpdated(latestTs)}`;
+  }
+
+  /* ---------------- Boot ---------------- */
+  async function boot(){
+    await initNews();
+    await initRankings();
+    await initSchedule();   /* ← restored so the panel populates */
+    // Roster/Videos left as no-op if files absent
+  }
+  (document.readyState==="loading") ? document.addEventListener("DOMContentLoaded", boot, {once:true}) : boot();
   </script>
+
+  <script src="./static/js/pro.js?v=12"></script>
 </body>
 </html>
