@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b1017" />
   <title>Purdue Boilermakers Hub</title>
 
-  <link rel="stylesheet" href="./static/css/app.css?v=12" />
-  <link rel="stylesheet" href="./static/css/mobile-tweaks.css?v=12" />
-
+  <link rel="stylesheet" href="./static/css/app.css?v=13" />
+  <link rel="stylesheet" href="./static/css/mobile-tweaks.css?v=13" />
+  <link rel="icon" href="./static/img/favicon.png" />
   <meta name="description" content="Purdue Boilermakers Men's Basketball Hub — live Purdue MBB headlines, schedule, roster, rankings, and insider links auto-updated via GitHub Actions.">
-  <link rel="icon" href="./static/img/favicon.png">
 
   <style>
     .pill.active{ box-shadow: inset 0 0 0 2px rgba(242,201,76,.25); border-color: rgba(242,201,76,.35); background:#172233; }
@@ -21,7 +20,6 @@
     .btn{ appearance:none; border:1px solid rgba(255,255,255,.12); background:#101a28; color:#e8eef9; border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer; }
     .btn:hover{ background:#132033; }
     .btn:disabled{ opacity:.5; cursor:not-allowed; }
-    .btn-secondary{ background:#0f1622; }
     .game{ padding:10px 12px; border-radius:12px; background:#0f1622; margin:8px 0; }
     .game-title{ font-weight:700; }
     .game-sub{ color:var(--muted); font-size: var(--fs-0); }
@@ -50,11 +48,7 @@
 
         <div id="hero" class="hero"></div>
         <div id="cards" class="card-grid" style="margin-top:12px;"></div>
-
-        <!-- Load more (kept; starts at 10 visible) -->
-        <div class="load-more-row">
-          <button id="loadMoreBtn" class="btn btn-secondary" aria-live="polite" hidden>Load more</button>
-        </div>
+        <div class="load-more-row"><button id="loadMoreBtn" class="btn" hidden>Load more</button></div>
       </section>
 
       <!-- RIGHT RAIL -->
@@ -78,13 +72,11 @@
       </aside>
     </div>
 
-    <!-- ROSTER -->
     <section id="roster" class="panel" style="margin-top:18px;">
       <h3>Roster</h3>
       <div id="rosterGrid" class="roster"><div class="muted small">No roster data.</div></div>
     </section>
 
-    <!-- VIDEOS -->
     <section id="videos" class="panel" style="margin-top:18px;">
       <h3>Latest Videos</h3>
       <div id="videoGrid" class="card-grid"><div class="muted small">No videos found.</div></div>
@@ -94,71 +86,103 @@
   <footer class="footer-fixed">© 2025 Boilermakers Hub • Auto-updated every 30 min</footer>
 
   <script>
+  /* ---------- tiny utils ---------- */
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const esc=(s="")=>(s+"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
   const timeAgo=(ts)=>{ if(!ts)return""; if(ts<1e12)ts*=1000; const d=Date.now()-ts,m=Math.floor(d/6e4); if(m<60)return m+"m ago"; const h=Math.floor(m/60); if(h<24)return h+"h ago"; return Math.floor(h/24)+"d ago"; };
-  async function loadJson(p){ try{const r=await fetch(p+"?v="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0; return await r.json();}catch{return null;} }
+  async function load(url){ try{ const r=await fetch(url+"?v="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0; return await r.json(); } catch { return null; } }
+  async function loadFirstExisting(paths){ for(const p of paths){ const j=await load(p); if(j) return j; } return null; }
+  function hostFrom(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch{ return ""; } }
+  function parseTs(v){
+    if(v==null) return null;
+    if(typeof v==="number") return v;
+    if(typeof v==="string"){
+      // numbers in strings
+      if(/^\d{10,13}$/.test(v)) return Number(v);
+      const d=new Date(v); if(!isNaN(d)) return d.getTime();
+    }
+    return null;
+  }
 
-  /* ---------------- Headlines: robust Purdue MBB only, always up to 10 ---------------- */
+  /* ---------- Headlines normalization & filtering ---------- */
   const POS_MBB=["men's basketball","mens basketball","mbb","basketball","hoops","matt painter","mackey","paint crew","zach edey","braden smith","fletcher loyer","caleb furst","ncaa","big ten","march madness","exhibition","tournament"];
   const HINT_PATH=/\/(mbb|m-basketball|mens?-basketball|men-basketball|basketball|college-basketball|ncaa-basketball)\//i;
   const NEG_FB=["football","fball","nfl","qb","quarterback","running back","wide receiver","offensive line","defensive line","touchdown","ross-ade","ryan walters","hudson card","coach walters"];
-  const PU_DOMAINS=["purduesports.com","hammerandrails.com","goldandblack","247sports","rivals","yahoo","cbssports","espn"];
-  const PU_TOKENS=["purdue","boilermaker","west lafayette","mackey"];
+  const PU_TOKENS=["purdue","boilermaker","west lafayette","mackey","purduesports","hammerandrails","goldandblack"];
+  const TIERS=["official","insiders","national"];
 
-  function hasAny(str, arr){ str=str.toLowerCase(); return arr.some(k=>str.includes(k)); }
+  function normalizeNewsArray(data){
+    // accept various shapes: {items}, {entries}, array at root
+    const arr = Array.isArray(data) ? data :
+                Array.isArray(data?.items) ? data.items :
+                Array.isArray(data?.entries) ? data.entries : [];
+    return arr.map(x=>{
+      const link = x.link || x.url || x.permalink || x.guid || "";
+      const title = x.title || x.headline || x.name || "";
+      const summary = x.summary || x.description || x.snippet || "";
+      const image = x.image || x.imageUrl || x.enclosure?.url || x.thumbnail || "";
+      const tier = (x.tier && TIERS.includes(x.tier)? x.tier : (x.sourceTier||"")) || guessTier(hostFrom(link));
+      const source = x.source || x.site || hostFrom(link) || "";
+      const ts = parseTs(x.ts) || parseTs(x.published_at) || parseTs(x.pubDate) || parseTs(x.date) || parseTs(x.isoDate) || parseTs(x.updated) || Date.now();
+      return {link,title,summary,image,tier,source,ts};
+    }).filter(i => i.link && i.title);
+  }
+  function guessTier(host){
+    if(/purduesports\.com/i.test(host)) return "official";
+    if(/hammerandrails|goldandblack|247sports|rivals/i.test(host)) return "insiders";
+    return "national";
+  }
+  function uniqBy(arr,key){ const seen=new Set(); const out=[]; for(const a of arr){ const k=key(a); if(seen.has(k)) continue; seen.add(k); out.push(a); } return out; }
+
   function notFootball(it){
-    const t=(it.title+" "+(it.summary||"")+" "+(it.link||"")).toLowerCase();
-    if (NEG_FB.some(k=>t.includes(k))) return false;
-    if ((it.link||"").toLowerCase().includes("/football")) return false;
+    const blob=(it.title+" "+(it.summary||"")+" "+it.link).toLowerCase();
+    if (NEG_FB.some(k=>blob.includes(k))) return false;
+    if (it.link.toLowerCase().includes("/football")) return false;
     return true;
   }
   function isBasketballSignal(it){
     const t=(it.title+" "+(it.summary||"")).toLowerCase();
-    return HINT_PATH.test((it.link||"")) || hasAny(t, POS_MBB) || /\/men-?s?-?basketball/i.test(t);
+    return HINT_PATH.test(it.link) || POS_MBB.some(k=>t.includes(k)) || /men'?s?\s*basketball/.test(t);
   }
   function isPurdueish(it){
-    const t=(it.title+" "+(it.summary||"")+" "+(it.source||"")+" "+(it.link||"")).toLowerCase();
-    if (hasAny(t, PU_TOKENS)) return true;
-    const host=(new URL(it.link||"https://x.invalid")).hostname.replace(/^www\./,"").toLowerCase();
-    return PU_DOMAINS.some(d=>host.includes(d));
+    const t=(it.title+" "+(it.summary||"")+" "+it.source).toLowerCase();
+    return PU_TOKENS.some(k=>t.includes(k)) || /purdue/.test(t);
   }
 
-  // Three-pass widening: Strong -> Normal -> Soft (still non-football)
-  function pickPurdueMBB(items){
-    if(!items?.length) return [];
-    const sorted = items.slice().sort((a,b)=> (b.ts < 1e12 ? b.ts*1000 : b.ts) - (a.ts < 1e12 ? a.ts*1000 : a.ts));
-    const clean = sorted.filter(notFootball);
+  function widenToTen(items){
+    // newest first
+    const clean = items.slice().filter(notFootball).sort((a,b)=>b.ts-a.ts);
 
-    const strong = clean.filter(it => isBasketballSignal(it) && isPurdueish(it));
-    if (strong.length >= 10) return strong;
+    // Strong: Purdue-ish + clear hoops signal
+    const A = clean.filter(it => isPurdueish(it) && isBasketballSignal(it));
+    if (A.length>=10) return A.slice(0,10);
 
-    const normal = clean.filter(it => (hasAny((it.title+" "+(it.summary||"")).toLowerCase(), ["purdue","boilermaker"]) && isBasketballSignal(it)));
-    const merged1 = uniqBy([...strong, ...normal], k=>k.link);
-    if (merged1.length >= 10) return merged1;
+    // Normal: hoops signal (keep Purdue bias via sort order)
+    const B = clean.filter(it => isBasketballSignal(it));
+    const AB = uniqBy([...A,...B], x=>x.link).slice(0,10);
+    if (AB.length>=10) return AB;
 
-    const soft = clean.filter(it => isBasketballSignal(it));
-    return uniqBy([...merged1, ...soft], k=>k.link);
+    // Soft: Purdue-ish non-football
+    const C = clean.filter(it => isPurdueish(it));
+    const ABC = uniqBy([...AB,...C], x=>x.link).slice(0,10);
+    if (ABC.length>=10) return ABC;
+
+    // Last resort: newest non-football
+    return clean.slice(0, Math.min(10, clean.length));
   }
 
-  function uniqBy(arr, keyFn){
-    const seen=new Set(); const out=[];
-    for(const a of arr){ const k=keyFn(a); if(seen.has(k)) continue; seen.add(k); out.push(a); }
-    return out;
-  }
-  function byTier(items,t){ return t==="all" ? items : items.filter(i=>i.tier===t); }
+  function byTier(items, t){ return t==="all" ? items : items.filter(i=>i.tier===t); }
 
   let NEWS_ALL=[], CURRENT_TIER="all", VISIBLE_COUNT=10, STEP=10;
 
   function drawNews(){
-    const hero=$("#hero"), cards=$("#cards"), insiderList=$("#insiderList"), loadBtn=$("#loadMoreBtn");
+    const hero=$("#hero"), cards=$("#cards"), loadBtn=$("#loadMoreBtn"), insiderList=$("#insiderList");
     const filtered = byTier(NEWS_ALL, CURRENT_TIER);
-    if (!filtered.length){
-      hero.innerHTML = `<div class="empty-note">No Purdue Men's Basketball headlines right now. New stories will appear here automatically.</div>`;
+    if(!filtered.length){
+      hero.innerHTML=`<div class="empty-note">No Purdue Men's Basketball headlines right now. New stories will appear here automatically.</div>`;
       cards.innerHTML=""; loadBtn.hidden=true; insiderList.textContent="No insider items (yet)."; return;
     }
-    const sliceCount = Math.min(VISIBLE_COUNT, filtered.length);
-    const view = filtered.slice(0, sliceCount);
+    const view = filtered.slice(0, Math.min(VISIBLE_COUNT, filtered.length));
     const h=view[0];
     hero.innerHTML=`
       <a class="hero-img" href="${esc(h.link)}" target="_blank" rel="noopener">
@@ -187,10 +211,9 @@
       ? insiderItems.slice(0,6).map(i=>`<a class="link-card" href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title)}</a>`).join("")
       : "No insider items (yet).";
 
-    loadBtn.hidden = sliceCount >= filtered.length;
+    loadBtn.hidden = view.length >= filtered.length;
     loadBtn.textContent = loadBtn.hidden ? "No more stories" : "Load more";
   }
-
   function updatePills(){
     const counts={
       all: NEWS_ALL.length,
@@ -204,32 +227,38 @@
       b.disabled=(t!=="all" && n===0);
       b.classList.toggle("active", t===CURRENT_TIER);
       b.setAttribute("aria-selected", t===CURRENT_TIER ? "true" : "false");
-      b.title = t==="all" ? "Show all" : (n ? `Show ${t} only` : `No ${t} items`);
     });
   }
 
   async function initNews(){
-    const data=await loadJson("static/data/news.json");
-    const raw=(data?.items||[]).slice();
-    NEWS_ALL = pickPurdueMBB(raw);        // ranked & widened if needed
-    VISIBLE_COUNT = 10;                    // show 10 by default
-    drawNews();
-    updatePills();
+    // Try several candidate files; accept any one that exists
+    const newsData = await loadFirstExisting([
+      "static/data/news.json",
+      "static/data/news_all.json",
+      "static/data/collect.json"
+    ]);
+    const normalized = normalizeNewsArray(newsData || []);
+    NEWS_ALL = widenToTen(normalized);         // always up to 10, football excluded, newest first
+    VISIBLE_COUNT = 10;
 
-    $("#newsPills").addEventListener("click", (e)=>{
+    drawNews(); updatePills();
+
+    $("#newsPills").addEventListener("click", e=>{
       const btn=e.target.closest(".pill"); if(!btn||btn.disabled) return;
       const tier=btn.dataset.tier; if(tier===CURRENT_TIER) return;
-      CURRENT_TIER=tier; VISIBLE_COUNT=10;
-      drawNews(); updatePills();
+      CURRENT_TIER=tier; VISIBLE_COUNT=10; drawNews(); updatePills();
       $("#news").scrollIntoView({behavior:"smooth", block:"start"});
     });
     $("#loadMoreBtn").addEventListener("click", ()=>{ VISIBLE_COUNT += STEP; drawNews(); });
   }
 
-  /* ---------------- Rankings (unchanged) ---------------- */
-  function fmtUpdated(ts){ if(!ts) return ""; const d=new Date(ts<1e12?ts*1000:ts); return d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});}
+  /* ---------- Rankings ---------- */
+  function fmtUpdated(ts){ if(!ts) return ""; const d=new Date(ts<1e12?ts*1000:ts); return d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }
   async function initRankings(){
-    const el=$("#rankingsList"), stamp=$("#rankingsStamp"), data=await loadJson("static/data/rankings.json");
+    const el=$("#rankingsList"), stamp=$("#rankingsStamp"), data=await loadFirstExisting([
+      "static/data/rankings.json",
+      "static/teams/purdue-mbb/rankings.json"
+    ]);
     const apRank=data?.ap?.rank??data?.ap_rank??"—", apUrl=data?.ap?.url||"https://apnews.com/hub/ap-top-25-mens-college-basketball-poll", apNote=data?.ap?.note||"";
     const kpRank=data?.kenpom?.rank??data?.kenpom_rank??"—", kpMain="https://kenpom.com/", kpTeam="https://kenpom.com/team.php?team=Purdue", kpNote=data?.kenpom?.note||"";
     const updatedTs=data?.updated??data?.ap?.updated??data?.kenpom?.updated??null;
@@ -238,69 +267,65 @@
     stamp.textContent=updatedTs?`Last updated ${fmtUpdated(updatedTs)}`:"";
   }
 
-  /* ---------------- Schedule (restored) ---------------- */
+  /* ---------- Schedule (multi-file tolerant) ---------- */
   function parseISO(d){ const x=new Date(d); return isNaN(x.getTime())?null:x; }
   function formatLocal(dt){
     if(!dt) return "";
     return dt.toLocaleString(undefined,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true})+" local";
   }
+  function asGames(data){
+    if(!data) return [];
+    const arr = Array.isArray(data) ? data :
+                Array.isArray(data.items) ? data.items :
+                Array.isArray(data.games) ? data.games : [];
+    return arr.map(g=>{
+      const ts = parseTs(g.ts) || parseTs(g.start) || parseTs(g.dateTime||g.datetime) || null;
+      const site = g.site || g.homeAway || g.venue_type || g.locationType || "";
+      const loc  = g.location || g.arena || g.venue || "";
+      const opp  = g.opponent || g.title || g.name || g.opp || "TBD";
+      const url  = g.link || g.url || g.tickets || g.gamecast || null;
+      return { ts, site, loc, opp, url };
+    });
+  }
   function gameBlock(g){
-    const when = typeof g.ts==='number' ? new Date(g.ts<1e12?g.ts*1000:g.ts) : (parseISO(g.dateTime) || null);
-    const loc = g.location || g.arena || g.venue || "";
-    const site = g.site || g.homeAway || g.venue_type || "";
-    const title = g.opponent || g.title || g.name || "TBD";
-    const details = g.link || g.url || g.tickets || g.gamecast || null;
+    const when = g.ts ? new Date(g.ts<1e12?g.ts*1000:g.ts) : null;
     return `<div class="game">
-      <div class="game-title">${esc(title)}</div>
-      <div class="game-sub">${esc(site||"")}</div>
-      <div class="game-sub">${formatLocal(when)}</div>
-      ${loc?`<div class="game-sub">Location: ${esc(loc)}</div>`:""}
-      ${details?`<div class="game-sub"><a target="_blank" rel="noopener" href="${esc(details)}">Game details ↗</a></div>`:""}
+      <div class="game-title">${esc(g.opp)}</div>
+      ${g.site?`<div class="game-sub">${esc(g.site)}</div>`:""}
+      ${when?`<div class="game-sub">${formatLocal(when)}</div>`:""}
+      ${g.loc?`<div class="game-sub">Location: ${esc(g.loc)}</div>`:""}
+      ${g.url?`<div class="game-sub"><a target="_blank" rel="noopener" href="${esc(g.url)}">Game details ↗</a></div>`:""}
     </div>`;
   }
   async function initSchedule(){
     const list=$("#scheduleList"), stamp=$("#schedStamp");
-    // Try overrides then team schedule then generic
-    const over = await loadJson("static/data/schedule_overrides.json") || {};
-    const team = await loadJson("static/teams/purdue-mbb/schedule.json") || {};
-    const gen  = await loadJson("static/data/schedule.json") || {};
-
-    // Merge arrays that might exist under different keys
-    const arr = []
-      .concat(over.games||over.items||[])
-      .concat(team.games||team.items||[])
-      .concat(gen.games||gen.items||[]);
-
+    const raw = await loadFirstExisting([
+      "static/data/schedule_overrides.json",
+      "static/teams/purdue-mbb/schedule.json",
+      "static/data/schedule_compiled.json",
+      "static/data/schedule.json"
+    ]);
+    const games = asGames(raw);
     const now = Date.now();
-    const upcoming = arr
-      .map(g => {
-        const ts = g.ts ?? (parseISO(g.dateTime||g.datetime||g.start)||null)?.getTime();
-        return {...g, _ts: ts};
-      })
-      .filter(g => g._ts && g._ts >= now - 3*3600*1000)     // keep future & just-started
-      .sort((a,b)=>a._ts-b._ts)
+    const upcoming = games
+      .filter(g => g.ts && (g.ts >= now - 3*3600*1000))
+      .sort((a,b)=>a.ts - b.ts)
       .slice(0,5);
 
-    if(!upcoming.length){
-      list.innerHTML = `<div class="muted small">No upcoming games.</div>`;
-      stamp.textContent = "";
-      return;
-    }
+    if(!upcoming.length){ list.innerHTML=`<div class="muted small">No upcoming games.</div>`; stamp.textContent=""; return; }
     list.innerHTML = upcoming.map(gameBlock).join("");
-    const latestTs = Math.max(...upcoming.map(g=>g._ts));
-    stamp.textContent = `Updated ${fmtUpdated(latestTs)}`;
+    stamp.textContent = `Updated ${fmtUpdated(Math.max(...upcoming.map(g=>g.ts)))}`
   }
 
-  /* ---------------- Boot ---------------- */
+  /* ---------- Boot ---------- */
   async function boot(){
     await initNews();
     await initRankings();
-    await initSchedule();   /* ← restored so the panel populates */
-    // Roster/Videos left as no-op if files absent
+    await initSchedule();
   }
   (document.readyState==="loading") ? document.addEventListener("DOMContentLoaded", boot, {once:true}) : boot();
   </script>
 
-  <script src="./static/js/pro.js?v=12"></script>
+  <script src="./static/js/pro.js?v=13"></script>
 </body>
 </html>
