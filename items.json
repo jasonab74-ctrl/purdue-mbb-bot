@@ -1,5 +1,5 @@
 {
-  "updated": "2025-10-19T05:19:19.350694+00:00",
+  "updated": "2025-10-19T05:40:30.302840+00:00",
   "count": 50,
   "items": [
     {
@@ -19,20 +19,20 @@
       "published_ts": 1760834187
     },
     {
+      "title": "Ten observations: Purdue at Northwestern - On3",
+      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPVHhjdlRNUVM4SFUxRlBzLXh3eG9WQmZIcG9LNjJpNkFwcm0yTDI0a09jYWtBTHZHZm1EaXJ2UmFlZjZTMENPYXMtZ1lPdXlyN0syT0pnb3BrcFVYTlhoOENNLXNsU3A3dEJoRlpBM0d2NFIzcGZDYTVoNzN5M19XdDVIU0dXdlFuQVE5U3ZyekNsRHlJbHc?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMilgFBVV95cUxPVHhjdlRNUVM4SFUxRlBzLXh3eG9WQmZIcG9LNjJpNkFwcm0yTDI0a09jYWtBTHZHZm1EaXJ2UmFlZjZTMENPYXMtZ1lPdXlyN0syT0pnb3BrcFVYTlhoOENNLXNsU3A3dEJoRlpBM0d2NFIzcGZDYTVoNzN5M19XdDVIU0dXdlFuQVE5U3ZyekNsRHlJbHc?oc=5\" target=\"_blank\">Ten observations: Purdue at Northwestern</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2025-10-19T00:35:23+00:00",
+      "published_ts": 1760834123
+    },
+    {
       "title": "Takeaways: Depth, good problems to have, competition and more from Purdue's Fan Day scrimmages - On3",
       "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxQUGZ2VmlpMjRVOGk2SkVFaS1KbV8zcnlwVGxGUzJDaXVlUDR4aUNpdXA1d3pmYUdRQnFhUUcwS3JfTUlRbVJYUnhuRFd1Z3dTV2pYN0F5SVJJaWU4RXczWFV3RWM4T1M3ZDAtOXFONVhhZEVHczE5NWw3UUxoNTZPOE9JVlB5aWlBUjY2Sk1sejNIckhOS0llZzR4Tm9DY2cxZEVKNlJGVmFBWmd4Z2ZtQjVPVXJfbGxSMU11dTJGTEI2dGE0OE5MamlKSmo4YkZNOWg5Q2R5Slo4QQ?oc=5",
       "source": "Google News — Purdue Basketball",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2gFBVV95cUxQUGZ2VmlpMjRVOGk2SkVFaS1KbV8zcnlwVGxGUzJDaXVlUDR4aUNpdXA1d3pmYUdRQnFhUUcwS3JfTUlRbVJYUnhuRFd1Z3dTV2pYN0F5SVJJaWU4RXczWFV3RWM4T1M3ZDAtOXFONVhhZEVHczE5NWw3UUxoNTZPOE9JVlB5aWlBUjY2Sk1sejNIckhOS0llZzR4Tm9DY2cxZEVKNlJGVmFBWmd4Z2ZtQjVPVXJfbGxSMU11dTJGTEI2dGE0OE5MamlKSmo4YkZNOWg5Q2R5Slo4QQ?oc=5\" target=\"_blank\">Takeaways: Depth, good problems to have, competition and more from Purdue's Fan Day scrimmages</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
       "published": "2025-10-19T00:20:23+00:00",
       "published_ts": 1760833223
-    },
-    {
-      "title": "Ten observations: Purdue at Northwestern - On3",
-      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPVHhjdlRNUVM4SFUxRlBzLXh3eG9WQmZIcG9LNjJpNkFwcm0yTDI0a09jYWtBTHZHZm1EaXJ2UmFlZjZTMENPYXMtZ1lPdXlyN0syT0pnb3BrcFVYTlhoOENNLXNsU3A3dEJoRlpBM0d2NFIzcGZDYTVoNzN5M19XdDVIU0dXdlFuQVE5U3ZyekNsRHlJbHc?oc=5",
-      "source": "On3 — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMilgFBVV95cUxPVHhjdlRNUVM4SFUxRlBzLXh3eG9WQmZIcG9LNjJpNkFwcm0yTDI0a09jYWtBTHZHZm1EaXJ2UmFlZjZTMENPYXMtZ1lPdXlyN0syT0pnb3BrcFVYTlhoOENNLXNsU3A3dEJoRlpBM0d2NFIzcGZDYTVoNzN5M19XdDVIU0dXdlFuQVE5U3ZyekNsRHlJbHc?oc=5\" target=\"_blank\">Ten observations: Purdue at Northwestern</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2025-10-19T00:03:17+00:00",
-      "published_ts": 1760832197
     },
     {
       "title": "GoldandBlack.com Saturday Simulcast: Purdue-Northwestern Wrap - On3",
@@ -339,14 +339,6 @@
       "published_ts": 1760563800
     },
     {
-      "title": "Jaland Lowe on Kentucky's exhibition vs. Purdue: 'We're going out there to win' - On3",
-      "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNMmYzRnhuZi1GUUZySUhSc0NIV19KX2YyNVk1a1dkQkYwcFAwZXcwLVoxcFdxclJnMndaN3dBVno5UC1ndmFTUFpocG5JYVR5TWZwcXAzUm9yUkxHQzhIQm5ZQXBKR3RxT2pad0JmUUZKbjF1Nk9uNXVlODJ1Z25wNDdkNVhNdWxJcUhjUWxsNUx4c2RpU0MwRDVhSjBIUXVKMXZmRjVsSERaYXlsZVp6Yg?oc=5",
-      "source": "Matt Painter — news",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxNMmYzRnhuZi1GUUZySUhSc0NIV19KX2YyNVk1a1dkQkYwcFAwZXcwLVoxcFdxclJnMndaN3dBVno5UC1ndmFTUFpocG5JYVR5TWZwcXAzUm9yUkxHQzhIQm5ZQXBKR3RxT2pad0JmUUZKbjF1Nk9uNXVlODJ1Z25wNDdkNVhNdWxJcUhjUWxsNUx4c2RpU0MwRDVhSjBIUXVKMXZmRjVsSERaYXlsZVp6Yg?oc=5\" target=\"_blank\">Jaland Lowe on Kentucky's exhibition vs. Purdue: 'We're going out there to win'</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2025-10-15T18:32:24+00:00",
-      "published_ts": 1760553144
-    },
-    {
       "title": "Purdue Basketball is #1 Let’s Enjoy the Ride - Hammer and Rails",
       "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPNkdJVUtsZXNTS0FtcTF1U3B5OWNVUS1pUmRiVVZidTFKa2JSdVZ1WldmWHhzN3VGY2lSS2dqd3VsbFJMUEVjeHJFR3lfYkcyb29XaDhHa0hrMWNXN2NUN1ZKWlBELWpnYUwyNzVaa19NMmVmc0ZkenJDRklXTnRLU3h6UVBBc1hUamNrUFN3SEdBMzBRV1ZLUzRIWQ?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -401,6 +393,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxORXIwU3IxSTZfWlc4MV85dU4zLXdEY01oVWJPZ3pKRmJhUDF0a2gycnp0Q05QVE9VTTV5SlRTWWJ4TjR0bmVQZHlHYVBMNllySTU5bmV5Y2ZBeVN0el9Yb2RwQ2tickN4MktRbFlTblZTek5HRFJ1RkFfYW5sYWFKd0ROWVRCZklKT2N1eA?oc=5\" target=\"_blank\">Purdue's Matt Painter to be honored with Legends of Coaching award</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Newsday</font>",
       "published": "2025-10-14T22:21:10+00:00",
       "published_ts": 1760480470
+    },
+    {
+      "title": "Purdue's Matt Painter to be honored with Legends of Coaching award - the-messenger.com",
+      "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPdTlhZWlvbENGUk1GcEJ6VWdXTkNacDFSamF6ZUlOalkzd3Vjb01zOFZ4Y1JXaENlLW1BQTV2dHN1M1MzbzVBeDBzMy1pQkdFLXVkYUFONkVSdHVLeWNTV1FLWEJGSHZTdlRMa21PN2VXcWluRHF5SmlHU2pBaUlQU19YbnpmTzB1ajlIQkNEMTV0SWR2VXlzclJKWQ?oc=5",
+      "source": "Matt Painter — news",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMimwFBVV95cUxPdTlhZWlvbENGUk1GcEJ6VWdXTkNacDFSamF6ZUlOalkzd3Vjb01zOFZ4Y1JXaENlLW1BQTV2dHN1M1MzbzVBeDBzMy1pQkdFLXVkYUFONkVSdHVLeWNTV1FLWEJGSHZTdlRMa21PN2VXcWluRHF5SmlHU2pBaUlQU19YbnpmTzB1ajlIQkNEMTV0SWR2VXlzclJKWQ?oc=5\" target=\"_blank\">Purdue's Matt Painter to be honored with Legends of Coaching award</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">the-messenger.com</font>",
+      "published": "2025-10-14T22:20:51+00:00",
+      "published_ts": 1760480451
     }
   ]
 }
