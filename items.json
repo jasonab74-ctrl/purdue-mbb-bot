@@ -1,5 +1,5 @@
 {
-  "updated": "2025-11-02T18:25:26.824345+00:00",
+  "updated": "2025-11-02T18:44:07.393284+00:00",
   "count": 50,
   "items": [
     {
@@ -105,14 +105,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMivgFBVV95cUxPRXVaLTVFMm1OejE3VE9wdGVYNzN4ZUpQV2tuLVN4eEJ6ekJLNTYzdTVwOHZUVmZDUHFNMVFQZS02LXhCQm94dGpWbklWWFMzc0JHcHd3UEpBSWdheVpGTzJkVFJyeFBTa2ltcDlJeGVaeVVVZVJGVVpWeXdzQktJc0w1aktHVWhLaXBXaWd3dDdScFg1ZDFaN0o2dVJXUmkyVWRkY2FtYVBjc0QzemJhYmhlTW1CRUlqWWJGWjB3?oc=5\" target=\"_blank\">Big Ten basketball preseason power rankings: Michigan or Purdue on top?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
       "published": "2025-10-31T16:00:18+00:00",
       "published_ts": 1761926418
-    },
-    {
-      "title": "College Basketball Preseason Top 25 News & Analysis - Sports Illustrated",
-      "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE5mUk9yMUpZdjNZb2FzWnRlNTBPX0kyWHNZMmxxYURxZGlja3pvZjNYcU84aU9UemZXeldlWWx5UVYtM1REODU0eGk5N19sc2k1OHhFZjktVDMyRVd3NlZ4YzkzTHdHX2M?oc=5",
-      "source": "Sports Illustrated — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiZ0FVX3lxTE5mUk9yMUpZdjNZb2FzWnRlNTBPX0kyWHNZMmxxYURxZGlja3pvZjNYcU84aU9UemZXeldlWWx5UVYtM1REODU0eGk5N19sc2k1OHhFZjktVDMyRVd3NlZ4YzkzTHdHX2M?oc=5\" target=\"_blank\">College Basketball Preseason Top 25 News & Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
-      "published": "2025-10-31T15:15:44+00:00",
-      "published_ts": 1761923744
     },
     {
       "title": "17 men's college basketball teams that could win 30 games in 2025-26 - ESPN",
@@ -251,6 +243,14 @@
       "published_ts": 1761831420
     },
     {
+      "title": "Purdue basketball's exhibition season was mixed bag, so what do we make of it? - Journal & Courier",
+      "link": "https://news.google.com/rss/articles/CBMijAJBVV95cUxNZExGOGZtT25xQjZ0NFhNWHdEUHBiXzN2dkhDSHc1YjE1TnUtSXJDYTRsQXVRZFZJQTRneHRvdnBSc1MwQko4QjdnT0RYQXg3aUR3T3JlWTZ6VmlpLU8xNXFJek85SXA0VjJSa0x4aXVsRDFVaXVVMk45dTJmem5qUHZxYXV4bmx5M0EtT3czbVFkaFF3YWNEMFJMdG1hNEphSk5tVno0ZFVWcUdxajNwVGZVbEVFMDhnaGxyVy1FWmdhY1pzZ0dDUjZHcFZpVkpHSVB6VldUUlpWQWNmOVlLQ29rVnFFLWZoanhkeXY2dGVyQ2VCMS1tOFV1dXZnYTNfX0ZwLVFNUWYwc3Zi?oc=5",
+      "source": "Purdue Player Mentions — bundle",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAJBVV95cUxNZExGOGZtT25xQjZ0NFhNWHdEUHBiXzN2dkhDSHc1YjE1TnUtSXJDYTRsQXVRZFZJQTRneHRvdnBSc1MwQko4QjdnT0RYQXg3aUR3T3JlWTZ6VmlpLU8xNXFJek85SXA0VjJSa0x4aXVsRDFVaXVVMk45dTJmem5qUHZxYXV4bmx5M0EtT3czbVFkaFF3YWNEMFJMdG1hNEphSk5tVno0ZFVWcUdxajNwVGZVbEVFMDhnaGxyVy1FWmdhY1pzZ0dDUjZHcFZpVkpHSVB6VldUUlpWQWNmOVlLQ29rVnFFLWZoanhkeXY2dGVyQ2VCMS1tOFV1dXZnYTNfX0ZwLVFNUWYwc3Zi?oc=5\" target=\"_blank\">Purdue basketball's exhibition season was mixed bag, so what do we make of it?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Journal & Courier</font>",
+      "published": "2025-10-30T11:59:19+00:00",
+      "published_ts": 1761825559
+    },
+    {
       "title": "The 7-foot-2 mystery: What Wichita State is getting in Purdue transfer Will Berg - Wichita Eagle",
       "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBwT2EwV0loeEdFSlpXUExENGdVQWtpV1hJaVplUUlzT2ZKZHZyWXptZTN0N0ZucnpFRWxaZTdRYmxad3ptVzNmS3EzWU53OVBIQmJJcFB0QXBkRjgwaGtmYllZN1hGc0RFSXRYdUwzaVdrd1dkVi15VzJSdFNvUdIBfkFVX3lxTE1zU1p6TzJ5bmJxNnNpZEZLVi1rbDh1WUd3U2o4RXRyQjZiOW5lWER3Sk5GaXdsUDMyZVNLeWVPTHV3SWdoQU4wLU9wUGhrenBkRHJNQnBxOFFoa2NRN2FLbEhKZ3FVN3pIVHhnb1Frb2VOQjR5eFQyYUFwN29ldw?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -307,6 +307,14 @@
       "published_ts": 1761800040
     },
     {
+      "title": "REACTION: Purdue CRUSHES UIndy 92-49 in Mackey Arena Opener | Can They Maintain This PACE? - WFAA",
+      "link": "https://news.google.com/rss/articles/CBMipwJBVV95cUxPSHcxX0lKeUhMM3ZHa2p0S2wzcG9COEhPS1NwS2JzUGNidld5VnVheFVTZ19xbE82ajZ5STVtdVMzTHU5OU83aUpDNFFlLTV4X3k3dHpwbWxvOTNGTmk4RDV5QTVuYm81WjI1X3Zoc2h4NWVtd2JRNHdfeFV2U2NEVzlyVjNubXBGa3J0SWUxYW9oX29ITjF4ZEFxTFlvVHlUMWtQOFBjRGRfSEtNYUFoLWNvY0ZqdWNoWmdiZnJMa3dVaG9rcUtTYzA3djV4eHZ6VlB1alZXTnRJT2drQ2h5ekxQd0pZbFVWVjdCZk4xTnBtMFRRRGNDTlRvdExWVmhheW03a0tIOTZHb04zTDNhLWdvdzVsRmlPOUQ5TjN4TG15bGtjZENB?oc=5",
+      "source": "Mackey Arena — news",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipwJBVV95cUxPSHcxX0lKeUhMM3ZHa2p0S2wzcG9COEhPS1NwS2JzUGNidld5VnVheFVTZ19xbE82ajZ5STVtdVMzTHU5OU83aUpDNFFlLTV4X3k3dHpwbWxvOTNGTmk4RDV5QTVuYm81WjI1X3Zoc2h4NWVtd2JRNHdfeFV2U2NEVzlyVjNubXBGa3J0SWUxYW9oX29ITjF4ZEFxTFlvVHlUMWtQOFBjRGRfSEtNYUFoLWNvY0ZqdWNoWmdiZnJMa3dVaG9rcUtTYzA3djV4eHZ6VlB1alZXTnRJT2drQ2h5ekxQd0pZbFVWVjdCZk4xTnBtMFRRRGNDTlRvdExWVmhheW03a0tIOTZHb04zTDNhLWdvdzVsRmlPOUQ5TjN4TG15bGtjZENB?oc=5\" target=\"_blank\">REACTION: Purdue CRUSHES UIndy 92-49 in Mackey Arena Opener | Can They Maintain This PACE?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">WFAA</font>",
+      "published": "2025-10-30T04:54:00+00:00",
+      "published_ts": 1761800040
+    },
+    {
       "title": "Takeaways: Height's impact, offense off defense and more from No. 1 Purdue's exhibition win over U-Indy - On3",
       "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQSVN1T3hCcld1YTdORU5EMTZrbTN6SGQ2TFc0Q080QjlzWl9la29TR20wSWhSMkhFWHRRblBaUERvdGpnZExRRWh3cnVrV01kMk9VX1pUOWlfRm5vWXB5ZWNqRjk0TFN4T2htM0JiS1R2WnFHWDE2TklWUVg2RHhCUDdqT3l0YnkweE12dQ?oc=5",
       "source": "On3 — Purdue team feed",
@@ -349,7 +357,7 @@
     {
       "title": "Purdue basketball was in a battle with Indy, then a sophomore broke the game open - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOVzZCYlpsM2dWRE1sdUh0cnFGcDU4REdqQ0lhcFpqdnlqX2tEZ3Y3TG8xQTJhYXZTM2pGczd5amY5RTNMci1jRjNfX1A4SDZhVWpDXzBoVU1TWnJJUS1YSUJvOHVRYkpsWU1mdEVKNWJ6N0tZcGNwMC1Cc1lBNFQ3R2RBV3FUTmlueENSWmJhM0NhUEhQVXhsRVNZdnYzQVVWU19NQmdRYmM3Z1NiZW5rUTl0WXdEcVYyRnpFQ3l3SldrRFZheWFZd2xhUEhtZERSZVM4?oc=5",
-      "source": "Mackey Arena — news",
+      "source": "Journal & Courier (J&C) — Purdue",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0wFBVV95cUxOVzZCYlpsM2dWRE1sdUh0cnFGcDU4REdqQ0lhcFpqdnlqX2tEZ3Y3TG8xQTJhYXZTM2pGczd5amY5RTNMci1jRjNfX1A4SDZhVWpDXzBoVU1TWnJJUS1YSUJvOHVRYkpsWU1mdEVKNWJ6N0tZcGNwMC1Cc1lBNFQ3R2RBV3FUTmlueENSWmJhM0NhUEhQVXhsRVNZdnYzQVVWU19NQmdRYmM3Z1NiZW5rUTl0WXdEcVYyRnpFQ3l3SldrRFZheWFZd2xhUEhtZERSZVM4?oc=5\" target=\"_blank\">Purdue basketball was in a battle with Indy, then a sophomore broke the game open</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Journal & Courier</font>",
       "published": "2025-10-30T01:01:18+00:00",
       "published_ts": 1761786078
@@ -393,14 +401,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi6wFBVV95cUxPWkhmZnZsdlBvRVJHM3Jkc1V6dmxPaW1vVkxidjA3RDE1OWo0SXN4RnlfWHVhTU1iaXNpNXhwVkdfTmctVENwOUtXRjQwNUd3OUJUdDliaHdiNkpEUGd4X0dmVHY4eTJLLXZrZFZ5QVFZYTJ5V3FfZHN6NEc2UUVXWjE5Z0tSX0EtQzZvOEdJbVVENWk4YzIyRnJBNDJaUmFkMnVZRW5jWWpGVXM4SFo4NkI4LXR6MEl6LTBXOXdVUkptdk93WGV0cFJqVUk4clY4TjJGOWlUQVdteUlucDFSNlJ3c0Jxb2xaWmFJ?oc=5\" target=\"_blank\">Best photos of Purdue basketball vs. University of Indianapolis in exhibition</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">IndyStar</font>",
       "published": "2025-10-30T00:40:50+00:00",
       "published_ts": 1761784850
-    },
-    {
-      "title": "Purdue basketball vs. UIndy exhibition game live updates, scores on Big Ten Plus - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxPNUNZUlNkak1SNjcxM1R5ZWhVT2doTS1heFI2Y0V3WHRaeEstcndSRDBFdGZBUHVycTRYYTAzN1FOMmhmYnJUem1DX2pQcTV4WFJrSDQxWGRKdEw5Ymd4NUZyV3dhTHRSbHhkR3ZwVmszTGlqTHRhOHlCSUhRQUhVRnpKMmFXZFh0WmhHYUJ2enV3UUFZcjFEU3U2WDl0eFJ0dnhTaGItSG41TGVGVmNoZEhCc0ZXOU1hTmRtc0RWU0tIdzJSQ2NaeHhETHdVMl9OR0oycXAtUktTOEVrSG9pSlcyTDFqRTBjeHdpODJVUkM0Wmp4TVJfcnNIMF90aGs?oc=5",
-      "source": "Journal & Courier (J&C) — Purdue",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi_wFBVV95cUxPNUNZUlNkak1SNjcxM1R5ZWhVT2doTS1heFI2Y0V3WHRaeEstcndSRDBFdGZBUHVycTRYYTAzN1FOMmhmYnJUem1DX2pQcTV4WFJrSDQxWGRKdEw5Ymd4NUZyV3dhTHRSbHhkR3ZwVmszTGlqTHRhOHlCSUhRQUhVRnpKMmFXZFh0WmhHYUJ2enV3UUFZcjFEU3U2WDl0eFJ0dnhTaGItSG41TGVGVmNoZEhCc0ZXOU1hTmRtc0RWU0tIdzJSQ2NaeHhETHdVMl9OR0oycXAtUktTOEVrSG9pSlcyTDFqRTBjeHdpODJVUkM0Wmp4TVJfcnNIMF90aGs?oc=5\" target=\"_blank\">Purdue basketball vs. UIndy exhibition game live updates, scores on Big Ten Plus</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Journal & Courier</font>",
-      "published": "2025-10-30T00:22:30+00:00",
-      "published_ts": 1761783750
     }
   ]
 }
