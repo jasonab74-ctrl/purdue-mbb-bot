@@ -1,5 +1,5 @@
 {
-  "updated": "2025-11-20T05:21:14.964104+00:00",
+  "updated": "2025-11-20T05:42:47.791140+00:00",
   "count": 50,
   "items": [
     {
@@ -65,6 +65,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1AFBVV95cUxQRmFiREFhSEIwWlIzdmNyWEhzenV1YWdRZDlFLTNna0YyZzZCTzNVWnQ4VmFja3lFWm1HNmJ4WGVlVjJwbFFEQVU1dk5MX3lfSnQ3V1h4MHE2QnVrNmxMMHpuU1FkeVhGZVZ5dG9abkg4NFItZTJMV2tKV3dHT1JYWms2OFJ1Qm1SNDRIUmZuMWhUbXZIcWNzVDA5U2k2MDlJeHlwc1R2c196bTVSUU16MVBIeEduYmtGbVkySUZ2NzhiTklXZVhYSnZFa3FXWlNBSnNtYQ?oc=5\" target=\"_blank\">Purdue basketball coach Matt Painter on Liam Murphy's injury, role</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">IndyStar</font>",
       "published": "2025-11-19T20:18:17+00:00",
       "published_ts": 1763583497
+    },
+    {
+      "title": "Senior Spotlight: Braden Smith (PUR) and JT Toppin (TTU) - 247Sports",
+      "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxORi05NTZjSFluU1hfMklURDI0QTI4Sm01MEFEM200V2hzdnBmSkJjLWhZYlNfQVVTdkZfM3Z3UlBtYi0zaFlfdGstMDNaakVNbmJ0UzRfNXR0aFY3V21JVHVIdkY1R1ZqVlZ6ZVFnc09weE5Td2NKdXNhVDM3U01zRFpicUN0dkZMRVRTcjNWSUFIM3MtVHdTTklGdlJaTmstZzJMamZR?oc=5",
+      "source": "247Sports — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipgFBVV95cUxORi05NTZjSFluU1hfMklURDI0QTI4Sm01MEFEM200V2hzdnBmSkJjLWhZYlNfQVVTdkZfM3Z3UlBtYi0zaFlfdGstMDNaakVNbmJ0UzRfNXR0aFY3V21JVHVIdkY1R1ZqVlZ6ZVFnc09weE5Td2NKdXNhVDM3U01zRFpicUN0dkZMRVRTcjNWSUFIM3MtVHdTTklGdlJaTmstZzJMamZR?oc=5\" target=\"_blank\">Senior Spotlight: Braden Smith (PUR) and JT Toppin (TTU)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
+      "published": "2025-11-19T20:16:19+00:00",
+      "published_ts": 1763583379
     },
     {
       "title": "Boiler Alert &#8211; Purdue Football…Sigh, But Basketball is Fun!",
@@ -283,14 +291,6 @@
       "published_ts": 1763478436
     },
     {
-      "title": "Stranger Things: Kentucky basketball trapped in the Upside Down - 247Sports",
-      "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOTE1KT0NVSDRpYWJ6RkJyYjdfWlZ1WHFuQkJGaVBub1pMVkxka3IwZEw3OU9DVU44N2JKYnByUTM2cDFTdXlscUs5LXFBTU01T3I5MmFGWEIyR21EV2RJeUZabUNMcGkzMDlNbERVeXhaakNaem1JdGpNNDkyTVUyXzVneDZ2ck4ydTMtcQ?oc=5",
-      "source": "247Sports — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxOTE1KT0NVSDRpYWJ6RkJyYjdfWlZ1WHFuQkJGaVBub1pMVkxka3IwZEw3OU9DVU44N2JKYnByUTM2cDFTdXlscUs5LXFBTU01T3I5MmFGWEIyR21EV2RJeUZabUNMcGkzMDlNbERVeXhaakNaem1JdGpNNDkyTVUyXzVneDZ2ck4ydTMtcQ?oc=5\" target=\"_blank\">Stranger Things: Kentucky basketball trapped in the Upside Down</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
-      "published": "2025-11-18T14:57:00+00:00",
-      "published_ts": 1763477820
-    },
-    {
       "title": "Purdue reclaims No. 1 from Houston in AP Top 25, Louisville and Illinois jump into top 10 - PinalCentral.com",
       "link": "https://news.google.com/rss/articles/CBMi8AFBVV95cUxONk8xdE1VMHhRZFlfeXE2ckJJSm9zTmdxMDBEQU1WSnhZdHIzUm14SWdxNUV5dHl0N2ZCSnZqOVFwR01rS3V3WUEwbHNINlFrWE9GZThYNGhiV3ZhS04xQUUxdklYUnBtMjZIQmhqR1BGTjg3ZHF6WXU4YjFZX2FNNlVSQzM0N19IOHpDOVAwa1pwV0sxeUJwc0hoMmQ3Y1NYYnJtZ3BONW1UUFFnMm40WklqVFdSb3pBdFpLQklBZGloNE1oQncxNG1sTjB0ZW9NdGxsU2NrbVBNbDBycFhlRjVzczR4MnF6YWcwNHZENHg?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -347,6 +347,14 @@
       "published_ts": 1763420829
     },
     {
+      "title": "Ap Top 25 Poll: Purdue Claims Top Spot From Houston - 247Sports",
+      "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxONzBwTUhDQ0M5dFJSU2FBclV0bXdlV29taGxJRlNZVXBaaWlpSVBSdWo5eXZESEhkQjhFWjI3VThWd2ZGMm5RdTVORzQyWWI2VGdEeHd5ai1OcDNORUx0ZnR1UHB1eEZGRFV2bV9JX1BHdnFGVXdnREtBUHNhWVoycGk5VHU0V3ozZnU3WFlOMEVWaWFiYkFlOERoemdOWmdmczBtbw?oc=5",
+      "source": "247Sports — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxONzBwTUhDQ0M5dFJSU2FBclV0bXdlV29taGxJRlNZVXBaaWlpSVBSdWo5eXZESEhkQjhFWjI3VThWd2ZGMm5RdTVORzQyWWI2VGdEeHd5ai1OcDNORUx0ZnR1UHB1eEZGRFV2bV9JX1BHdnFGVXdnREtBUHNhWVoycGk5VHU0V3ozZnU3WFlOMEVWaWFiYkFlOERoemdOWmdmczBtbw?oc=5\" target=\"_blank\">Ap Top 25 Poll: Purdue Claims Top Spot From Houston</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
+      "published": "2025-11-17T22:50:12+00:00",
+      "published_ts": 1763419812
+    },
+    {
       "title": "Purdue men's basketball players dominate sales at The NIL Store - Journal & Courier",
       "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPcXV1SzdmUGtDVTJrb2NMa20tZWNXOW5zTkF1UHZ1bFhBeUJCMHV1TmoweHBBNk1UdlBCcHE0VUFwRzBqSFBYMk1rcWdPb0FNT3NMd2N0bWprWlFDYU8yaGZETHRVYUdaWDFCRFpCMzlqOWhDYWNtc2VqWXZaeHlvNnJUSjZheEJsWllxOWVhV2gxZTdRSWZ6VHZTMkpSUExDVE5CZUJmeUhoektHdXdySTFKR0dQTllGOTBsVy1ycFVMR2kydEs0eUswU0lHN0RxZ1Zkel84Rlg3d2JFZkhIdDh5TjI?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -393,14 +401,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxNV3hCNmJGaXVJSGl3TXI2VFczYUNxc2l1ZVFoUlJzTmhHcGNTZFZ1c09ZQWVqeC1JTWQ5aklqRmxiRXNGd0FIUVVrZXA1RTNrdFRyUUozbWx0VXp6RVlTbUwwUjhZdjVDZ2xXQk5zUkVudVl4bDFaVE1fU2ZuVFJGckw1T2E2M1ZCMlJiRU12Tm9pel91UHFDc2JTcnliZ25lbGtabzNRbXFScHBkckt1QQ?oc=5\" target=\"_blank\">Purdue reclaims No. 1 spot in AP Top 25 men's basketball poll</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MSN</font>",
       "published": "2025-11-17T19:49:48+00:00",
       "published_ts": 1763408988
-    },
-    {
-      "title": "UCLA Falls Hard in Week's Basketball Top 25 - Sports Illustrated",
-      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE1HY1p5MDRaZ1pseUNfOUxMWmxMTWhFOUNBTl8zcHE1ckFKTk5xalBZV1ZTTWJNZVJ6Uk56bW16VlJIWnVwR3hCbDRLbVNkYndfS0VyT2RZMVN6Zy1Zc2h3aGh1VlVGUGF1enV3c01SUGsyV0tsaEc4OVhB?oc=5",
-      "source": "Sports Illustrated — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiekFVX3lxTE1HY1p5MDRaZ1pseUNfOUxMWmxMTWhFOUNBTl8zcHE1ckFKTk5xalBZV1ZTTWJNZVJ6Uk56bW16VlJIWnVwR3hCbDRLbVNkYndfS0VyT2RZMVN6Zy1Zc2h3aGh1VlVGUGF1enV3c01SUGsyV0tsaEc4OVhB?oc=5\" target=\"_blank\">UCLA Falls Hard in Week's Basketball Top 25</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
-      "published": "2025-11-17T19:46:23+00:00",
-      "published_ts": 1763408783
     }
   ]
 }
