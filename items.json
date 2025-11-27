@@ -1,5 +1,5 @@
 {
-  "updated": "2025-11-27T14:21:02.248777+00:00",
+  "updated": "2025-11-27T14:44:34.458975+00:00",
   "count": 50,
   "items": [
     {
@@ -9,14 +9,6 @@
       "summary": "<table> <tr><td> <a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1p82tq7/i_made_a_free_player_ranking_tool_rank_every/\"> <img alt=\"I made a free player ranking tool. Rank every player by any metric in any order. You can filter by conference, class, and position. GUI is open source, updated daily\" src=\"https://preview.redd.it/mnlb57f42t3g1.png?width=640&amp;crop=smart&amp;auto=webp&amp;s=58a3ac298a1da2637c0cbfb006c29e1659b5c846\" title=\"I made a free player ranking tool. Rank every player by any metric in any order. You can filter by conference, class, and position. GUI is open source, updated daily\" /> </a> </td><td> <!-- SC_OFF --><div class=\"md\"><p><a href=\"https://srating.io/cbb/ranking?view=player&amp;order=asc&amp;orderBy=rank&amp;columnView=composite&amp;customColumns=rank&amp;customColumns=name\">View the tool @ srating.io</a></p> <p>I have been working on this for a bit, making gradual improvements. It has every player, in a single table, and is updated daily.</p> <p>You can filter by conference, ex: only show players in the Big ten + SEC. As well as by class to view only freshmen.</p> <p>There are also 3 preset column listings, but it can be configured to show any column you want to view using the &quot;+Custom&quot; button.</p> <p>The actual player rank is a formulation of weights of different metrics (SR, ERT, PER) etc</p> <p>You can download the entire dataset as an CSV or use my API as well.</p> <p><a href=\"https://github.com/esmalleydev/srating.io-gui\">View the source code here</a></p> </div><!-- SC_ON --> &#32; submitted by &#32; <a href=\"https://www.reddit.com/user/srating-io\"> /u/srating-io </a> <br /> <span><a href=\"https://i.redd.it/mnlb57f42t3g1.png\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1p82tq7/i_made_a_free_player_ranking_tool_rank_every/\">[comments]</a></span> </td></tr></table>",
       "published": "2025-11-27T13:57:10+00:00",
       "published_ts": 1764251830
-    },
-    {
-      "title": "Boiler Alert Podcast: Purdue Football vs. IU and Purdue Basketball vs. Eastern Illinois",
-      "link": "https://www.hammerandrails.com/podcast/56856/boiler-alert-podcast-purdue-football-vs-iu-and-purdue-basketball-vs-eastern-illinois",
-      "source": "Hammer & Rails (SB Nation)",
-      "summary": "Ryan and I are back in your ears on this lovely Thanksgiving day. It’s incredibly cold in West Lafayette so if you’re doing a turkey trot this morning like I am I hope you’re bundled up and ready to go. Gotta get that time down so you can get back inside and sit near the [&#8230;]",
-      "published": "2025-11-27T13:32:42+00:00",
-      "published_ts": 1764250362
     },
     {
       "title": "Who's college basketball's best team? Michigan makes case with emphatic, history-making Players Era title run - CBS Sports",
@@ -100,9 +92,9 @@
     },
     {
       "title": "Purdue Men's Basketball - couriernews.com",
-      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxONjM0STZyQThJaEtLWllkS3NmUVMwNm1DVmtTT1pkLUVlcXM0c2dfeVdrcGhmbE1pNXV3dVBCT3c1eHctaHRMMVEtUHYwMGFYcWI0SGxVc1VtczBmT1FlS3kydzBKaW94VUtuMjBlUXNyUmtrTXpBMHNlU3RrUFR6V0FrQjNyNjVMMkxVOWhLSGVpQkNhUWVBTzFDX3kzYUlUbVpIQ2Y5anA?oc=5",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNYmRibV9ESmtLLXRhN01aSzRPWkR6dFBnQXVJMTR6OGxFRUo4NjNVVzlSQnhqd3RNWTVSQ2xQdjhucmoycTN5bjRpTHZHTThDM3AyYTR3cmViVVh4bXlyOVhHaUV5M0NUM1lkSzBmbUhGelVsNFI2T1E4Z05OOVVpSGhQWGhaanprQ3lwbG5BWHZXQndtRVE5aGJWQkVpdUJ4cFJ4TjZ0a0M?oc=5",
       "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxONjM0STZyQThJaEtLWllkS3NmUVMwNm1DVmtTT1pkLUVlcXM0c2dfeVdrcGhmbE1pNXV3dVBCT3c1eHctaHRMMVEtUHYwMGFYcWI0SGxVc1VtczBmT1FlS3kydzBKaW94VUtuMjBlUXNyUmtrTXpBMHNlU3RrUFR6V0FrQjNyNjVMMkxVOWhLSGVpQkNhUWVBTzFDX3kzYUlUbVpIQ2Y5anA?oc=5\" target=\"_blank\">Purdue Men's Basketball</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">couriernews.com</font>",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxNYmRibV9ESmtLLXRhN01aSzRPWkR6dFBnQXVJMTR6OGxFRUo4NjNVVzlSQnhqd3RNWTVSQ2xQdjhucmoycTN5bjRpTHZHTThDM3AyYTR3cmViVVh4bXlyOVhHaUV5M0NUM1lkSzBmbUhGelVsNFI2T1E4Z05OOVVpSGhQWGhaanprQ3lwbG5BWHZXQndtRVE5aGJWQkVpdUJ4cFJ4TjZ0a0M?oc=5\" target=\"_blank\">Purdue Men's Basketball</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">couriernews.com</font>",
       "published": "2025-11-26T21:55:17+00:00",
       "published_ts": 1764194117
     },
@@ -299,20 +291,12 @@
       "published_ts": 1764061518
     },
     {
-      "title": "NCAAM Highlights: No. 12 Gonzaga vs. No. 7 Michigan (11/26) Stream of NCAA Basketball - CBS Sports",
-      "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNTFRpSGIwamVnVEJ3TzhLbG16NHY0cTlqZkJGUFg0MXBPQUZ3SzlBMlNLc0d6TWk3SlU0TXN5VGs3ZEtEX1dGWlpyNmUzTFJVaE5vQ0VGekhmeXBCLXgxUXJQYkNxeUpWNnVfamtqRU9YaHRvTXZsWmxmb1hIWF9FM0RhbVZoOExYU24yY3k4cWJ4ZFVLTlprX0lRMnYxb3JRVGhtYjBVZUppbEwzeHBsaFVSeGIxdHFBVWF1X1dsVVd4X2xCTXhtWg?oc=5",
-      "source": "CBS Sports — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiyAFBVV95cUxNTFRpSGIwamVnVEJ3TzhLbG16NHY0cTlqZkJGUFg0MXBPQUZ3SzlBMlNLc0d6TWk3SlU0TXN5VGs3ZEtEX1dGWlpyNmUzTFJVaE5vQ0VGekhmeXBCLXgxUXJQYkNxeUpWNnVfamtqRU9YaHRvTXZsWmxmb1hIWF9FM0RhbVZoOExYU24yY3k4cWJ4ZFVLTlprX0lRMnYxb3JRVGhtYjBVZUppbEwzeHBsaFVSeGIxdHFBVWF1X1dsVVd4X2xCTXhtWg?oc=5\" target=\"_blank\">NCAAM Highlights: No. 12 Gonzaga vs. No. 7 Michigan (11/26) Stream of NCAA Basketball</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">CBS Sports</font>",
-      "published": "2025-11-25T06:27:00+00:00",
-      "published_ts": 1764052020
-    },
-    {
-      "title": "Four takeaways from Syracuse basketball’s 78-74 OT loss to Houston - Yahoo Sports",
-      "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQUHVpekJqeS05Zkh3aEpWTEZVWUEtU2RjM3hfS2xQQUpGWms0NTF2d2kxRlV0UUJneEJFQ0tOVUFOSmZfTEd0eEVSY3Vya09Od3NuZGxWV21seXVmcHhSXzQtQ1Q3NnBNZ3ZORXlydDU5U2toeXU0ZkdrOUM5RlVKd2dJNl95RFB0MF83dW41UQ?oc=5",
+      "title": "Lakers sign college basketball legend, G-League superstar to help Luka Doncic - Yahoo Sports",
+      "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOVnpLU09OVXJraXlZM3RtN1BzM2pzejNTVEZlUm9CNzY0Q0t5Y2JpREFmSGMtbng1cnd2YTlPdnZWd1RVaXZ0MTZseGVrNW4tVTlYZTdXd1ZyZmdobDZhVUNldjFXTnpTcnRSS25DZEhzV2hFM1hlU0xSUDVFUUZIZkg5UldsTDY5TWV6aE43TQ?oc=5",
       "source": "Yahoo Sports — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijwFBVV95cUxQUHVpekJqeS05Zkh3aEpWTEZVWUEtU2RjM3hfS2xQQUpGWms0NTF2d2kxRlV0UUJneEJFQ0tOVUFOSmZfTEd0eEVSY3Vya09Od3NuZGxWV21seXVmcHhSXzQtQ1Q3NnBNZ3ZORXlydDU5U2toeXU0ZkdrOUM5RlVKd2dJNl95RFB0MF83dW41UQ?oc=5\" target=\"_blank\">Four takeaways from Syracuse basketball’s 78-74 OT loss to Houston</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>",
-      "published": "2025-11-25T02:25:24+00:00",
-      "published_ts": 1764037524
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijwFBVV95cUxOVnpLU09OVXJraXlZM3RtN1BzM2pzejNTVEZlUm9CNzY0Q0t5Y2JpREFmSGMtbng1cnd2YTlPdnZWd1RVaXZ0MTZseGVrNW4tVTlYZTdXd1ZyZmdobDZhVUNldjFXTnpTcnRSS25DZEhzV2hFM1hlU0xSUDVFUUZIZkg5UldsTDY5TWV6aE43TQ?oc=5\" target=\"_blank\">Lakers sign college basketball legend, G-League superstar to help Luka Doncic</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>",
+      "published": "2025-11-25T02:03:28+00:00",
+      "published_ts": 1764036208
     },
     {
       "title": "Live Updates for No. 8 Alabama Basketball against No. 12 Gonzaga - Sports Illustrated",
@@ -339,12 +323,12 @@
       "published_ts": 1764021966
     },
     {
-      "title": "UConn men’s basketball drops to No. 5 in AP Top 25 - Yahoo Sports",
-      "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQOEdaenMyMVQ4cU9BUFVTOWlBd2JPT0xOLXowQ1hlZ2VYM2lFX3JPYXZMTjJPekptWU9mNVVLZWtmT3JTdnFscGtpdjF5S2xrLUFzZFlpV1ZEYk9VbGd4SHUxanEzWngxRklmSk9URE1jX3U4Zk9OVXdaVEo4YlhSLTVwV2o?oc=5",
-      "source": "Yahoo Sports — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMihAFBVV95cUxQOEdaenMyMVQ4cU9BUFVTOWlBd2JPT0xOLXowQ1hlZ2VYM2lFX3JPYXZMTjJPekptWU9mNVVLZWtmT3JTdnFscGtpdjF5S2xrLUFzZFlpV1ZEYk9VbGd4SHUxanEzWngxRklmSk9URE1jX3U4Zk9OVXdaVEo4YlhSLTVwV2o?oc=5\" target=\"_blank\">UConn men’s basketball drops to No. 5 in AP Top 25</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>",
-      "published": "2025-11-24T21:17:49+00:00",
-      "published_ts": 1764019069
+      "title": "Purdue boosts chances with JUCO DB Dre Riley after official visit - On3",
+      "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQZVVNUlNCZjAzVndFU0lYNnVIeWkxV3hpZU5HbnpTak9FSGxsY0NoZTZ6Y21QcWVsTEtBa2Vvc1VmdWRaUUE0b1pjZGlwMUZsdDkwVVV4NG1UZmoyLTI3eTV5VVZ3VmFXeExTMjc3UWtKcEpzQWZUU0JPVF9QeEdiQkszbjdaTmpUcmVtcHF2OE80ZjhsOU90SXBKVUdBcmM2bGhuVFpiX1BBc3lIV0ZRVVp4bnk1TkZD?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxQZVVNUlNCZjAzVndFU0lYNnVIeWkxV3hpZU5HbnpTak9FSGxsY0NoZTZ6Y21QcWVsTEtBa2Vvc1VmdWRaUUE0b1pjZGlwMUZsdDkwVVV4NG1UZmoyLTI3eTV5VVZ3VmFXeExTMjc3UWtKcEpzQWZUU0JPVF9QeEdiQkszbjdaTmpUcmVtcHF2OE80ZjhsOU90SXBKVUdBcmM2bGhuVFpiX1BBc3lIV0ZRVVp4bnk1TkZD?oc=5\" target=\"_blank\">Purdue boosts chances with JUCO DB Dre Riley after official visit</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2025-11-24T21:24:33+00:00",
+      "published_ts": 1764019473
     },
     {
       "title": "Why Barry Odom Says Purdue Can 'Absolutely' Become Playoff Program - Sports Illustrated",
@@ -371,14 +355,6 @@
       "published_ts": 1764014280
     },
     {
-      "title": "NCAAM Highlights: No. 21 Auburn vs. No. 7 Michigan (11/25) Stream of NCAA Basketball - CBS Sports",
-      "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQY2NBeUpRQmNWQmdOR1RGcmp2dFJrd3YzRTBPRFBRaDUyWUVGdXZ3RmdGaloybEJGbTFSVFpaM3NCV0JScVJKZkFuVUw4QllVc1A5ZFFTbEl4TktMUEN3aXdMSjB1UUQ5UDVyYTJNbnZkVmFUcWVxVkxTTTFfVDBiVEtpczQ1aXVSSzdNQVJSZjdVY1Z3U1hKMGhjcmhZclhRX2JzTXVzWVZMTTJWMmpPcDljbGNFc1V1V0p5bm16U2xYV2VXUWMw?oc=5",
-      "source": "CBS Sports — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMixwFBVV95cUxQY2NBeUpRQmNWQmdOR1RGcmp2dFJrd3YzRTBPRFBRaDUyWUVGdXZ3RmdGaloybEJGbTFSVFpaM3NCV0JScVJKZkFuVUw4QllVc1A5ZFFTbEl4TktMUEN3aXdMSjB1UUQ5UDVyYTJNbnZkVmFUcWVxVkxTTTFfVDBiVEtpczQ1aXVSSzdNQVJSZjdVY1Z3U1hKMGhjcmhZclhRX2JzTXVzWVZMTTJWMmpPcDljbGNFc1V1V0p5bm16U2xYV2VXUWMw?oc=5\" target=\"_blank\">NCAAM Highlights: No. 21 Auburn vs. No. 7 Michigan (11/25) Stream of NCAA Basketball</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">CBS Sports</font>",
-      "published": "2025-11-24T19:46:49+00:00",
-      "published_ts": 1764013609
-    },
-    {
       "title": "This Just In: Purdue At No.1 In Latest Men's CBB AP Poll Stream of NCAA Basketball - CBS Sports",
       "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPbE9UYXBncXZzMTdBbWIwcWo5bnhGX2JscXM1WExyZnBnNWJxVjRuZXI1VmhpVkpkVEk1SU1qVVhjZ2pTbXZqSGFQSk16NkdRQnhHZmhvYjltX1g2Rl96YzF1dkh4ekdlaWxybGlwdmtVZzJ6MktfQnRpTXYtNnA0VlBNeU9paXh4REZ3U3JILUwtYWJZbVhoZXdpQ0dpdzJWdlV6SmUzdjRxbkNQYXhMaQ?oc=5",
       "source": "CBS Sports — Purdue (MBB search)",
@@ -401,6 +377,30 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMilwFBVV95cUxNRW5fX044bkNKc0NqNktzOVJKRWpyLU1MOWxUZjRPN3oyZzVKQ1NnbUtZcHgzaEFwSXVldkpMcWs1aVE1WGlNR2dWM3JhdUJIT3pwUElaQmdyT2FiejdZVHZwX2RVMVdueGhpTi1IY1dBOUQ2Nmk3ZjRFUDBuYUlzUHRhQlRQTFB5Zkt5RkVXRlczX1B1YXZV?oc=5\" target=\"_blank\">College Basketball AP Top 25: Arizona Jumps Houston, UConn Amid Undefeated Start</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
       "published": "2025-11-24T19:21:41+00:00",
       "published_ts": 1764012101
+    },
+    {
+      "title": "Purdue Men’s Basketball Remains #1 in this week’s AP Poll - Hammer and Rails",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOWC1IZjdYU3N5cUFWZ3FHNTdaMUE1VkE0RVZNOGN1QUJuX0pXWTVFWWhZTGVvMXJTMEQ3MVRFSXBpTUJOa3lpdjNadm02X0czV3BGS2RIcGR6UzJ3TGZPUE1ab2NLSWlRY3VhVk9nZTlJUF9nWDRtYWZKd1k3M2ZJTVdyNDBZdHkzQTJ3SFZmUjlRZTAyc0ZVX1ZCRk54TEJqMlFlb1FUNURjLW8?oc=5",
+      "source": "Google News — Purdue Basketball",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqwFBVV95cUxOWC1IZjdYU3N5cUFWZ3FHNTdaMUE1VkE0RVZNOGN1QUJuX0pXWTVFWWhZTGVvMXJTMEQ3MVRFSXBpTUJOa3lpdjNadm02X0czV3BGS2RIcGR6UzJ3TGZPUE1ab2NLSWlRY3VhVk9nZTlJUF9nWDRtYWZKd1k3M2ZJTVdyNDBZdHkzQTJ3SFZmUjlRZTAyc0ZVX1ZCRk54TEJqMlFlb1FUNURjLW8?oc=5\" target=\"_blank\">Purdue Men’s Basketball Remains #1 in this week’s AP Poll</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>",
+      "published": "2025-11-24T19:03:55+00:00",
+      "published_ts": 1764011035
+    },
+    {
+      "title": "Purdue Men’s Basketball Remains #1 in this week’s AP Poll - Yahoo Sports",
+      "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOYnJySTl3ZGoxU3pTcWUxNWVMT0NQMzloUGY2Y0syYU9teDVVLVM3dmhRZU5tMlVIc0kwV1huX25vbnplMzBmQ2NpNUM5UERHcENDZFJYRXdtX0ZuQ1hCeWZKTXRxNGRGbmpuRk0yR3NteXMzY3hScXJnT0tmSHpIMjNvWUtzVVU?oc=5",
+      "source": "Yahoo Sports — Purdue (MBB search)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMihwFBVV95cUxOYnJySTl3ZGoxU3pTcWUxNWVMT0NQMzloUGY2Y0syYU9teDVVLVM3dmhRZU5tMlVIc0kwV1huX25vbnplMzBmQ2NpNUM5UERHcENDZFJYRXdtX0ZuQ1hCeWZKTXRxNGRGbmpuRk0yR3NteXMzY3hScXJnT0tmSHpIMjNvWUtzVVU?oc=5\" target=\"_blank\">Purdue Men’s Basketball Remains #1 in this week’s AP Poll</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>",
+      "published": "2025-11-24T19:03:55+00:00",
+      "published_ts": 1764011035
+    },
+    {
+      "title": "Purdue Men’s Basketball Remains #1 in this week’s AP Poll",
+      "link": "https://www.hammerandrails.com/mens-basketball/56828/purdue-mens-basketball-remains-1-in-this-weeks-ap-poll",
+      "source": "Hammer & Rails (SB Nation)",
+      "summary": "We are one week further in the men’s college basketball season and Purdue remains ranked the same as it was in both the pre-season AP Poll and last week’s poll: #1. The Boilermakers used a 2-0 performance in the Baha Mar Hoops Championship against Memphis and #15 Texas Tech to remain on top. The victory [&#8230;]",
+      "published": "2025-11-24T19:03:55+00:00",
+      "published_ts": 1764011035
     }
   ]
 }
