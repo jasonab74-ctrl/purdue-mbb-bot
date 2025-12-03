@@ -1,5 +1,5 @@
 {
-  "updated": "2025-12-03T22:21:46.468203+00:00",
+  "updated": "2025-12-03T22:43:51.648725+00:00",
   "count": 50,
   "items": [
     {
@@ -9,14 +9,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi8AFBVV95cUxQM1VIdEFGNmNrOWMzSHVOeFpWUGltcEM3YnRYenFVYWxTQ2szbU55NjhmXzNkUHpUX1I4VTJsbnNaYUpUb2RSSkVjR2dUZERsWDBvMmVIX0Fkc0dtZF9FeG96QnRlc2VKYWhMYzh6Tk42M1g5Tk9vanhMcmNfTVBEZ2dPNTZ0X1U1RFk4aFdpemstUWlTX2p0cVB3eFNSS3NYcTQxVW12WVYyOEpYZHllQXdKdXVadDNpNFRwN3MtWE5FZkdmQlFZNmVzekdnZGR1Sk9wOHQxUm84Ui1HUGdsWF91RjJwOVBBNm9OSDZYUEE?oc=5\" target=\"_blank\">No. 1 Purdue opens Big Ten schedule with win at Rutgers</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Newsbug.info</font>",
       "published": "2025-12-03T18:36:54+00:00",
       "published_ts": 1764787014
-    },
-    {
-      "title": "Purdue cruises past Rutgers to open Big Ten play with a road victory - On3",
-      "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxNNVpTeDJTZkJ1bXdMWW82bjhMVkJDUHhhNVFOU3pvLVBORHgydEdXN1k1aWtwQUZWNlU4V2NESlBTUFVzbmJHSzRadkdOdEVNTzZET2ZBeEhuMHY5VTVOSm9USEhFaThWWWZmWGNUYWxQM0hjLUx1MkZsalhiNnNkVTUwUENkdmEwSXkyQm95ek5MWG1TVU91NXVGRmZwU0w3Y0IzMngwbFVmZVhUM2hYazVHZGNhRVdrdUU1Rg?oc=5",
-      "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMivAFBVV95cUxNNVpTeDJTZkJ1bXdMWW82bjhMVkJDUHhhNVFOU3pvLVBORHgydEdXN1k1aWtwQUZWNlU4V2NESlBTUFVzbmJHSzRadkdOdEVNTzZET2ZBeEhuMHY5VTVOSm9USEhFaThWWWZmWGNUYWxQM0hjLUx1MkZsalhiNnNkVTUwUENkdmEwSXkyQm95ek5MWG1TVU91NXVGRmZwU0w3Y0IzMngwbFVmZVhUM2hYazVHZGNhRVdrdUU1Rg?oc=5\" target=\"_blank\">Purdue cruises past Rutgers to open Big Ten play with a road victory</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2025-12-03T17:30:05+00:00",
-      "published_ts": 1764783005
     },
     {
       "title": "Purdue tops Black Friday sales at the NIL Store, continuing trend - Journal & Courier",
@@ -43,12 +35,28 @@
       "published_ts": 1764780968
     },
     {
+      "title": "Purdue flips four-star safety Jett Goldsberry from Ole Miss - On3",
+      "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPVG16SGVrbFhRR25vT1dMR09HdEtGZkMzU0R0aFhSejhOY3UzQXFjODdhbGZhZ1gtbEszTHlublZoRjg4RWh1U0V5YXhKY1gtb3U3cVlMS0pFSmFvY3VVenFNYi1ORWI2VnpJSGFScVd2cW1aLUlCUS1Sb1Bkc25ETmNsU3VIWVlLX29nWmhuTEs2cWJqaGVzak9icm8yX2psM0pXVGJEZ1FhLUJaRlNYZg?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxPVG16SGVrbFhRR25vT1dMR09HdEtGZkMzU0R0aFhSejhOY3UzQXFjODdhbGZhZ1gtbEszTHlublZoRjg4RWh1U0V5YXhKY1gtb3U3cVlMS0pFSmFvY3VVenFNYi1ORWI2VnpJSGFScVd2cW1aLUlCUS1Sb1Bkc25ETmNsU3VIWVlLX29nWmhuTEs2cWJqaGVzak9icm8yX2psM0pXVGJEZ1FhLUJaRlNYZg?oc=5\" target=\"_blank\">Purdue flips four-star safety Jett Goldsberry from Ole Miss</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2025-12-03T16:27:44+00:00",
+      "published_ts": 1764779264
+    },
+    {
       "title": "Purdue HC Matt Painter on Rutgers: 'Can't Grow Freshmen if They Can't Keep Them' - FOX Sports",
       "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPSXFBR2JBTkkxZHV6Q0FCdnYxb1lJVXR5UFpYWUJLaHhKUElBV3ZtMjJqNXZoUXNobmZPVGg4aFlKWHUwNFpfZ0RmVlA2N3JRZkJ5T0tuMGVVUjE3aDRzVzVDZDBBc1Q2VGlGZl9OcjNyNG1iTHAyNGdIek9qTFJnQ0VTVjJialk5TGxPaU9ocHEzVzQ3UWxCbVdhMG5iRkpHM3NIeUdZQ2sydTFuZmQ3WDE0UmdpOHZH0gG4AUFVX3lxTE44TVE3Vmd5LUdDSDZZSzFfSmNZR0tzZFNUcXJZbVZmVk81RnhRWTNDaDUzUzUyc3lTcThnc3FRQjVpTDdMYnBMdE0yd1BaWVdfb096WndJSTl3Z24tdTFKdHhncEdHM1hiSzNVQmhJLVRvMEJzMl9DMUtOenlNWE1zWFIzaG5UZ2Y4cWFHNlVYM3RrUl83cG9hcDMydWxlNW84cjVjdDFHY1g0UHVDLXBPdnJZUnZucU8?oc=5",
       "source": "Matt Painter — news",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxPSXFBR2JBTkkxZHV6Q0FCdnYxb1lJVXR5UFpYWUJLaHhKUElBV3ZtMjJqNXZoUXNobmZPVGg4aFlKWHUwNFpfZ0RmVlA2N3JRZkJ5T0tuMGVVUjE3aDRzVzVDZDBBc1Q2VGlGZl9OcjNyNG1iTHAyNGdIek9qTFJnQ0VTVjJialk5TGxPaU9ocHEzVzQ3UWxCbVdhMG5iRkpHM3NIeUdZQ2sydTFuZmQ3WDE0UmdpOHZH0gG4AUFVX3lxTE44TVE3Vmd5LUdDSDZZSzFfSmNZR0tzZFNUcXJZbVZmVk81RnhRWTNDaDUzUzUyc3lTcThnc3FRQjVpTDdMYnBMdE0yd1BaWVdfb096WndJSTl3Z24tdTFKdHhncEdHM1hiSzNVQmhJLVRvMEJzMl9DMUtOenlNWE1zWFIzaG5UZ2Y4cWFHNlVYM3RrUl83cG9hcDMydWxlNW84cjVjdDFHY1g0UHVDLXBPdnJZUnZucU8?oc=5\" target=\"_blank\">Purdue HC Matt Painter on Rutgers: 'Can't Grow Freshmen if They Can't Keep Them'</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FOX Sports</font>",
       "published": "2025-12-03T16:02:59+00:00",
       "published_ts": 1764777779
+    },
+    {
+      "title": "Ohio State legend explains why this season's team is better than last year's - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNZUhRNUZHZHFGcE9zQTBGcFc1VWJYOGp0UDZEdmNPcG51dWltSTBhSXRPT3RSVDVPc1NhRmhpSnVSdWRVRkY1UFRjdVI1c1U2aDF3cC11UC1mNXZ0Mi10MHVKWVZkN2dwYlVpVHlJdkVQR1NmUThXTG9JVUFjMHVkQXRva3ZwNzgtd0Q1MllTTkRXZFo3OTYxZWtFQ0RCcHg3WDI3X0N3TEpjQWVkVjJ3S3lzbGxxYlBvS3BGQmhwb0tEOGh2VzA5Z2l0VQ?oc=5",
+      "source": "Sports Illustrated — Purdue (MBB search)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiywFBVV95cUxNZUhRNUZHZHFGcE9zQTBGcFc1VWJYOGp0UDZEdmNPcG51dWltSTBhSXRPT3RSVDVPc1NhRmhpSnVSdWRVRkY1UFRjdVI1c1U2aDF3cC11UC1mNXZ0Mi10MHVKWVZkN2dwYlVpVHlJdkVQR1NmUThXTG9JVUFjMHVkQXRva3ZwNzgtd0Q1MllTTkRXZFo3OTYxZWtFQ0RCcHg3WDI3X0N3TEpjQWVkVjJ3S3lzbGxxYlBvS3BGQmhwb0tEOGh2VzA5Z2l0VQ?oc=5\" target=\"_blank\">Ohio State legend explains why this season's team is better than last year's</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
+      "published": "2025-12-03T15:12:00+00:00",
+      "published_ts": 1764774720
     },
     {
       "title": "Iowa State at Purdue is the most expensive college basketball ticket in the country this week",
@@ -67,6 +75,14 @@
       "published_ts": 1764773513
     },
     {
+      "title": "Purdue cruises past Rutgers to open Big Ten play with a road victory - On3",
+      "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxNNVpTeDJTZkJ1bXdMWW82bjhMVkJDUHhhNVFOU3pvLVBORHgydEdXN1k1aWtwQUZWNlU4V2NESlBTUFVzbmJHSzRadkdOdEVNTzZET2ZBeEhuMHY5VTVOSm9USEhFaThWWWZmWGNUYWxQM0hjLUx1MkZsalhiNnNkVTUwUENkdmEwSXkyQm95ek5MWG1TVU91NXVGRmZwU0w3Y0IzMngwbFVmZVhUM2hYazVHZGNhRVdrdUU1Rg?oc=5",
+      "source": "Google News — Purdue Basketball",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMivAFBVV95cUxNNVpTeDJTZkJ1bXdMWW82bjhMVkJDUHhhNVFOU3pvLVBORHgydEdXN1k1aWtwQUZWNlU4V2NESlBTUFVzbmJHSzRadkdOdEVNTzZET2ZBeEhuMHY5VTVOSm9USEhFaThWWWZmWGNUYWxQM0hjLUx1MkZsalhiNnNkVTUwUENkdmEwSXkyQm95ek5MWG1TVU91NXVGRmZwU0w3Y0IzMngwbFVmZVhUM2hYazVHZGNhRVdrdUU1Rg?oc=5\" target=\"_blank\">Purdue cruises past Rutgers to open Big Ten play with a road victory</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2025-12-03T13:30:05+00:00",
+      "published_ts": 1764768605
+    },
+    {
       "title": "No. 1 Purdue runs over Rutgers to continue unbeaten run - basketballsphere.com",
       "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE85SkxqRDY4aEg5SXE4QUhvcGtGeG9OWDRYWExoaU1McU5rTlB0NURqQklfcTM2aVRyT3cyRGdtdWd2N0hxMUs5bzkwX3hnUmJKWF9KN2tSQS1Fb0xwUEJlRDhLNVNIcXVKWmstdDctcDZZOG1xbDIw?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -79,6 +95,14 @@
       "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxQU0VFRFM5NWVTTFhJTC0zTE44aS1sb2x3MkgtTDBiTUhLYm5TZWJYQzRYTjl2TWtmUzlBTVNrM0pNYW5qYUpiZXpvUUJzRnRDUXdEWUZuZFlmM2RkZmtvMnJoZmdhdTEtMm52dmhnSXhnWk9NMkxnYXFzaVJFTnA0YVN0NXc5NjFRV3JudE9PWnd0RHpuVnZz?oc=5",
       "source": "Google News — Purdue Basketball",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMilwFBVV95cUxQU0VFRFM5NWVTTFhJTC0zTE44aS1sb2x3MkgtTDBiTUhLYm5TZWJYQzRYTjl2TWtmUzlBTVNrM0pNYW5qYUpiZXpvUUJzRnRDUXdEWUZuZFlmM2RkZmtvMnJoZmdhdTEtMm52dmhnSXhnWk9NMkxnYXFzaVJFTnA0YVN0NXc5NjFRV3JudE9PWnd0RHpuVnZz?oc=5\" target=\"_blank\">Behind the Numbers: Purdue 81 Rutgers 65</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>",
+      "published": "2025-12-03T13:00:00+00:00",
+      "published_ts": 1764766800
+    },
+    {
+      "title": "Behind the Numbers: Purdue 81 Rutgers 65",
+      "link": "https://www.hammerandrails.com/mens-basketball/57006/behind-the-numbers-purdue-81-rutgers-65",
+      "source": "Hammer & Rails (SB Nation)",
+      "summary": "Purdue used a strong middle twenty minutes of their game against a feisty but overwhelmed Rutgers squad to grab an important road B1G win. With the trio of TKR, Smith, and Loyer leading the way, Purdue shot 38.5% (10/26) from behind the arc although they went just 3/12 in the second half. Purdue continued their [&#8230;]",
       "published": "2025-12-03T13:00:00+00:00",
       "published_ts": 1764766800
     },
@@ -121,6 +145,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqwFBVV95cUxQc0NQXzdGdmRnLVRRSWNfN0IzZFBsa0RKamdvUXgySXBJdnM2aWVNaHhMdTg0elFCUnJsRWdGNUxDRmZNNnNrQnM0NUxGZ1RTSHpyYnlMNEh3N01QTnNLVTBtaklzREJWMnRHa3dqM0ZkVkhrVVM4bUJtRk02a2ExYWZQWWRRTDFubWlGZ2RoaXd1d0p0UmsweGgyYl9oeWRacmtzRlVhd1dFdVE?oc=5\" target=\"_blank\">Rutgers men's basketball loses to No. 1 Purdue in Big Ten opener</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">The Daily Targum</font>",
       "published": "2025-12-03T07:56:49+00:00",
       "published_ts": 1764748609
+    },
+    {
+      "title": "Gold And Black: Purdue Boilermakers Football & Basketball - On3",
+      "link": "https://news.google.com/rss/articles/CBMiWkFVX3lxTFB4NmtGVTdFcWFDcW5xVTExSG5KbE01SWpLWVF1TkwteS1OVXhuQzFLdE43eVBWYW1DRnNUWnNCemVuek1nRVAyZk1WVFBweVJqS2hzcWJVUko4Zw?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiWkFVX3lxTFB4NmtGVTdFcWFDcW5xVTExSG5KbE01SWpLWVF1TkwteS1OVXhuQzFLdE43eVBWYW1DRnNUWnNCemVuek1nRVAyZk1WVFBweVJqS2hzcWJVUko4Zw?oc=5\" target=\"_blank\">Gold And Black: Purdue Boilermakers Football & Basketball</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2025-12-03T06:35:49+00:00",
+      "published_ts": 1764743749
     },
     {
       "title": "5 takeaways from Purdue at Rutgers",
@@ -185,14 +217,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMivgFBVV95cUxNc2J3d0cxRjJZb2xlVTd2OEI5SktXeTZwRXo2RXBSdjhGQUpUbklKT0NHa0hheTFoanNPUi0xUkJzRWU5NDJmeGNWdUFTOS1BTTR0U1hoenBhaDVqWU1FLVJBRU85WHRtS2xWWXkxRWVrdXRrUklwbFJQNDR4U2lPNFZwdzNIV0xoQmRKMGFzLWp6cU5taGR0MExOOGFidS1PUW5Ib21JUTVBeFh5cHMzblJxd1piTnJ3UW5OanJB?oc=5\" target=\"_blank\">Top-ranked Purdue looks to shake trend in Big Ten December road games</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
       "published": "2025-12-03T04:16:43+00:00",
       "published_ts": 1764735403
-    },
-    {
-      "title": "No. 1 Purdue beats Rutgers 81-65 in Big Ten opener - Kokomo Tribune",
-      "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxQQkNIX1B4dUVrSzlQRWJ1Mm81OU5tSF9MQUt4T0JENmVTZjc4VDhpcjRBY0NlbUVDZXp5anpxcklEajRfV1dOdTdYU2Fzd3YtRlc1cUtRQ0diTW1VYWlLbzk0NGlITWdpWUhzcFBRMGhyb01JeHhhVnd2Y0drZXJZTVVLcHRfWGE0UUhYNDYzN2c5VUxvX2paMHlMQUJmZVRUNlJ5ckE1cEY5UEZFb19PXzYzZWN1WEUwQkQ2YVFsdmVBUk9VcS1MZktyY0pGM01lS0E?oc=5",
-      "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0gFBVV95cUxQQkNIX1B4dUVrSzlQRWJ1Mm81OU5tSF9MQUt4T0JENmVTZjc4VDhpcjRBY0NlbUVDZXp5anpxcklEajRfV1dOdTdYU2Fzd3YtRlc1cUtRQ0diTW1VYWlLbzk0NGlITWdpWUhzcFBRMGhyb01JeHhhVnd2Y0drZXJZTVVLcHRfWGE0UUhYNDYzN2c5VUxvX2paMHlMQUJmZVRUNlJ5ckE1cEY5UEZFb19PXzYzZWN1WEUwQkQ2YVFsdmVBUk9VcS1MZktyY0pGM01lS0E?oc=5\" target=\"_blank\">No. 1 Purdue beats Rutgers 81-65 in Big Ten opener</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Kokomo Tribune</font>",
-      "published": "2025-12-03T03:56:00+00:00",
-      "published_ts": 1764734160
     },
     {
       "title": "Purdue 81, Rutgers 65: Postgame Video",
@@ -375,30 +399,6 @@
       "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQMW5mdFhnTzh4eTB4RzFCWG1yOUc4c3JMSnVxbzFtQVV4MHdRR3FzenpOOFpyZHBwQjJSUDkyY29SbHBVZ3J0ZUF2a0dUY2FXeWZ3NFRVZjRzaXVKcDBlS0c0UHhfZFE2UU9MSmxiaVM3cnVFYnZwMWVoVldDQWFld2dCcnEydUNqTzNQLS00NmNpX0hPUTN1NGJ3elVLOE1Rd09uV216SmprUXBPNVltQVpiRUZjRU0?oc=5",
       "source": "Google News — Purdue Basketball",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMitwFBVV95cUxQMW5mdFhnTzh4eTB4RzFCWG1yOUc4c3JMSnVxbzFtQVV4MHdRR3FzenpOOFpyZHBwQjJSUDkyY29SbHBVZ3J0ZUF2a0dUY2FXeWZ3NFRVZjRzaXVKcDBlS0c0UHhfZFE2UU9MSmxiaVM3cnVFYnZwMWVoVldDQWFld2dCcnEydUNqTzNQLS00NmNpX0hPUTN1NGJ3elVLOE1Rd09uV216SmprUXBPNVltQVpiRUZjRU0?oc=5\" target=\"_blank\">How to Watch #1 Purdue (7-0, 0-0) vs. Rutgers (5-3, 0-0) & Fan Discussion</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>",
-      "published": "2025-12-02T22:00:00+00:00",
-      "published_ts": 1764712800
-    },
-    {
-      "title": "Where to watch Purdue vs. Rutgers today: College basketball free stream - Syracuse.com",
-      "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxOMU1fSVdncjAzVEVfeVJ2bzdld3ZhTzBkeXZ0YTZaNGkyUEJLdm5mZERiclhsc1pxdEU0WHktZmpzTk5sZ3hvLXdfcmZZTUVRQl9wNHh4R0QyWnJua1RZLTVHN0I0RDBkd2JXdUhpbE9fdkdfZ183MXZBaExGSVlQZHJNMDRkNkFIWWZUWGprbFlTWEhoTURBUzRSVWZXTldabDJ6SVVOMXljR3RMZnRF0gHDAUFVX3lxTE5pM2RqOGFFU052NFV2eWQ5a3ZndElTZWtqckFzc01jMkRIcjQyZFBnMHhOcDlULTZVSHZvMHNIWjNmcVk0YW1XUXhUSjZtZUQwNGU1RzFCbUlBeDlwLU5SSGxpMjlQTWdMVHdNUThnaTV5Z2hmS2RzNDZyeEZNaXdqUHN1cmhXTkpBbHJlazRPUUVvc3g4UUxDN3VNTXJrRk5RY0ZNZVdxeDhRbkpKNEktVHY4aERweVc0UDRqWHJxQVYzVQ?oc=5",
-      "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMirwFBVV95cUxOMU1fSVdncjAzVEVfeVJ2bzdld3ZhTzBkeXZ0YTZaNGkyUEJLdm5mZERiclhsc1pxdEU0WHktZmpzTk5sZ3hvLXdfcmZZTUVRQl9wNHh4R0QyWnJua1RZLTVHN0I0RDBkd2JXdUhpbE9fdkdfZ183MXZBaExGSVlQZHJNMDRkNkFIWWZUWGprbFlTWEhoTURBUzRSVWZXTldabDJ6SVVOMXljR3RMZnRF0gHDAUFVX3lxTE5pM2RqOGFFU052NFV2eWQ5a3ZndElTZWtqckFzc01jMkRIcjQyZFBnMHhOcDlULTZVSHZvMHNIWjNmcVk0YW1XUXhUSjZtZUQwNGU1RzFCbUlBeDlwLU5SSGxpMjlQTWdMVHdNUThnaTV5Z2hmS2RzNDZyeEZNaXdqUHN1cmhXTkpBbHJlazRPUUVvc3g4UUxDN3VNTXJrRk5RY0ZNZVdxeDhRbkpKNEktVHY4aERweVc0UDRqWHJxQVYzVQ?oc=5\" target=\"_blank\">Where to watch Purdue vs. Rutgers today: College basketball free stream</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Syracuse.com</font>",
-      "published": "2025-12-02T22:00:00+00:00",
-      "published_ts": 1764712800
-    },
-    {
-      "title": "Purdue vs. Rutgers FREE LIVE STREAM (12/2/25): Where to watch Big Ten men’s basketball opener online - NJ.com",
-      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQQUE0NXBCdjBianpUd25rVjJvN2R0MUNpYkl2MHVDQy1TbjU2d2NXbWZiLVd4cGEwSG9rTmo3Zms0S0pLNDlxRWVFTlZEc0xhZk1IUF9Ca2lzYWdDd2pCblZlODlHdV9raV8xSEloY203Uk11eVhIZXpSc3JBR25qZHVacmJ0SUdoLXZDaEdWaG93UWZpT250N0NNNktKcGI0TnJjaVdTSGpfV29tWmsxNEFvRVFqUdIBygFBVV95cUxPNk5YdW84TWh0QkJkTG9faFlXVVRYUnoydWtVZlZzT1JaX3VKcWpsTDlLRXJaYnpQOFdIQmhqOEk2NURtRlVkaTZmSk5pYkpLeUJUbEV1SnY1NVBELUw1ckNKMHMtQTRpYldTV2F5Z211bWFZQkt2bjR4Vi15WHdpeDVBTnNwVHZNaW91d0FDMnBFLUdIS01yR3pjUTJLMXJELWx6R2pjYnhJeWk3WXlEYmZZS3FxZ2pFdk5kLXBxZVBQaVRYd2EzRmR3?oc=5",
-      "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitgFBVV95cUxQQUE0NXBCdjBianpUd25rVjJvN2R0MUNpYkl2MHVDQy1TbjU2d2NXbWZiLVd4cGEwSG9rTmo3Zms0S0pLNDlxRWVFTlZEc0xhZk1IUF9Ca2lzYWdDd2pCblZlODlHdV9raV8xSEloY203Uk11eVhIZXpSc3JBR25qZHVacmJ0SUdoLXZDaEdWaG93UWZpT250N0NNNktKcGI0TnJjaVdTSGpfV29tWmsxNEFvRVFqUdIBygFBVV95cUxPNk5YdW84TWh0QkJkTG9faFlXVVRYUnoydWtVZlZzT1JaX3VKcWpsTDlLRXJaYnpQOFdIQmhqOEk2NURtRlVkaTZmSk5pYkpLeUJUbEV1SnY1NVBELUw1ckNKMHMtQTRpYldTV2F5Z211bWFZQkt2bjR4Vi15WHdpeDVBTnNwVHZNaW91d0FDMnBFLUdIS01yR3pjUTJLMXJELWx6R2pjYnhJeWk3WXlEYmZZS3FxZ2pFdk5kLXBxZVBQaVRYd2EzRmR3?oc=5\" target=\"_blank\">Purdue vs. Rutgers FREE LIVE STREAM (12/2/25): Where to watch Big Ten men’s basketball opener online</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">NJ.com</font>",
-      "published": "2025-12-02T22:00:00+00:00",
-      "published_ts": 1764712800
-    },
-    {
-      "title": "How to Watch #1 Purdue (7-0, 0-0) vs. Rutgers (5-3, 0-0) &#038; Fan Discussion",
-      "link": "https://www.hammerandrails.com/mens-basketball/56990/how-to-watch-1-purdue-7-0-0-0-vs-rutgers-5-3-0-0-fan-discussion",
-      "source": "Hammer & Rails (SB Nation)",
-      "summary": "Big Ten play is finally here people. Of course, it’s December so it’s the strange two early conference games followed by a break in conference play. This is a spot in the calendar that Purdue has historically not done very well in. In fact, Purdue is just 2-6 in Big Ten road openers since these [&#8230;]",
       "published": "2025-12-02T22:00:00+00:00",
       "published_ts": 1764712800
     }
