@@ -1,5 +1,5 @@
 {
-  "updated": "2025-12-09T18:52:55.295062+00:00",
+  "updated": "2025-12-09T19:16:20.779559+00:00",
   "count": 50,
   "items": [
     {
@@ -9,6 +9,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1gFBVV95cUxNZlVHQzZWS2ctVDktMHJxbk0xcHU2MUxDSUdXVmhJd0tSM01pNnBaaHozYXZCbS1MZ2dpV0ozb3lwanVQZkpHSWRLTXQySm45VDZKbWxfVFZlMVlTV3VQTU9fVjRRWkNSejV2aWxtXzRpNWhXRlNGQ0c4eDAwdzNLZGNSY3hTUEt1WDBCVjlwVXFEa2p3MkwySzlDREVqd1hYMEZBM25NZnB2bm5vWXpqY3Q3NUhyZ25rRW13VTJDcmdwcGdtSkp2MGRvS0hIUW1ISFJObTF3?oc=5\" target=\"_blank\">Big Ten men's basketball power rankings: Michigan dominates field, Purdue blown out, Indiana skids</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">The Daily Targum</font>",
       "published": "2025-12-09T16:00:00+00:00",
       "published_ts": 1765296000
+    },
+    {
+      "title": "Data Driven: Purdue's 2025 defense - On3",
+      "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOaVNzZnRwOENQYlRldThDemxNU0VtZy1kTzJ3c0NYY18zQ24yV1M5UWgtT0M5d19WTGJxeUhJRTEzY011c0NTZVhMOGFZeHJnZmNtbkJJT2xNS00tZUpla0ZjUVlHSll1SkFIQVU5cTdmZ2dSU2tDZ0h6S0Q0X0VXRTh3QUFJcDFaOVA3Yw?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxOaVNzZnRwOENQYlRldThDemxNU0VtZy1kTzJ3c0NYY18zQ24yV1M5UWgtT0M5d19WTGJxeUhJRTEzY011c0NTZVhMOGFZeHJnZmNtbkJJT2xNS00tZUpla0ZjUVlHSll1SkFIQVU5cTdmZ2dSU2tDZ0h6S0Q0X0VXRTh3QUFJcDFaOVA3Yw?oc=5\" target=\"_blank\">Data Driven: Purdue's 2025 defense</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2025-12-09T15:56:01+00:00",
+      "published_ts": 1765295761
     },
     {
       "title": "Eastern Off to Purdue Fort Wayne for Wednesday Contest - Eastern Michigan University Athletics",
@@ -379,28 +387,20 @@
       "published_ts": 1765069697
     },
     {
+      "title": "Iowa State Basketball Defeats Purdue In Historic Upset - KWWL",
+      "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxNVmgtdEVNWmktOVFsdDh5OHJIa3VoM29oVXRiLWZSSHNYeEtQMXBuWmNnZ2E1RFc3MGNlQVZleG1jTmxfTUltMHd1dU1uODA3RmNqVzVaU0UyYVh1TXhsaGpMeTY1ODEyZWVVOUdVbUdoZEZwa1hYQWJMNEwyeTZKRFdyYU5KNWxWZzFZaGxtN2VqaVhKczA0MEp1SENFLURXelk3SFpXT1R5RkZ0VkFjWHZ5WFpPOVBIT3dRNm5OR2F5ZUYyWkJncGdHZVRFQlBTeTJUUGpOQTI1dw?oc=5",
+      "source": "Google News — Purdue Basketball",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2gFBVV95cUxNVmgtdEVNWmktOVFsdDh5OHJIa3VoM29oVXRiLWZSSHNYeEtQMXBuWmNnZ2E1RFc3MGNlQVZleG1jTmxfTUltMHd1dU1uODA3RmNqVzVaU0UyYVh1TXhsaGpMeTY1ODEyZWVVOUdVbUdoZEZwa1hYQWJMNEwyeTZKRFdyYU5KNWxWZzFZaGxtN2VqaVhKczA0MEp1SENFLURXelk3SFpXT1R5RkZ0VkFjWHZ5WFpPOVBIT3dRNm5OR2F5ZUYyWkJncGdHZVRFQlBTeTJUUGpOQTI1dw?oc=5\" target=\"_blank\">Iowa State Basketball Defeats Purdue In Historic Upset</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">KWWL</font>",
+      "published": "2025-12-07T00:00:00+00:00",
+      "published_ts": 1765065600
+    },
+    {
       "title": "Purdue's Matt Painter Talks Iowa State Loss As Boilers Were 'Taken to the Woodshed' - Sports Illustrated",
       "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxQcmZYM3hqVmJuU1dBZEJXN2VOYmNuYVhLLThLNTJQMnowLWxiV2hpRnUzaTFfVUxfSllMZzVxRmFVZ1BkdFc0b2hsSDEzSEtpb0RKZGo4N2VzTWxLVHJwYTUxTUJSeWI4WG5VSDBJdHo3emNIbmV3OXBTZ3ZtdzIzSE0wWVQwcmNScDloZ1B5NjUtT041ZXg1MWtseGZUSFZtSi1QMFFnY2NDR3lsa1Zod08tWHh2YVlfVzN1RU5aeDBQb1MwSGlfNVl1SkVGYVE?oc=5",
       "source": "Sports Illustrated — Purdue (MBB search)",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMizwFBVV95cUxQcmZYM3hqVmJuU1dBZEJXN2VOYmNuYVhLLThLNTJQMnowLWxiV2hpRnUzaTFfVUxfSllMZzVxRmFVZ1BkdFc0b2hsSDEzSEtpb0RKZGo4N2VzTWxLVHJwYTUxTUJSeWI4WG5VSDBJdHo3emNIbmV3OXBTZ3ZtdzIzSE0wWVQwcmNScDloZ1B5NjUtT041ZXg1MWtseGZUSFZtSi1QMFFnY2NDR3lsa1Zod08tWHh2YVlfVzN1RU5aeDBQb1MwSGlfNVl1SkVGYVE?oc=5\" target=\"_blank\">Purdue's Matt Painter Talks Iowa State Loss As Boilers Were 'Taken to the Woodshed'</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
       "published": "2025-12-06T23:08:02+00:00",
       "published_ts": 1765062482
-    },
-    {
-      "title": "Iowa State Cyclones Make Incredible History Blowing Out Purdue Boilermakers on Road - Sports Illustrated",
-      "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxNcDZSZTNhUTRfcldVU0dPOFhQekRxcFlpS2lZZml2cGduWFM1N0VGN1ZDTXZ3YTJTdk94X3YycXR6Z0h1RVljUzBUTlc5Tnk0b01aOHdxZWZacWVWMUIzaS1aSHRhWXlTeEJOWTNuSXBhZWlQTDZWVW9fYVZwcnU0NkF2b2xkTkFza2paYzBxdzZSdlFEYXNwOVFDRDFlZE5oNkpHVi1jVU5hbEtrXzVDc0lEekhHX1VrQThpZHZhaFV5MlFsMXBTNzVsVWQ?oc=5",
-      "source": "Mackey Arena — news",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMizAFBVV95cUxNcDZSZTNhUTRfcldVU0dPOFhQekRxcFlpS2lZZml2cGduWFM1N0VGN1ZDTXZ3YTJTdk94X3YycXR6Z0h1RVljUzBUTlc5Tnk0b01aOHdxZWZacWVWMUIzaS1aSHRhWXlTeEJOWTNuSXBhZWlQTDZWVW9fYVZwcnU0NkF2b2xkTkFza2paYzBxdzZSdlFEYXNwOVFDRDFlZE5oNkpHVi1jVU5hbEtrXzVDc0lEekhHX1VrQThpZHZhaFV5MlFsMXBTNzVsVWQ?oc=5\" target=\"_blank\">Iowa State Cyclones Make Incredible History Blowing Out Purdue Boilermakers on Road</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
-      "published": "2025-12-06T23:00:00+00:00",
-      "published_ts": 1765062000
-    },
-    {
-      "title": "Purdue had its 'intestinal fortitude' challenged as Iowa State 'stole our spirit' - IndyStar",
-      "link": "https://news.google.com/rss/articles/CBMi_AFBVV95cUxOMS05anFUTm9PcVJCX2QyY0EtNFhIbXBkY0xRWE1IekVFZFZXeVY0ckR6YUprR2QyMGRVeW9ZQUdLYlhSTWY5ZjhKMDEzLUp6QXdudU5JVC11cXlYUUFqVWFvckRyLUZIQUxwZkhVZVJlWTEwUzBaTVpVUTI3OVZsWlpBNzVncDVJQUg3emVkTFA5QzQxODc0cHJvRUcxVzFCUGt0d0Z0NXI5cXRoRFhlZEE3NHpNS1kxOEhuYjFvVjE2bWhVd1NoU0NrS0ctcWpHOVJ2ZnhVeTRydUFPSk5Hc3N1enJlVDBzVVdfYmlneTJaTlhzSTdiNi1qVno?oc=5",
-      "source": "Matt Painter — news",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi_AFBVV95cUxOMS05anFUTm9PcVJCX2QyY0EtNFhIbXBkY0xRWE1IekVFZFZXeVY0ckR6YUprR2QyMGRVeW9ZQUdLYlhSTWY5ZjhKMDEzLUp6QXdudU5JVC11cXlYUUFqVWFvckRyLUZIQUxwZkhVZVJlWTEwUzBaTVpVUTI3OVZsWlpBNzVncDVJQUg3emVkTFA5QzQxODc0cHJvRUcxVzFCUGt0d0Z0NXI5cXRoRFhlZEE3NHpNS1kxOEhuYjFvVjE2bWhVd1NoU0NrS0ctcWpHOVJ2ZnhVeTRydUFPSk5Hc3N1enJlVDBzVVdfYmlneTJaTlhzSTdiNi1qVno?oc=5\" target=\"_blank\">Purdue had its 'intestinal fortitude' challenged as Iowa State 'stole our spirit'</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">IndyStar</font>",
-      "published": "2025-12-06T22:45:00+00:00",
-      "published_ts": 1765061100
     }
   ]
 }
