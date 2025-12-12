@@ -1,5 +1,5 @@
 {
-  "updated": "2025-12-12T15:24:23.378949+00:00",
+  "updated": "2025-12-12T15:44:58.053610+00:00",
   "count": 50,
   "items": [
     {
@@ -193,14 +193,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMivAFBVV95cUxQS3ktQ05IVWZSSl84MG5PRGlWd1RBRWJzMm9udVgtenRzNFo1c0tZYzAtNWZWZjJWYS1ibXVKNkVPbG1nV0xJU25VYTZ0MFhTQUZoLTlER1BnQ2hWeG10Q0N5OHg3NHkxRW44MFVoc1hCUFBaYlhYNDI1Zzc3UHBsTS0ySk1SMzRUQ2RXb19BLVdZMG9zczh6MTlLWWQ5SmV0cTV4RURIazRoRFRIUXNOcF9WTlYzX2Yyd2Fqag?oc=5\" target=\"_blank\">Purdue Responds Like a Champion in Blowout Win Over Minnesota</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
       "published": "2025-12-11T12:00:01+00:00",
       "published_ts": 1765454401
-    },
-    {
-      "title": "2011-12 Men's Basketball Roster Roster",
-      "link": "http://www.bing.com/news/apiclick.aspx?ref=FexRss&aid=&tid=693c33a45f864336aa842c2d825b59c1&url=https%3a%2f%2fpurduesports.com%2fsports%2fmens-basketball%2froster%2fseason%2f2011-12&c=12027155299247953132&mkt=en-us",
-      "source": "PurdueSports.com — “Men’s Basketball”",
-      "summary": "2011-12 Men's Basketball RosterOpen Roster Sort DropdownSort Jersey number ascending Jersey number descending A-Z Z-A Class ascending Class descending Position ascending Position descending Open ...",
-      "published": "2025-12-11T11:36:00+00:00",
-      "published_ts": 1765452960
     },
     {
       "title": "GoldandBlack com video — Purdue coach Matt Painter, players on Minnesota, the Iowa State loss and more - On3",
@@ -401,6 +393,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMiogFBVV95cUxNSjdiR0R3Q0lMSk8tb05CMjIwZXdEMFJoWmFNR1pKeW52RnV2OEZDY1NUQXZjMHhwRkhGME8wLVBHQXBOSWNyZlB4X29nM1k1SDJoWTVtck5SU3RxdVMzeWl2dXBISEt0YXp0VmVJNV9rTURCZHlYajRMeEM5bUZzQTNsMGw3bFIxNmcxTVd1M2Y2Q1VENVJjb05pM0JTUEYtSlE?oc=5\" target=\"_blank\">Half empty: Gophers blown out in second half of 85-57 loss at No. 6 Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Pioneer Press</font>",
       "published": "2025-12-11T01:55:31+00:00",
       "published_ts": 1765418131
+    },
+    {
+      "title": "Second Half Surge Powers Boilermakers: Purdue 85 &#8211; Minnesota 57",
+      "link": "https://www.hammerandrails.com/mens-basketball/57149/second-half-surge-powers-boilermakers-purdue-85-minnesota-57",
+      "source": "Hammer & Rails (SB Nation)",
+      "summary": "Expectations coming into this season were that Purdue would compete for a Big Ten title, a trip the Final Four, and maybe, just maybe, bring home Purdue’s first NCAA Tournament Championship. The loss to Iowa State halted the runaway enthusiasm and brought things back down to a more manageable level. Tonight was the chance for [&#8230;]",
+      "published": "2025-12-11T01:52:26+00:00",
+      "published_ts": 1765417946
     }
   ]
 }
