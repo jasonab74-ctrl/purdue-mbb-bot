@@ -1,5 +1,5 @@
 {
-  "updated": "2025-12-22T20:24:59.862952+00:00",
+  "updated": "2025-12-22T20:44:41.234447+00:00",
   "count": 50,
   "items": [
     {
@@ -15,6 +15,14 @@
       "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxQSEt6STBuNmJWVDBIajIwX0t1NEdKUVBtaU04MGVDRzFvUGdvbktqOEtBeGNESllUeks2LTJUTjdZT0NTUHhYQ2UyeW8xdnZ5a25TYVZGY2VtaVdLUUVFYnBmOXowMFNZSEJicnl3OE15ZkRxMXpScXB4WFdWZ20zdUNhNmVsRGUxWHJERXc3UDhNSERzdVhB?oc=5",
       "source": "Google News — Purdue Basketball",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMilwFBVV95cUxQSEt6STBuNmJWVDBIajIwX0t1NEdKUVBtaU04MGVDRzFvUGdvbktqOEtBeGNESllUeks2LTJUTjdZT0NTUHhYQ2UyeW8xdnZ5a25TYVZGY2VtaVdLUUVFYnBmOXowMFNZSEJicnl3OE15ZkRxMXpScXB4WFdWZ20zdUNhNmVsRGUxWHJERXc3UDhNSERzdVhB?oc=5\" target=\"_blank\">College Basketball Rankings: December 22</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>",
+      "published": "2025-12-22T18:17:49+00:00",
+      "published_ts": 1766427469
+    },
+    {
+      "title": "College Basketball Rankings: December 22",
+      "link": "https://www.hammerandrails.com/mens-basketball/57336/college-basketball-rankings-december-22",
+      "source": "Hammer & Rails (SB Nation)",
+      "summary": "Purdue is back in the top 5 this week, and it owes a huge thank you to Texas Tech for that. Not only is hte win over the Red Raiders a little bit better now, they stormed back ot beat Duke and knock the Blue Devils behind the Boilermakers in this week’s poll. Surprisingly, it [&#8230;]",
       "published": "2025-12-22T18:17:49+00:00",
       "published_ts": 1766427469
     },
@@ -283,14 +291,6 @@
       "published_ts": 1766285179
     },
     {
-      "title": "Game Wrap: #6 Purdue 88 #22 Auburn 60 - Hammer and Rails",
-      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQU0Q5UjhvUXNFWGo0ZlY1MzRrLVMzcXEtOHp6WEpVMjhuQU1YNHlVeldweUNsMDc0YXd0aEt4U3c1SFZWYXRWTlV1LWk0WWxDRnlwWWNvYVpFUEFUd0Zyc2RERjVJOTRxbElvVmNUQWVfamRFOVRlUUNuSEU0OUhGdUppcVFGTFBTZEQ4R082amU?oc=5",
-      "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMikAFBVV95cUxQU0Q5UjhvUXNFWGo0ZlY1MzRrLVMzcXEtOHp6WEpVMjhuQU1YNHlVeldweUNsMDc0YXd0aEt4U3c1SFZWYXRWTlV1LWk0WWxDRnlwWWNvYVpFUEFUd0Zyc2RERjVJOTRxbElvVmNUQWVfamRFOVRlUUNuSEU0OUhGdUppcVFGTFBTZEQ4R082amU?oc=5\" target=\"_blank\">Game Wrap: #6 Purdue 88 #22 Auburn 60</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hammer and Rails</font>",
-      "published": "2025-12-21T02:46:00+00:00",
-      "published_ts": 1766285160
-    },
-    {
       "title": "Purdue basketball exacts revenge against Auburn, delivering blowout of its own - IndyStar",
       "link": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxQbHdCWTNIZURlWXJhWFM1TjZTVUU5OUEwOTVGc0RKYVlVZlhhcEQ0LTYtSVVNRWd3ajhyUFBfZW81dE5oa3J0YXlFQlFmU0o1MGt0OUlKdUNvWnY1UFVFa0czZ2JmVzBpTlBsRjZtRGFyRzhTRU5rUWhpWlVWZXNUWHBudFlCaWtqZUxoQUJpNGN5YkpSaEVaX0dPQUFpVVhkRlM3bUhubzN2Q2kxaThpa0NmUlVfdFUxUHNab2cxQzFUUUt0bDBXV1E4RjJSOXRwZ2NBeWlOUXVQUXNDM0YzcVFmU2tpdXdYSVZ0RUpRblRCOXVYOXZnTGozUQ?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -367,8 +367,8 @@
       "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQcUk5U1lveFU1X2hSazhUcTlrcWJmVm1nTXdCNXdMcVVvZXUtM3FQb0ZEb3I1SWMxQzZxTjNRZjRjVzlvX252V1NFanVTVFZWX0liUXN0aXVXaWpZZ2dOWHlITkdzcl91RWFUSW1uVnFCS3BlaTl1ZzlKVFV6MC15WmVGWnJFZl9LcWNrbkZ2ZHkzQUFvT2t4S1pWNnQ4dFdzQXZMdTlmd1lLWXF6bmRYcw?oc=5",
       "source": "Google News — Purdue Basketball",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxQcUk5U1lveFU1X2hSazhUcTlrcWJmVm1nTXdCNXdMcVVvZXUtM3FQb0ZEb3I1SWMxQzZxTjNRZjRjVzlvX252V1NFanVTVFZWX0liUXN0aXVXaWpZZ2dOWHlITkdzcl91RWFUSW1uVnFCS3BlaTl1ZzlKVFV6MC15WmVGWnJFZl9LcWNrbkZ2ZHkzQUFvT2t4S1pWNnQ4dFdzQXZMdTlmd1lLWXF6bmRYcw?oc=5\" target=\"_blank\">5 Thoughts From No. 6 Purdue's 88-60 Win Over No. 21 Auburn</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
-      "published": "2025-12-21T01:40:33+00:00",
-      "published_ts": 1766281233
+      "published": "2025-12-21T01:40:09+00:00",
+      "published_ts": 1766281209
     },
     {
       "title": "Purdue basketball returns favor from a year ago, throttling Auburn - Yahoo Sports",
