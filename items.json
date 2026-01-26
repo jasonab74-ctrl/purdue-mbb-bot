@@ -1,5 +1,5 @@
 {
-  "updated": "2026-01-26T16:36:41.798783+00:00",
+  "updated": "2026-01-26T17:30:45.907251+00:00",
   "count": 50,
   "items": [
     {
@@ -99,14 +99,6 @@
       "published_ts": 1769427615
     },
     {
-      "title": "Barry Odom confident Kevin Kane is right fit for Purdue DC role - On3",
-      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOcW4xYnZGZ00xRkVkcHRNQUtISnk1d2taR1BJN1Bia1hXY1I2SXpVWjY5anFtaTVDb3Ewc2NHbGNfenpSX3Rtc09nZG9SNXItaGRWVWlFVG1VU3JuV2hjYmV6bkZfRW4zaFBlQU43MnBDUVlKV2JMVzBsV1pUcEZCM3B5MU1aejNNXzNwclVhRXFMNkZfZ3RERVRxeHd3YUJ2Z21JNTZ2a0RKeVRWQXplbEU3QW1Wdw?oc=5",
-      "source": "On3 — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitgFBVV95cUxOcW4xYnZGZ00xRkVkcHRNQUtISnk1d2taR1BJN1Bia1hXY1I2SXpVWjY5anFtaTVDb3Ewc2NHbGNfenpSX3Rtc09nZG9SNXItaGRWVWlFVG1VU3JuV2hjYmV6bkZfRW4zaFBlQU43MnBDUVlKV2JMVzBsV1pUcEZCM3B5MU1aejNNXzNwclVhRXFMNkZfZ3RERVRxeHd3YUJ2Z21JNTZ2a0RKeVRWQXplbEU3QW1Wdw?oc=5\" target=\"_blank\">Barry Odom confident Kevin Kane is right fit for Purdue DC role</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2026-01-26T06:10:54+00:00",
-      "published_ts": 1769407854
-    },
-    {
       "title": "By the Numbers: Purdue 82 Illinois 88",
       "link": "https://www.hammerandrails.com/mens-basketball/57822/by-the-numbers-purdue-82-illinois-88",
       "source": "Hammer & Rails (SB Nation)",
@@ -161,6 +153,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMitwFBVV95cUxNNl9yTmVMbnNLSlp0SklzaHZsU2lmQlJmSGhrdVZvTEdsa2lxc0dEMXdHMmY3WWNGM2Z1cnNmREEzcmJWTS1HQl81dEpHM0MtTE5WY3R0QWFyUllaMlEzQXUzeVROOEx4am1QN0ZoQTZraEpxY3VrV0ZXei0zcUgwX2diQldxYS0zMXV3UlpOeEZTS0VtV2tqZ0ZGM1RQZkMwVVF4Q1ZkWVhfWjdaREdwYUUzMHFsTDg?oc=5\" target=\"_blank\">No. 6 MTU men's basketball beats Purdue NW, extends win streak to 7</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">uppermichiganssource.com</font>",
       "published": "2026-01-25T22:00:00+00:00",
       "published_ts": 1769378400
+    },
+    {
+      "title": "Barry Odom confident Kevin Kane is right fit for Purdue DC role - On3",
+      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOcW4xYnZGZ00xRkVkcHRNQUtISnk1d2taR1BJN1Bia1hXY1I2SXpVWjY5anFtaTVDb3Ewc2NHbGNfenpSX3Rtc09nZG9SNXItaGRWVWlFVG1VU3JuV2hjYmV6bkZfRW4zaFBlQU43MnBDUVlKV2JMVzBsV1pUcEZCM3B5MU1aejNNXzNwclVhRXFMNkZfZ3RERVRxeHd3YUJ2Z21JNTZ2a0RKeVRWQXplbEU3QW1Wdw?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitgFBVV95cUxOcW4xYnZGZ00xRkVkcHRNQUtISnk1d2taR1BJN1Bia1hXY1I2SXpVWjY5anFtaTVDb3Ewc2NHbGNfenpSX3Rtc09nZG9SNXItaGRWVWlFVG1VU3JuV2hjYmV6bkZfRW4zaFBlQU43MnBDUVlKV2JMVzBsV1pUcEZCM3B5MU1aejNNXzNwclVhRXFMNkZfZ3RERVRxeHd3YUJ2Z21JNTZ2a0RKeVRWQXplbEU3QW1Wdw?oc=5\" target=\"_blank\">Barry Odom confident Kevin Kane is right fit for Purdue DC role</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2026-01-25T21:41:16+00:00",
+      "published_ts": 1769377276
     },
     {
       "title": "WATCH: Gearlds, players speak on rivalry win - purdueexponent.org",
@@ -303,16 +303,8 @@
       "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxQNUV1cDkwUWRBa1RadzYwZEtraGF3R243d3hFQUtTNjVuRHhYd1lseEFPbmJBZVktVFNOVkVJU1FNS1Z3Zi1pTzc3bzNqTVNYaENENkhPYjFRWXdOdEpYNGI5RGd6di1XMHdLUEtGNjFLeUU0NkFVUURjNk9ENzBoc05Za080YlFBazNjX0MwNU1PdDFKUEdDdmdnbVU2LU5qTUlJTnF3TC02V3pZYXpsUXl5SWVlcmdTSDI2emVOZmc?oc=5",
       "source": "Matt Painter — news",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwAFBVV95cUxQNUV1cDkwUWRBa1RadzYwZEtraGF3R243d3hFQUtTNjVuRHhYd1lseEFPbmJBZVktVFNOVkVJU1FNS1Z3Zi1pTzc3bzNqTVNYaENENkhPYjFRWXdOdEpYNGI5RGd6di1XMHdLUEtGNjFLeUU0NkFVUURjNk9ENzBoc05Za080YlFBazNjX0MwNU1PdDFKUEdDdmdnbVU2LU5qTUlJTnF3TC02V3pZYXpsUXl5SWVlcmdTSDI2emVOZmc?oc=5\" target=\"_blank\">What Matt Painter Said Following Purdue's 88-82 Loss to Illinois</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
-      "published": "2026-01-25T01:59:11+00:00",
-      "published_ts": 1769306351
-    },
-    {
-      "title": "Illinois Reaches Unprecedented Status in KenPom After Win Over Purdue - Sports Illustrated",
-      "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxOYmFNVEtjWkl2MXk5WGF5MFhTUlhENFVxR2x5TG9XUFBnaW1KcXUwbGoyOXdoUlUya3NUTWktUnVLWXV5SVpxM2J5NmQwMVp4R18yb3VMQzdYenNtdndHd1MxYTJUdEhEUm9RNkw1Y3plSHlKYmVneXA3RzRGR1ltQ1AwRktvWjZrdFExcTkyOE1tdk5FTnpqSTlvSlNLQm1ESEs4NFBXemhPMjc3UjZ6U0FKT2xyYWM?oc=5",
-      "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitwFBVV95cUxOYmFNVEtjWkl2MXk5WGF5MFhTUlhENFVxR2x5TG9XUFBnaW1KcXUwbGoyOXdoUlUya3NUTWktUnVLWXV5SVpxM2J5NmQwMVp4R18yb3VMQzdYenNtdndHd1MxYTJUdEhEUm9RNkw1Y3plSHlKYmVneXA3RzRGR1ltQ1AwRktvWjZrdFExcTkyOE1tdk5FTnpqSTlvSlNLQm1ESEs4NFBXemhPMjc3UjZ6U0FKT2xyYWM?oc=5\" target=\"_blank\">Illinois Reaches Unprecedented Status in KenPom After Win Over Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
-      "published": "2026-01-25T01:40:48+00:00",
-      "published_ts": 1769305248
+      "published": "2026-01-25T01:58:19+00:00",
+      "published_ts": 1769306299
     },
     {
       "title": "A Purdue basketball strength was challenged, and didn't hold up vs Illinois - indystar.com",
@@ -321,6 +313,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMihAJBVV95cUxPTVBucjljNEdfNXBZb0J4bVg0TEVVWV9xRzVjSThzSlByUTB6WFJoMWE3QVV3NE8wckJmb014bVdlei1RUGtndnFSMWhJM3EteWc1VTVPVlFGVFlydDRyekhXMVNWSElocXBCZXNQakdPRGx0TE9xcnViV2NyMWxZNFV6M1V4YnpOUkw3LTk5bTF4b3ZtYU1XdUg5SWI4Znk1Zi1KTk12cmlkelVNV2w3Q0ppSnBvbXdxRXJhLUtDX0dzQlBwSjFYdnBZOHpIOC0zdnA5Q3VEOWw4WE5wNnVXYjVhanZzNG40anRyZlRYVWdHMnNlMFQ3dVEzaXBGNDlOaW9HTw?oc=5\" target=\"_blank\">A Purdue basketball strength was challenged, and didn't hold up vs Illinois</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">indystar.com</font>",
       "published": "2026-01-25T01:40:00+00:00",
       "published_ts": 1769305200
+    },
+    {
+      "title": "Illinois Reaches Unprecedented Status in KenPom After Win Over Purdue - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxOYmFNVEtjWkl2MXk5WGF5MFhTUlhENFVxR2x5TG9XUFBnaW1KcXUwbGoyOXdoUlUya3NUTWktUnVLWXV5SVpxM2J5NmQwMVp4R18yb3VMQzdYenNtdndHd1MxYTJUdEhEUm9RNkw1Y3plSHlKYmVneXA3RzRGR1ltQ1AwRktvWjZrdFExcTkyOE1tdk5FTnpqSTlvSlNLQm1ESEs4NFBXemhPMjc3UjZ6U0FKT2xyYWM?oc=5",
+      "source": "Google News — Purdue Basketball",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitwFBVV95cUxOYmFNVEtjWkl2MXk5WGF5MFhTUlhENFVxR2x5TG9XUFBnaW1KcXUwbGoyOXdoUlUya3NUTWktUnVLWXV5SVpxM2J5NmQwMVp4R18yb3VMQzdYenNtdndHd1MxYTJUdEhEUm9RNkw1Y3plSHlKYmVneXA3RzRGR1ltQ1AwRktvWjZrdFExcTkyOE1tdk5FTnpqSTlvSlNLQm1ESEs4NFBXemhPMjc3UjZ6U0FKT2xyYWM?oc=5\" target=\"_blank\">Illinois Reaches Unprecedented Status in KenPom After Win Over Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
+      "published": "2026-01-25T01:39:54+00:00",
+      "published_ts": 1769305194
     },
     {
       "title": "Title aspirations on hold as Purdue basketball searches for answers - jconline.com",
@@ -363,14 +363,6 @@
       "published_ts": 1769300340
     },
     {
-      "title": "Illinois freshman 'never really thought I would' have historic scoring night at Purdue - indystar.com",
-      "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPM0xZNnlab2pWdEtwZTY4S0QzNDgyZ0dzbnUxV3VWYl9XX0xyVUpIaGpfZHVxdDJmYWx0RUFWTFFLUXBtZVFYLW1vVko1QXB1U1FPLWNaUkR0czZkUjBFQnc5NWI2QnJGVlJqandwbmhGaWVYcE9qcE9YeFBWeW5GTm9OQk5tVkRXQzUtdGRxMVZ4aWVVTGt4REdUWUU1SEtZYm4ta1ZHLXZVTl9FeDdKU1NTVzNjYTMtVEZDNzc4SGU3MkFsTWFZUElRb2l0cl96TkZ3RUpPU0RzT0d4UEJyYmFSRWdCNjg?oc=5",
-      "source": "Mackey Arena — news",
-      "summary": "<ol><li><a href=\"https://news.google.com/rss/articles/CBMi5wFBVV95cUxPM0xZNnlab2pWdEtwZTY4S0QzNDgyZ0dzbnUxV3VWYl9XX0xyVUpIaGpfZHVxdDJmYWx0RUFWTFFLUXBtZVFYLW1vVko1QXB1U1FPLWNaUkR0czZkUjBFQnc5NWI2QnJGVlJqandwbmhGaWVYcE9qcE9YeFBWeW5GTm9OQk5tVkRXQzUtdGRxMVZ4aWVVTGt4REdUWUU1SEtZYm4ta1ZHLXZVTl9FeDdKU1NTVzNjYTMtVEZDNzc4SGU3MkFsTWFZUElRb2l0cl96TkZ3RUpPU0RzT0d4UEJyYmFSRWdCNjg?oc=5\" target=\"_blank\">Illinois freshman 'never really thought I would' have historic scoring night at Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">indystar.com</font></li><li><a href=\"https://news.google.com/rss/articles/CBMi2AFBVV95cUxQZWp2al9qOWNrNXVxd19xaVUtazZ3bkpYUUhOaUZGenJQaVZNcUZrNHBHNmh4NktTNFE1TzlnbFNhbUFKc3E4Ym5sclNjUFRQclBkRXFLN2JBVHlBVXBzMTBaQ3ZrdGFnS0ZVZVEtVUp2QnFrYlhhbmJVTVZDaC1yMk1pU2ZlX29YMlp6MUd0aWVnQ2thUS1QaHBISmRCNFlKRzBDektsQ1JHczZNaW16VEp1MURneVFtdkhRdEtXTmwwalp3ODk0RzNCcG8ySXRGd0NFTlM3MUY?oc=5\" target=\"_blank\">Title aspirations on hold as Purdue basketball searches for answers</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">jconline.com</font></li><li><a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxOVkhpX25keUlFZGtCWDk4Z2NraXlWc1lyejB2aTV3M3BlNkpHaEN5MVFsVGdSc2FxU05oY2VJVUVmVW9GUGpROTAwWVVaak8xZlEzNFVGSUNnaFVOUUlQMFZGUzRDQWYxMjRIMDUwMDl1bkVMVkgwVWlPbElmcUJXNURXOXQ0c3ZBbDJyQ3JlcjVmc2pCQ2JSaDFqYzdtQnpvanYxVW53Smw5bWh3Y3c?oc=5\" target=\"_blank\">5 Thoughts From Purdue's 88-82 Loss to Illinois</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font></li><li><a href=\"https://news.google.com/rss/articles/CBMiogFBVV95cUxOODBmWDdTdTVSY3JUSnN4NHBCYjhrTmZ3UEZOZERUYldjTWU2RC1tREE0Y3hvVzIyZmg2NHUzV0hkbnNlbW85cXpSTDVLRUYtU3hnd0RLcTZTRDRNZ0RzbmpLTEMyMV84OTVidWlaTGJ5RHBWVnZyVEpZSXZGYXEwSmtZQkFWQm5EVEJEN2ZyUGtvWkE3YmFYVktZTkhlV2JRVVE?oc=5\" target=\"_blank\">#4 Purdue Battles #11 Illinois in Saturday Showdown at Mackey</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">purduesports.com</font></li><li><a href=\"https://news.google.com/rss/articles/CBMi_gFBVV95cUxOOUYxVFo5OWJ2S2JzUkxhNEg4OWlBMHNTbHlwSExkTnNOXzRCN05oVFpWSzRjcjY5b2duUHUwLWh3cTNSTDdPak1KMkFGZWtMWl9TUmFucDNZVmk3YjV2N0tlR3RPYVZ1blNlVGJ1SmVIUTdVTy1SYWZhWDYydnh4OU5SQThENkZGV2tpMEFUREx6cEdoWU44NTdTa3NKRExfOHdkMFFrRm9iOW5SM1JwMXBCSzFnTmRVUWpIcHVmb1FNWmVZbXFQa21JU2VNNEhoa2VmYS1HUEZ5Z3NQQ0E2UnhxX1luU2phN2lvX3l3WF9MY0xORnJlYlZZcjZKQQ?oc=5\" target=\"_blank\">Wagler’s legendary performance lifts Illinois to win over No. 4 Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">The Champaign Room</font></li><li><a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxQeks0WThESlZzWUVrM2VnRzFhR2YwZFF2d0lWMENRdGc4OTgzWktJeTB5dmsxZWVENldXTEZ0cXU2NmtoQm8xUWEwOWYwelBPcFZNaDlrQ1FXUlh0dUJLR2ZVRjB0V0VtQ2dscTdmX0RIRFh4REl4SWpISmJWQ0dRQkJ5czNaeXFkOHdfaC1WbC00bGljSFVMTlF3R0RvQ0xzdVVUWVJvRGllSDE5MDZjSkpLNHBNbzB6bVBXckx0ZzRoa3c?oc=5\" target=\"_blank\">Illinois' Keaton Wagler's 46 points send Purdue to second-straight Big Ten loss</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font></li><li><a href=\"https://news.google.com/rss/articles/CBMi4AFBVV95cUxORzNOdThwNFRGWVBqdW1CMjQ2dS1PcjdoOHUxN3NNOUZrSHhNWEwtSHdyeGN2Tk5qUkJPQmYyUF9VZWJpZFhpaDFLV1JRNlhGdUhLZXl6THk2ZkY2QmlrUDFvZ2tLblVtUmdHS0pIUVVVbUJuVXlNdWxDVUktSEZWLVlRR2pFRVkyeXpFRjR5ZDNBQ0FVUEhWa1dhWEdGSVV1Nk50dmpobU9iSzNTQnREb09CVzA3OHdfZ2NPQ0k0S21aa1RtRkxtZmpZZHBDX0ZXcGhiQmdfQnpqM2dUX215OA?oc=5\" target=\"_blank\">Purdue basketball tumbles again thanks to Illinois' Keaton Wagler</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">jconline.com</font></li><li><a href=\"https://news.google.com/rss/articles/CBMi3wFBVV95cUxOanJ0NnlUdkRNVmJhbE51b2d3V3FFMXM4UFk3Y2V1M2YtcnZNNzJwbFZNYklzUFcybmZBTnY5RmJzazF6WG4tMGlnbDRLZW85WHVRMFBVejlLa3FQeXItcDNESXo1dzd3ZVBDaERfZzNoaC1CZG1OMWNYNndkOEN5UFEyRjhBaGEyTUlndzgwbFBBemxJdzNSeUQ0dGh1aEtRbG8xVGFRQWdIUG5SVGRpcXBxalZQYUJzYm1qRV93My1qZjVDWDBnd1YySGRzbmllTWhlcDJzdVhYRHNGTmww?oc=5\" target=\"_blank\">Keaton Wagler was great, but there was one major difference in Purdue loss</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">indystar.com</font></li><li><a href=\"https://news.google.com/rss/articles/CBMihgJBVV95cUxPRlJxSk5nc0JkNGVLaWJlUDlzd1JMN3hPM2FqeFFVQ2hlLVRyZDZhbHJ0N0xiakNlUmFId2dJN19MWjlzRmdpZ3dOSHJPaDBSUG9kUjdkTDlBQlJOYTJIbmIwbG1BX0xobnJETzk5RGJIX3h5RXgycnRRcGJuTExZVzBXRUVRT0xzYXg4T2JSNjAycTN6bEVjd2V6emlmQ3NFUVpLQ3FHcVFlX3paMVZDTFBJcFhBYTdfaEpqbndlTFU1Ti10b0RMOWd5bFdLM3JOdzVxSmNERzA0ak9rYi12b3h0Z1BBYTcydmM0cEo1ampiYVM5SDlBNW1ZSy1zT19ZSmlYWXVB?oc=5\" target=\"_blank\">Freshman steals show to lead Illinois past Purdue basketball in winless week</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">indystar.com</font></li></ol>",
-      "published": "2026-01-24T23:56:00+00:00",
-      "published_ts": 1769298960
-    },
-    {
       "title": "Who is Keaton Wagler? Illinois basketball freshman delivers one of the greatest games ever at Mackey Aren - The Times of India",
       "link": "https://news.google.com/rss/articles/CBMitAJBVV95cUxQVjFIaDdRLUxhOEhVNzl1MDc0dVZaOXBDSHpDYjlPYl85dHp2eFY1TWlaQldwSGwwUG56ZUhBdjNlNHJBVExpVHN5NklpVGp4ejJMdlRpVkRKc1NnRE83bHR3LVowWGxPS1ZDN2hBWmlpQTlnS1pwSGM2M0FGY3Z2aWVFYXBoejlVdmpLdl9BemVOVThydlBySDcwLTIySlZsRUoyWmFtdTIxdW1sVkpxVjdqRnFPT1ZvRUdGdWpzMTdndk5VYm9sWHNYcVRjbWdWSFMzU3ZCZ2VzbHpEdHRHcTNyV2Z2ZUZsR2tsMjhaZW5OalROSmt0c1B6THB6bFdmTVhYb25CRU5zaEk4UFJxSXdPUmNNYzEzenlpbWxRZDNTVXJCVU5weVVuUUNiNTdhQWI1c9IBugJBVV95cUxNNTNnTWpyNFNQR1RmNzNOeHEtLVVFMElNT1ByeXpaT2swNm1EMUlZMDFITGNQUkdZQzRLUldmczhEOExBNlJvUG5YRUNxZXduVDNXaWtxak1acENkMGZDV2tEOEhDZGxTYkxnMENIaE5IT3NGZUFxX3dXNnIxOHdRdEIxeUNMYkQ3eFlYeWJFbEdxcWRsSHpHLVpYZ3hYaVFBeGV1WUphZGJoNm9mZllxY0k3c3JiVVVSYjNLZW9UTkg0aUdWeHJsSlhhTTk4Zl80YjlMLXQwdEJQVXhfVUpIS2FZSVhfR1JodExYeDRTN2ZGZUVQZFBUQTM2dXctLTZyTUViYmhTMnE2UDRTWGdUSGtJSFlKQ3Z5c1JpQUI3NlgyUU1tbXJJSWJObWFKVHdGOVFzMWVVdGpNZw?oc=5",
       "source": "Mackey Arena — news",
@@ -401,6 +393,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMihgJBVV95cUxPRlJxSk5nc0JkNGVLaWJlUDlzd1JMN3hPM2FqeFFVQ2hlLVRyZDZhbHJ0N0xiakNlUmFId2dJN19MWjlzRmdpZ3dOSHJPaDBSUG9kUjdkTDlBQlJOYTJIbmIwbG1BX0xobnJETzk5RGJIX3h5RXgycnRRcGJuTExZVzBXRUVRT0xzYXg4T2JSNjAycTN6bEVjd2V6emlmQ3NFUVpLQ3FHcVFlX3paMVZDTFBJcFhBYTdfaEpqbndlTFU1Ti10b0RMOWd5bFdLM3JOdzVxSmNERzA0ak9rYi12b3h0Z1BBYTcydmM0cEo1ampiYVM5SDlBNW1ZSy1zT19ZSmlYWXVB?oc=5\" target=\"_blank\">Freshman steals show to lead Illinois past Purdue basketball in winless week</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">indystar.com</font>",
       "published": "2026-01-24T23:45:00+00:00",
       "published_ts": 1769298300
+    },
+    {
+      "title": "Keaton Wagler stats today: Illinois basketball freshman sets scoring record vs. Purdue - indystar.com",
+      "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxOcmIyN1pWYWJhTHJaaXFOMi1sMF92bXJReDhFdGhWaTkxQWFyMzNWd3FXRTN2WkhwSzNyWVJtcjhTSHJjM09wN3dRWjZITUtrNE5iS1BwUWRXWFQxTUZoVnVvYlVxT01VVXhvUWZDSTh5cllZZk9CQ2xaOWhWU0NWTWZuLVJkLXBtRnI4R3I1N25PV2JSRTIzeG5aSTFWWWxZcDA5Tkl0eWxLd29tOEZPT2ZYaW5JU1NnTkdMOXV3QlJ4TFpTOGU5WnhnWW1ZSkhLSW5lUlliaFA?oc=5",
+      "source": "Mackey Arena — news",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2AFBVV95cUxOcmIyN1pWYWJhTHJaaXFOMi1sMF92bXJReDhFdGhWaTkxQWFyMzNWd3FXRTN2WkhwSzNyWVJtcjhTSHJjM09wN3dRWjZITUtrNE5iS1BwUWRXWFQxTUZoVnVvYlVxT01VVXhvUWZDSTh5cllZZk9CQ2xaOWhWU0NWTWZuLVJkLXBtRnI4R3I1N25PV2JSRTIzeG5aSTFWWWxZcDA5Tkl0eWxLd29tOEZPT2ZYaW5JU1NnTkdMOXV3QlJ4TFpTOGU5WnhnWW1ZSkhLSW5lUlliaFA?oc=5\" target=\"_blank\">Keaton Wagler stats today: Illinois basketball freshman sets scoring record vs. Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">indystar.com</font>",
+      "published": "2026-01-24T23:44:00+00:00",
+      "published_ts": 1769298240
     }
   ]
 }
