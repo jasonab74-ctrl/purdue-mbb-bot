@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-02T19:11:06.602115+00:00",
+  "updated": "2026-03-02T19:57:03.496543+00:00",
   "count": 50,
   "items": [
     {
@@ -38,14 +38,14 @@
       "title": "Each team's journey to the current KenPom top 25 AdjEM",
       "link": "https://www.reddit.com/r/CollegeBasketball/comments/1rizzie/each_teams_journey_to_the_current_kenpom_top_25/",
       "source": "Reddit — r/CollegeBasketball (Purdue search)",
-      "summary": "<table> <tr><td> <a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1rizzie/each_teams_journey_to_the_current_kenpom_top_25/\"> <img alt=\"Each team's journey to the current KenPom top 25 AdjEM\" src=\"https://preview.redd.it/3b2i6gaj5omg1.png?width=640&amp;crop=smart&amp;auto=webp&amp;s=9131662b34e5c472d39655b9c30d4a649156f11a\" title=\"Each team's journey to the current KenPom top 25 AdjEM\" /> </a> </td><td> <!-- SC_OFF --><div class=\"md\"><p>Hi <a href=\"https://www.reddit.com/r/CollegeBasketball\">r/CollegeBasketball</a> !</p> <p>I've been wanting to join in on some of the fun data visualizations I've seen posted here and finally came up with something that is marginally interesting.</p> <p>This the last ten years' worth of rankings for each of the current top 25 by KenPom AdjEM with their AdjD on the x axis and AdjO on the y-axis. This style of plot allows you to see the &quot;journey&quot; through this offense-defense space from 2017 (light red) to present (dark blue). Some teams have come a long way to get where they are (they cover a lot of the plotting space) and some teams have been very consistent (dense scribbles in a tight space).</p> <p>To orient yourself, a good offense and good defense team would plot in the upper right of its subplot. A bad offense, bad defense team would plot in the lower left. Unsurprisingly, most of the blue segments plot in the upper right.</p> <p>Oh! And, except for the letter labels of the plots, the teams are unlabelled! That's because I figured it'd be interesting to see if we can guess which team is which together. I will say, I was able to spot my team without looking it up in the data/code. Can you do the same for yours?</p> <p>Cheers,<br /> sww</p> <p>edit to add: I'll post the &quot;answer key&quot; later today for posterity</p> <p>so far we have:</p> <p>a)<br /> b)<br /> c) - Virginia<br /> d) - Connecticut<br /> e)<br /> f) - Gonzaga<br /> g) - Houston<br /> h) - Tennessee<br /> i)<br /> j) - Alabama<br /> k) - Michigan State<br /> l) - Arizona<br /> m) - Florida<br /> n) - Texas Tech<br /> o) - Arkansas<br /> p) - Illinois<br /> q)<br /> r) - Iowa State<br /> s) - Michigan<br /> t) - Nebraska<br /> u)<br /> v) - Kentucky<br /> w) - Louisville<br /> x) - Duke<br /> y) - Purdue</p> </div><!-- SC_ON --> &#32; submitted by &#32; <a href=\"https://www.reddit.com/user/somethingworthwhile\"> /u/somethingworthwhile </a> <br /> <span><a href=\"https://i.redd.it/3b2i6gaj5omg1.png\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1rizzie/each_teams_journey_to_the_current_kenpom_top_25/\">[comments]</a></span> </td></tr></table>",
+      "summary": "<table> <tr><td> <a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1rizzie/each_teams_journey_to_the_current_kenpom_top_25/\"> <img alt=\"Each team's journey to the current KenPom top 25 AdjEM\" src=\"https://preview.redd.it/3b2i6gaj5omg1.png?width=640&amp;crop=smart&amp;auto=webp&amp;s=9131662b34e5c472d39655b9c30d4a649156f11a\" title=\"Each team's journey to the current KenPom top 25 AdjEM\" /> </a> </td><td> <!-- SC_OFF --><div class=\"md\"><p>Hi <a href=\"https://www.reddit.com/r/CollegeBasketball\">r/CollegeBasketball</a> !</p> <p>I've been wanting to join in on some of the fun data visualizations I've seen posted here and finally came up with something that is marginally interesting.</p> <p>This is the last ten years' worth of rankings for each of the current top 25 by KenPom AdjEM with their AdjD on the x axis and AdjO on the y-axis. This style of plot allows you to see the &quot;journey&quot; through this offense-defense space from 2017 (light red) to present (dark blue). Some teams have come a long way to get where they are (they cover a lot of the plotting space) and some teams have been very consistent (dense scribbles in a tight space).</p> <p>To orient yourself, a good offense and good defense team would plot in the upper right of its subplot. A bad offense, bad defense team would plot in the lower left. Unsurprisingly, most of the blue segments plot in the upper right.</p> <p>Oh! And, except for the letter labels of the plots, the teams are unlabelled! That's because I figured it'd be interesting to see if we can guess which team is which together. I will say, I was able to spot my team without looking it up in the data/code. Can you do the same for yours?</p> <p>Cheers,<br /> sww</p> <p>edit to add: I'll post the &quot;answer key&quot; later today for posterity</p> <p>so far we have:</p> <p>a) - Kansas<br /> b)<br /> c) - Virginia<br /> d)<br /> e) - Connecticut<br /> f) - Gonzaga<br /> g) - Houston<br /> h) - Tennessee<br /> i)<br /> j) - Alabama<br /> k) - Michigan State<br /> l) - Arizona<br /> m) - Florida<br /> n) - Texas Tech<br /> o) - Arkansas<br /> p) - Illinois<br /> q)<br /> r) - Iowa State<br /> s) - Michigan<br /> t) - Nebraska<br /> u)<br /> v) - Kentucky<br /> w) - Louisville<br /> x) - Duke<br /> y) - Purdue</p> <p>I'm stepping away for a bit! I'll make an update post at some point with the teams labeled so we can all stay sane. Thanks for playing along, y'all! This was a lot of fun!</p> </div><!-- SC_ON --> &#32; submitted by &#32; <a href=\"https://www.reddit.com/user/somethingworthwhile\"> /u/somethingworthwhile </a> <br /> <span><a href=\"https://i.redd.it/3b2i6gaj5omg1.png\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/CollegeBasketball/comments/1rizzie/each_teams_journey_to_the_current_kenpom_top_25/\">[comments]</a></span> </td></tr></table>",
       "published": "2026-03-02T17:57:47+00:00",
       "published_ts": 1772474267
     },
     {
       "title": "Purdue plummets in latest Coaches Poll, Michigan State climbs in latest college basketball rankings - CBS Sports",
       "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPSXo3WG05QTJ2TThjTHU4RWFScm5rQ0hSUG9VWFZ3TzJKd3pDb3Rob195TFBJWmJEX0ltMzlqNm9PbnI2UUx2VlcyWVJJNTc5WFk2bUxvN25rblZaWE1vOHVvUm5KSnNQWm5FWmFNRGlGM1BFam1VVF9WTjVPODA4TGFsNjkxX3dvSzlYZjFOSEJJVXZpWkM4N1NBQ0NyUUxqTjFZVmlTQzJ3bEdMbFVN?oc=5",
-      "source": "CBS Sports — Purdue (MBB search)",
+      "source": "Google News — Purdue Basketball",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMirwFBVV95cUxPSXo3WG05QTJ2TThjTHU4RWFScm5rQ0hSUG9VWFZ3TzJKd3pDb3Rob195TFBJWmJEX0ltMzlqNm9PbnI2UUx2VlcyWVJJNTc5WFk2bUxvN25rblZaWE1vOHVvUm5KSnNQWm5FWmFNRGlGM1BFam1VVF9WTjVPODA4TGFsNjkxX3dvSzlYZjFOSEJJVXZpWkM4N1NBQ0NyUUxqTjFZVmlTQzJ3bEdMbFVN?oc=5\" target=\"_blank\">Purdue plummets in latest Coaches Poll, Michigan State climbs in latest college basketball rankings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">CBS Sports</font>",
       "published": "2026-03-02T17:43:00+00:00",
       "published_ts": 1772473380
@@ -105,6 +105,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxQYWotcUhuWDlBWlU3UU54a3l0TTN2eTVWVkQxTGRGMlpkdWtVWXpHNThJbUVpakgzTWFnRksweUEyRUdaZHNyT2JXSFg2UDRiUHMwN1NWdkEzdWpfalgtODM4TE1JMDBPdmJzNkcyTXZhWGNQWml3Um92d1VVTkUyRmxIZEt3WlYydUhlQ1BCMXZxYWw5bHFfVU04NzB1dXU5VVpOYXVVdHo0Y1IwTWVxWmkzYjh3cXdE?oc=5\" target=\"_blank\">Braden Smith's Comments Concerning as Season Winds Down for Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
       "published": "2026-03-02T13:41:58+00:00",
       "published_ts": 1772458918
+    },
+    {
+      "title": "Spring preview: Purdue specialists - On3",
+      "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQemJMSWhSOUxZeWZWTm9UdzlIbUdVNlFXX2VBZTZPWjlMVHBpbVFKcXRDbEdCamctNEw3VE45V1RqUERpc2l5ajRUU1Vaby1haVlXQkJJd0M2NFZ4RFhfZVUtdzk0ZkxQWkRRT0V6TGxPODJiZkZQX0lfc3VUaVY5cWh1R3JpQnVYODl3U0JR?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijgFBVV95cUxQemJMSWhSOUxZeWZWTm9UdzlIbUdVNlFXX2VBZTZPWjlMVHBpbVFKcXRDbEdCamctNEw3VE45V1RqUERpc2l5ajRUU1Vaby1haVlXQkJJd0M2NFZ4RFhfZVUtdzk0ZkxQWkRRT0V6TGxPODJiZkZQX0lfc3VUaVY5cWh1R3JpQnVYODl3U0JR?oc=5\" target=\"_blank\">Spring preview: Purdue specialists</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2026-03-02T13:30:04+00:00",
+      "published_ts": 1772458204
     },
     {
       "title": "Boiler Alert Podcast - Purdue Men’s Basketball Goes 0-2 - Hammer and Rails",
@@ -211,14 +219,6 @@
       "published_ts": 1772416157
     },
     {
-      "title": "Big Ten women's basketball tournament 2026 schedule, results - Journal & Courier",
-      "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQZVJuRzdpWVhiM0hRcC0wcUhJRFlHM1YxUThFQXdBTUtZZ1p1UFdaaGlNZ3VIT1g1R2NxeUJ6SC1GTW9XVExIMFM4ckJXY3pNZTNBQ3JaZDZmYmp5dGFuWTVNNHJfTkZBT3FfbEtpNDNpMDZPSXFsUmNxbVFmZTFLeEtMeU90S0hTdEdvRHdQZHA2TDVzYkdPRGxVdTJPSmYzRnJjU3dsU0R6M2trelBaZm5Pc3hDUjZHbWlONjBZRjdSU2ZxMS1WaGVsNlZtN19kV0xIZE9td016YllQUjFsYzlzUEdZRTQ?oc=5",
-      "source": "Journal & Courier (J&C) — Purdue",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5wFBVV95cUxQZVJuRzdpWVhiM0hRcC0wcUhJRFlHM1YxUThFQXdBTUtZZ1p1UFdaaGlNZ3VIT1g1R2NxeUJ6SC1GTW9XVExIMFM4ckJXY3pNZTNBQ3JaZDZmYmp5dGFuWTVNNHJfTkZBT3FfbEtpNDNpMDZPSXFsUmNxbVFmZTFLeEtMeU90S0hTdEdvRHdQZHA2TDVzYkdPRGxVdTJPSmYzRnJjU3dsU0R6M2trelBaZm5Pc3hDUjZHbWlONjBZRjdSU2ZxMS1WaGVsNlZtN19kV0xIZE9td016YllQUjFsYzlzUEdZRTQ?oc=5\" target=\"_blank\">Big Ten women's basketball tournament 2026 schedule, results</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Journal & Courier</font>",
-      "published": "2026-03-02T01:09:00+00:00",
-      "published_ts": 1772413740
-    },
-    {
       "title": "Doyel: Is anyone coaching Indiana basketball? Anyone but the Assembly Hall student section? - IndyStar",
       "link": "https://news.google.com/rss/articles/CBMiggJBVV95cUxNVFZpLVVBeGN0NHp5MFdoQzc0Vm9SWHlMNXVISUVHY2RNMkEwN294Q1c0VzR3dDNGZE5UTUpiX2MyMlR2eXhTaFNPYUYxeThFMVF3VF9TdW03V1JrcHdMd3F0THlwNUhYdklaNk1jdnpXWExFbTB5X1pLVmk4MGVaSnN3enNFSEwwTjZzYTlKTzZ3MjQyeUFCMDFlYmJLRUp3ZGFua05ycHhDRzdmTmVGbkdTQVVLTms2X09XOGJqeHZLMm1ieHVnNFJMaFlUTi1sbDRMdFV2X1pzVWNZZW1qa3lyWGxqRU90eXlrMm9vUURTN1lEZFR0b1RBd09BeTlOY0E?oc=5",
       "source": "IndyStar — Purdue (MBB search)",
@@ -297,14 +297,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMihwJBVV95cUxNb3ljcDZOTlRWSlpRTXVERVNiaUoydEtTZnFraU9TR19uNEtMTzVIRjlEOXcyYWp4MWtzbHdxUnFWRFZxX1VtZk5QYnE2TVdRcHdYSWlCSnE4QXFReDZqN3hQVTZiRVBKc0taZzk0a1duMmdwZ3NpcUVzb0FkV05IRzAzb2F0emljS0xGbHY5OXM5dHQ3TGZKYW1UNThsbk8tcl9nbExZaWJha05SZU1LdS1JbFhkX29kQ2Yzd3gwQWJhZWdRRVNfRHQ5VXBIcTVLNnJ1WmZrOWd0UFRfc2J2OVhWdHkwUHdRbU9wTjlSV0hpZVNhS3RjTm1Ra0M1RzY4QUtPYzRRcw?oc=5\" target=\"_blank\">Michigan State basketball vs. Indiana recap, stats: Hoosiers lose fourth in a row</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">IndyStar</font>",
       "published": "2026-03-01T23:09:00+00:00",
       "published_ts": 1772406540
-    },
-    {
-      "title": "NCAAM Highlights: No. 13 Michigan State at No. 8 Purdue (2/26) Stream of General Videos - CBS Sports",
-      "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQakFlV1dKWGxiTlhpLU1hRFRhaFZvT3E1Y3dzZE1DQ0J5TDhQQ1dZNkZ0UnhtRjl0XzR2YWpsVUdueEZmNGlKd29PcURra3FQUm1sb3k2OTJncHV5T3JnbG42dXZyZXh3dDROSDRLWHljVzlMV0p2RGZPZTczRFlreE9PSnZ5RHpLWEo1c2Y2WTVPQ3FpekR4MkhLdVpHMFBPRU16Rg?oc=5",
-      "source": "CBS Sports — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxQakFlV1dKWGxiTlhpLU1hRFRhaFZvT3E1Y3dzZE1DQ0J5TDhQQ1dZNkZ0UnhtRjl0XzR2YWpsVUdueEZmNGlKd29PcURra3FQUm1sb3k2OTJncHV5T3JnbG42dXZyZXh3dDROSDRLWHljVzlMV0p2RGZPZTczRFlreE9PSnZ5RHpLWEo1c2Y2WTVPQ3FpekR4MkhLdVpHMFBPRU16Rg?oc=5\" target=\"_blank\">NCAAM Highlights: No. 13 Michigan State at No. 8 Purdue (2/26) Stream of General Videos</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">CBS Sports</font>",
-      "published": "2026-03-01T23:07:14+00:00",
-      "published_ts": 1772406434
     },
     {
       "title": "Purdue stumbles at Ohio State, suffers 82-74 loss - 247Sports",
@@ -401,6 +393,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMihAFBVV95cUxQU3F3aGc1czZUQlZfVXJ1b2NhdHo1eERQa2gzcjlRRVd4WU1hSXNiYWdqaDktdTNqeDJUNkNyajZ2d2djT3N0UlJtM1gxV0kwaTJsc2lEZGlFSTNYWk8yQjFTazZRcVVBbzY1a0JxY2xZWnhsOXVUZG1EWjNacnBTQVZtWnQ?oc=5\" target=\"_blank\">Coach Matt Painter explains why Purdue basketball struggled against Ohio State</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>",
       "published": "2026-03-01T22:21:59+00:00",
       "published_ts": 1772403719
+    },
+    {
+      "title": "Ohio State coach Jake Diebler after an 82-74 win against No. 8 Purdue - The Columbus Dispatch",
+      "link": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxNZkhJZDEyUWVKSXQtWjlLTzVFRE4tREsxT3Z5MmluNXdJUGZFYktmRVFlZGxhRVlJaEp1R2g4SHVLdVRmc1VRT2hNQzg4UlE2MmxELXlEZEVhR0J4MGZ4M2pvaE84bHRBQlBhRjVrQnhKSEtpQXdwWGM5d2dBMk5pTHNhUk5TM1RxdXRYc2JDc0VHTndxNG5NWlR6ZWlPcnFrNDVlaDl5QkVoVTBvSEc0bDNKb1BFejFYaVBzMHdZWWswY3pQdlhqOXBKQnJYZnA4MlFmQnpMUi14YlNvMm8xVGhSeWY?oc=5",
+      "source": "Google News — Purdue Basketball",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxNZkhJZDEyUWVKSXQtWjlLTzVFRE4tREsxT3Z5MmluNXdJUGZFYktmRVFlZGxhRVlJaEp1R2g4SHVLdVRmc1VRT2hNQzg4UlE2MmxELXlEZEVhR0J4MGZ4M2pvaE84bHRBQlBhRjVrQnhKSEtpQXdwWGM5d2dBMk5pTHNhUk5TM1RxdXRYc2JDc0VHTndxNG5NWlR6ZWlPcnFrNDVlaDl5QkVoVTBvSEc0bDNKb1BFejFYaVBzMHdZWWswY3pQdlhqOXBKQnJYZnA4MlFmQnpMUi14YlNvMm8xVGhSeWY?oc=5\" target=\"_blank\">Ohio State coach Jake Diebler after an 82-74 win against No. 8 Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">The Columbus Dispatch</font>",
+      "published": "2026-03-01T22:17:21+00:00",
+      "published_ts": 1772403441
     }
   ]
 }
