@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-02T21:41:34.472662+00:00",
+  "updated": "2026-05-02T22:42:47.540281+00:00",
   "count": 50,
   "items": [
     {
@@ -203,14 +203,6 @@
       "published_ts": 1777519869
     },
     {
-      "title": "2026-27 Men's Basketball Roster Roster",
-      "link": "http://www.bing.com/news/apiclick.aspx?ref=FexRss&aid=&tid=69f66f8be8fb486487feed437427c0d1&url=https%3a%2f%2fpurduesports.com%2fsports%2fmens-basketball%2froster%3fpath%3dmbball&c=11316004510181180869&mkt=en-us",
-      "source": "PurdueSports.com — “Men’s Basketball”",
-      "summary": "2026-27 Men's Basketball Roster ...",
-      "published": "2026-04-29T21:31:00+00:00",
-      "published_ts": 1777498260
-    },
-    {
       "title": "Fletcher Loyer Sends Out Thank You to Purdue - Sports Illustrated",
       "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxNcy0wX203bDlWS3o2eHBSWTNzVTY2VVlNTnFYOVhiZXhPWXBDVjZWbUFXQjdPeGxTWVhIM3Z0YXlpWnlabGZqOGJfZTNlVzBEVWx4MU9SbE1jUzNyNTVjRFRNUEplMEdrVDVFYl9KajBnakM4ZUxBWTJURlBtcGIxODdnWVZyTUVJR3p5ekNkRVViZFd4LXU4TVpyN09tUQ?oc=5",
       "source": "Sports Illustrated — Purdue (MBB search)",
@@ -401,6 +393,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMihAJBVV95cUxPeGJIZGVTUktGOXlTaWN4SjZNaDlJNTkwbXA5RjBLVFI1bnRhcXhsNzRKT2xKbWJMTDNOUEw1UjdDWUItMXhQaTVFWDBGMGhjRG1zN3pmcjc5bm5iRWs1dHJjaWZFcTlYZjJILVMyUUpyVmhaNkRKUG5yZm5lSlNfSEZza3VleGJMVXhsOGMxV29MQVJtUzNYaWs2dlpDYUNZeVJWclpVazByUG9OaHVLTWpaTkVLMnNZMkUtN3ZDQTVmMS1scHVGOXk2YXh0R0hHa0ZCUkFhRnFkSm5yeU5aelp5WDdMY1ZwLWd2TGFQTEx3WHJKMWN5N0YyZEtWOU5ZcHNFdg?oc=5\" target=\"_blank\">Purdue basketball is recruiting 4 top-50 prospects. Here's how they'd fit the Boilers</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">IndyStar</font>",
       "published": "2026-04-27T11:57:00+00:00",
       "published_ts": 1777291020
+    },
+    {
+      "title": "Boiler Alert Podcast: Purdue NFL Draft &#038; CJ Cox Homework",
+      "link": "https://www.hammerandrails.com/football/59565/boiler-alert-podcast-purdue-nfl-draft-cj-cox-homework",
+      "source": "Hammer & Rails (SB Nation)",
+      "summary": "With the NFL Draft over it’s time to take a look at how Purdue football finished up. No one drafted you say? Are you sure? Well, surely there were people with Purdue connections/ties to talk about with this year’s draft…right? Well absolutely there were. On this episode of the podcast we talk about drafted players [&#8230;]",
+      "published": "2026-04-27T11:15:25+00:00",
+      "published_ts": 1777288525
     }
   ]
 }
