@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-09T15:54:09.158908+00:00",
+  "updated": "2026-05-09T16:56:56.856279+00:00",
   "count": 50,
   "items": [
     {
@@ -339,14 +339,6 @@
       "published_ts": 1777657861
     },
     {
-      "title": "Purdue spring review: Defensive line - On3",
-      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOenlSQTVnWWVTeTBDSEFjZWdzbjQySzhoRk9GWHh4cWRmUUluU1VqQU5pQVRKb0VzdkY0S3NlUU0xdmtnZ1RQekl6c3BYS3VnWjZEcXZWN2c1MU96ZEd4aXJMekN4andhZUlDb0ttUERtcFl5aWpGQ05EQUQ2ODRldXRENFA1QjJ1Y0JQSEdyN0s?oc=5",
-      "source": "On3 — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMikAFBVV95cUxOenlSQTVnWWVTeTBDSEFjZWdzbjQySzhoRk9GWHh4cWRmUUluU1VqQU5pQVRKb0VzdkY0S3NlUU0xdmtnZ1RQekl6c3BYS3VnWjZEcXZWN2c1MU96ZEd4aXJMekN4andhZUlDb0ttUERtcFl5aWpGQ05EQUQ2ODRldXRENFA1QjJ1Y0JQSEdyN0s?oc=5\" target=\"_blank\">Purdue spring review: Defensive line</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2026-05-01T13:41:51+00:00",
-      "published_ts": 1777642911
-    },
-    {
       "title": "A Look Back (And Ahead) Purdue Men’s Basketball: Sam King - Hammer and Rails",
       "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPVjdMYUpVcjZ6dU1wSmJaVkd0ZHJyZW9weEd1aV9HLXRmXzRtMEpPWVpOcVB3MVlZNWY4UjJOR3MzdkV6aUVieWRnT2x0Q2xIOWc4ZXNEc1JZN2dGVXpFZXJCVEtHNWkzdjk4M2RHZC02ckZYYlRKclpTX3J6VVRtaXFRODVoV1RqSlMyaGdwcnN2c1pnTy1wdF9PbklIdlE3LUlNNlk1T0w2QQ?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -396,11 +388,19 @@
     },
     {
       "title": "Purdue MGOLF at Big Ten Championships",
-      "link": "http://www.bing.com/news/apiclick.aspx?ref=FexRss&aid=&tid=69ff589d1b6347488fe110b3a701e3f3&url=https%3a%2f%2fpurduesports.com%2fnews%2f2026%2f05%2f05%2fpurdue-mgolf-at-big-ten-championships&c=1687638933295292589&mkt=en-us",
+      "link": "http://www.bing.com/news/apiclick.aspx?ref=FexRss&aid=&tid=69ff6755c0404d0ea9be0fda8f93a33a&url=https%3a%2f%2fpurduesports.com%2fnews%2f2026%2f05%2f05%2fpurdue-mgolf-at-big-ten-championships&c=1687638933295292589&mkt=en-us",
       "source": "PurdueSports.com — “Men’s Basketball”",
       "summary": "Men's Basketball Tickets for Men's Basketball Schedule for Men's Basketball Roster for Men's Basketball facebook for Men's BasketballOpens in a new window twitter for Men's BasketballOpens in a new ...",
       "published": "2026-04-30T17:00:00+00:00",
       "published_ts": 1777568400
+    },
+    {
+      "title": "How Purdue basketball's returning starter can push for all-Big Ten with offensive jump - IndyStar",
+      "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxPVTdVbmtKcTM5SzQ1VHhiVk1POVVHQXlCVzg0clZJOXlSb1dudzFyNWM1MWRTOE1SNzgtRFNtekFPazdjMGVUVHk2SHJZQzQ5MUxnRGdNcDZNRzM0Y2tNLWptWUFnamhDd0hZeDBvSHh1Tl83anFMWVJ4TzhpcURqUlZLMWE2LTE4YjVXRlFTVWlFeEdRamxnWTU5S1lrQjFRZjlFRzF3OFZYblcxNzdQOHN6bHVnQ2tIRURDQW5zM1RDVUdHdXUtMEhUdWxYWFhnRzBnTnd3?oc=5",
+      "source": "Google News — Purdue Basketball",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1gFBVV95cUxPVTdVbmtKcTM5SzQ1VHhiVk1POVVHQXlCVzg0clZJOXlSb1dudzFyNWM1MWRTOE1SNzgtRFNtekFPazdjMGVUVHk2SHJZQzQ5MUxnRGdNcDZNRzM0Y2tNLWptWUFnamhDd0hZeDBvSHh1Tl83anFMWVJ4TzhpcURqUlZLMWE2LTE4YjVXRlFTVWlFeEdRamxnWTU5S1lrQjFRZjlFRzF3OFZYblcxNzdQOHN6bHVnQ2tIRURDQW5zM1RDVUdHdXUtMEhUdWxYWFhnRzBnTnd3?oc=5\" target=\"_blank\">How Purdue basketball's returning starter can push for all-Big Ten with offensive jump</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">IndyStar</font>",
+      "published": "2026-04-30T08:44:00+00:00",
+      "published_ts": 1777538640
     }
   ]
 }
