@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-10T21:35:17.405343+00:00",
+  "updated": "2026-06-10T23:25:54.033257+00:00",
   "count": 50,
   "items": [
     {
@@ -35,6 +35,14 @@
       "published_ts": 1781119144
     },
     {
+      "title": "Three Thoughts on Purdue landing four-star safety Kaleb Elkins - On3",
+      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQZDNJblNLSUpwUHZfZ1paNjFhWVdHTzlubEdvdko1SVpEeWt2STBwZUtBc2s0RHdLeWdwbkk0dHRjOXgzX0hCX3A5TDExMndfdnNPaDJaTnlCeVJPbkw2azBKeDBRdFJTeTB6YmtqaW1lWFJVMnhsd0ZpQVhHRFRLLVY3cjR1UGhsbGNVT3UyN3BGdE9zTVJQMlNjUmNJTVdKMnhVWWFBM1dKQ3hIYnJMYlp2TTk?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitAFBVV95cUxQZDNJblNLSUpwUHZfZ1paNjFhWVdHTzlubEdvdko1SVpEeWt2STBwZUtBc2s0RHdLeWdwbkk0dHRjOXgzX0hCX3A5TDExMndfdnNPaDJaTnlCeVJPbkw2azBKeDBRdFJTeTB6YmtqaW1lWFJVMnhsd0ZpQVhHRFRLLVY3cjR1UGhsbGNVT3UyN3BGdE9zTVJQMlNjUmNJTVdKMnhVWWFBM1dKQ3hIYnJMYlp2TTk?oc=5\" target=\"_blank\">Three Thoughts on Purdue landing four-star safety Kaleb Elkins</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2026-06-10T19:08:46+00:00",
+      "published_ts": 1781118526
+    },
+    {
       "title": "Why Purdue basketball's Matt Painter dislikes 5 in 5 eligibility rule - Yahoo Sports",
       "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQZC0waExxcmRSdW1BbkI5V09YNU8yUExxMDZpMElxWXNmSmF5Y2VuRUZIdTJ0N0g2bzZmWVkzbDFpRkppQWdVUmMwUnluNUNyTDVSRmY0SVAyWnplZzdWaERFZWZCOEJxc0xOZVhJaDd4Vk9ua0RwamtOWFZ6VXFXSndESmptQmh1LXBIZg?oc=5",
       "source": "Matt Painter — news",
@@ -59,14 +67,6 @@
       "published_ts": 1781117700
     },
     {
-      "title": "Three Thoughts on Purdue landing four-star safety Kaleb Elkins - On3",
-      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQZDNJblNLSUpwUHZfZ1paNjFhWVdHTzlubEdvdko1SVpEeWt2STBwZUtBc2s0RHdLeWdwbkk0dHRjOXgzX0hCX3A5TDExMndfdnNPaDJaTnlCeVJPbkw2azBKeDBRdFJTeTB6YmtqaW1lWFJVMnhsd0ZpQVhHRFRLLVY3cjR1UGhsbGNVT3UyN3BGdE9zTVJQMlNjUmNJTVdKMnhVWWFBM1dKQ3hIYnJMYlp2TTk?oc=5",
-      "source": "On3 — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMitAFBVV95cUxQZDNJblNLSUpwUHZfZ1paNjFhWVdHTzlubEdvdko1SVpEeWt2STBwZUtBc2s0RHdLeWdwbkk0dHRjOXgzX0hCX3A5TDExMndfdnNPaDJaTnlCeVJPbkw2azBKeDBRdFJTeTB6YmtqaW1lWFJVMnhsd0ZpQVhHRFRLLVY3cjR1UGhsbGNVT3UyN3BGdE9zTVJQMlNjUmNJTVdKMnhVWWFBM1dKQ3hIYnJMYlp2TTk?oc=5\" target=\"_blank\">Three Thoughts on Purdue landing four-star safety Kaleb Elkins</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2026-06-10T18:40:11+00:00",
-      "published_ts": 1781116811
-    },
-    {
       "title": "Gold And Black: Purdue Boilermakers Football & Basketball - On3",
       "link": "https://news.google.com/rss/articles/CBMiWkFVX3lxTFB4NmtGVTdFcWFDcW5xVTExSG5KbE01SWpLWVF1TkwteS1OVXhuQzFLdE43eVBWYW1DRnNUWnNCemVuek1nRVAyZk1WVFBweVJqS2hzcWJVUko4Zw?oc=5",
       "source": "On3 — Purdue team feed",
@@ -87,8 +87,8 @@
       "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOQm5CajFuNElGV3lIZTZmV25ERzUxOFYydXF4UmpLMks3amJxclY0OENiOHFQYkltaGtoNUFPakVlVUJldVlZbVBZTDNTZjYtWDlFdnJYLUhObnk5WUhZNEpJUm4tZFg5RjR2X25QS2NnaGxXNUJlenBjWnZIb1R6dXY2dDVtZnlLdVBFSFVQaTRCOTBUVjRtZ2FzMGYzOE1JLWR2MW9tWW9RVHpq?oc=5",
       "source": "Google News — Purdue Basketball",
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMirAFBVV95cUxOQm5CajFuNElGV3lIZTZmV25ERzUxOFYydXF4UmpLMks3amJxclY0OENiOHFQYkltaGtoNUFPakVlVUJldVlZbVBZTDNTZjYtWDlFdnJYLUhObnk5WUhZNEpJUm4tZFg5RjR2X25QS2NnaGxXNUJlenBjWnZIb1R6dXY2dDVtZnlLdVBFSFVQaTRCOTBUVjRtZ2FzMGYzOE1JLWR2MW9tWW9RVHpq?oc=5\" target=\"_blank\">Takeaways: The start of Purdue summer basketball practice</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2026-06-10T18:12:16+00:00",
-      "published_ts": 1781115136
+      "published": "2026-06-10T18:12:52+00:00",
+      "published_ts": 1781115172
     },
     {
       "title": "Expect Purdue's Offense to Have 'New Look' with Versatile Bigs",
@@ -195,14 +195,6 @@
       "published_ts": 1781055960
     },
     {
-      "title": "Purdue Fort Wayne men's basketball to host Purdue Boilermakers in October exhibition - FOX 55 Fort Wayne",
-      "link": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxQc1Z6T1RTR2ctd1ZrLURhaDlyVDlWdGQzTXlxUS1KZzdfOGZyZmxrOHJybmhPTjhGZGpydktid2VPME1KNkQ4XzdXbVdWdnRKX21RU015Q0hkZkpKUG5vZEpoS21qUEhCcS1LVlF2Sm01d3NJeXlDSHpkVnBWejNtX1JESVl3MUduSDlRUmlRdTBwWjVPV0JDelNfQXJpdGFOT09FemhZaWF5Nkx1N0llRUNWNHVBWHFBcDdXemJKbG84VkZGSEhuWVQxUzJXZFlkMVhDZlEyWjE5OEYtbk1FdnB3bjUzTW5nZE5JTmduNA?oc=5",
-      "source": "Google News — Purdue Basketball",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi7wFBVV95cUxQc1Z6T1RTR2ctd1ZrLURhaDlyVDlWdGQzTXlxUS1KZzdfOGZyZmxrOHJybmhPTjhGZGpydktid2VPME1KNkQ4XzdXbVdWdnRKX21RU015Q0hkZkpKUG5vZEpoS21qUEhCcS1LVlF2Sm01d3NJeXlDSHpkVnBWejNtX1JESVl3MUduSDlRUmlRdTBwWjVPV0JDelNfQXJpdGFOT09FemhZaWF5Nkx1N0llRUNWNHVBWHFBcDdXemJKbG84VkZGSEhuWVQxUzJXZFlkMVhDZlEyWjE5OEYtbk1FdnB3bjUzTW5nZE5JTmduNA?oc=5\" target=\"_blank\">Purdue Fort Wayne men's basketball to host Purdue Boilermakers in October exhibition</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FOX 55 Fort Wayne</font>",
-      "published": "2026-06-09T23:43:00+00:00",
-      "published_ts": 1781048580
-    },
-    {
       "title": "Quick notes from Purdue Basketball’s first summer practice: Welcome to the CJ Cox Era - Hammer and Rails",
       "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxOOF8wWXdOVXVZTFdhMnlVZmFBMklYT3lwUjZqaURyVFdrRTZ6VEZCRHNCdGZQVHdCSE9pcWh3bnNPamVfWjVmTjcwQWdITUhFa3F4NXFHMElVWUs2U3RCbmJ1dVFFWkxIMTBWZWlQTTg0U3hsME5lSDI0S3AwTzhUOFpjVkVMUHBBTHg4eVd2SGNvRGl0eG9yNUlsZVhiWlpkZnJYNjkzYjNjemtqazlfUTIzMFRMd01UMm1ESkpveFp3eXhwMEpWV0ZXbDk5S184NHc?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -233,6 +225,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1wFBVV95cUxPTmFaYVpmZ2FWeGFnNEJaLTFPdUw1cUlzeTBCVXNEUjBROEpBREtVaXJ4cnVjMklqMjdMb0EtV2gzU3FtSHRWMkF0TmRhWnEzcmltc2t2M3pfX2R1LWM2VHpNMEhuQzF2QmhQUlpCYnV3WmJ0OWFPbU9TVzV2WHU1eDExRktVd3ZMZlJwNDhYLTlubkpvQjM1bW41VWg5OEtEMnJiM1NQZmczbWxkYmxBa0F2ampqS0J2ODRsU1BNVjYxNEdyYnR5UUV4bEpSdmpLVWpMMzRENA?oc=5\" target=\"_blank\">Matt Painter Explains How NCAA's 5-for-5 Eligibility Plan Impacts College Basketball</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
       "published": "2026-06-09T23:23:05+00:00",
       "published_ts": 1781047385
+    },
+    {
+      "title": "Purdue Fort Wayne men's basketball to host Purdue Boilermakers in October exhibition - FOX 55 Fort Wayne",
+      "link": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxPRUJkSWswekM2VXdPLUZTWVBFTWRwOEozSHpVMXFjWHItUHFfbnp0THlyQ1RUS0d6ZWF6Y2xGQWw4TDlnU3p3YU1LMDVvb1pTQ0RsWmowLWlkWXIyODhEcWFWVFpDQURWMVdMMHJ6U0o3anBzX3l1T0EtNXVPVklBT3d1bWE1cEdqYThxUGxLa1NzX0VQQ2dpbmN1QXRhTWRldDQ5ZjZUV2NLUVpHc1lKdjR3cE51dHpNX1F4ejN0V2NDM20tR0VtMTVtYl9qc3BlTXBZVEFneTRBRjUybS0zekNUQUlKZGpkQ1pXZUpTOGpuT1U?oc=5",
+      "source": "Google News — Purdue Basketball",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi8wFBVV95cUxPRUJkSWswekM2VXdPLUZTWVBFTWRwOEozSHpVMXFjWHItUHFfbnp0THlyQ1RUS0d6ZWF6Y2xGQWw4TDlnU3p3YU1LMDVvb1pTQ0RsWmowLWlkWXIyODhEcWFWVFpDQURWMVdMMHJ6U0o3anBzX3l1T0EtNXVPVklBT3d1bWE1cEdqYThxUGxLa1NzX0VQQ2dpbmN1QXRhTWRldDQ5ZjZUV2NLUVpHc1lKdjR3cE51dHpNX1F4ejN0V2NDM20tR0VtMTVtYl9qc3BlTXBZVEFneTRBRjUybS0zekNUQUlKZGpkQ1pXZUpTOGpuT1U?oc=5\" target=\"_blank\">Purdue Fort Wayne men's basketball to host Purdue Boilermakers in October exhibition</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FOX 55 Fort Wayne</font>",
+      "published": "2026-06-09T23:20:00+00:00",
+      "published_ts": 1781047200
     },
     {
       "title": "PFW to host Purdue men’s basketball for exhibition game at the Coliseum - WPTA | 21Alive | Fort Wayne, IN",
