@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-23T06:07:56.288465+00:00",
+  "updated": "2026-06-23T10:09:42.089817+00:00",
   "count": 50,
   "items": [
     {
@@ -17,14 +17,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMingFBVV95cUxPWFNOLTllVndtTnUzaTNXanAxWk1zc05ZVXpyM19aYmdHejZzQlc0Tk9Fc3FLNXg2QjhJTHlndFBJNWo3M2lsdGc5dG56am5mbW9XOUM0bWZ0d1RnWGIzX00tMVhFVFNQdVlfeTRBalRyZ3RCZDZsLThTWVgwVUNnT2VvRm9aSGFfX3BWMTRrN1hza2Z5UWc3YU5DRW1Ddw?oc=5\" target=\"_blank\">Purdue Basketball Set to Host Top-30 Prospect Ahmed Nur</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
       "published": "2026-06-22T19:57:53+00:00",
       "published_ts": 1782158273
-    },
-    {
-      "title": "Four-star forward Ahmed Nur sets official visit to Purdue - On3",
-      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxQcG9HaW5qRXNEZ3p3UXExZWFYeTlJVTBOVWVlRnJYcVdJVVhZeWMzOUdRbU5vSm82X0dDcGZ3RkxIa2VJeVR3cnpOUHBVT2wxQ0ZQdGp2WnNtTHFkcFRnYV9sSkhRd0piR2NQajZZWm5xdEpJM24weFltcEhianJNTFdwMzVoSTZCbW1UcmkyTE91SHA0T1NmWTkyNHB3dllYZUVqMEYwUS1SX1k1M1E?oc=5",
-      "source": "On3 — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxQcG9HaW5qRXNEZ3p3UXExZWFYeTlJVTBOVWVlRnJYcVdJVVhZeWMzOUdRbU5vSm82X0dDcGZ3RkxIa2VJeVR3cnpOUHBVT2wxQ0ZQdGp2WnNtTHFkcFRnYV9sSkhRd0piR2NQajZZWm5xdEpJM24weFltcEhianJNTFdwMzVoSTZCbW1UcmkyTE91SHA0T1NmWTkyNHB3dllYZUVqMEYwUS1SX1k1M1E?oc=5\" target=\"_blank\">Four-star forward Ahmed Nur sets official visit to Purdue</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2026-06-22T19:33:06+00:00",
-      "published_ts": 1782156786
     },
     {
       "title": "Three Thoughts From The Weekend: Purdue's NBA hopefuls, Dusty May and more - On3",
@@ -99,6 +91,14 @@
       "published_ts": 1782080546
     },
     {
+      "title": "Purdue 1989 Basketball Commits - 247Sports",
+      "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQRWlBb0tER1h3MGtTZ1FuZUNLTWw4ZnJtUWhENjZIOFF1S0xTdWtUUy04Vm5BVXlZUnhLc1FBV1F4c2lTQ3lFTEJIQUVPaExHTUN3bHc3eUlTdUM3cGdZY29hMVdwWEJNa1pwbGQ3MTYtaXBZeUlOM20wcV9HMldzcVJKd2Z4bHh4V05sMg?oc=5",
+      "source": "247Sports — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxQRWlBb0tER1h3MGtTZ1FuZUNLTWw4ZnJtUWhENjZIOFF1S0xTdWtUUy04Vm5BVXlZUnhLc1FBV1F4c2lTQ3lFTEJIQUVPaExHTUN3bHc3eUlTdUM3cGdZY29hMVdwWEJNa1pwbGQ3MTYtaXBZeUlOM20wcV9HMldzcVJKd2Z4bHh4V05sMg?oc=5\" target=\"_blank\">Purdue 1989 Basketball Commits</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
+      "published": "2026-06-21T17:25:36+00:00",
+      "published_ts": 1782062736
+    },
+    {
       "title": "2028 Women's Basketball Commits - 247Sports",
       "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxNRmVGYmpVWjlYUnVvcVFBam9mMHYtNHlPY0dhQWJMZzVGekdubHA0b0lYNWhfdzJLWjBFYkFLU0JEaUFkYTFIdDhMb1JFX0gyN1hYSDlFcEJ0ZHViZWR2anJHSjlaYW52MXdTNHZOalhLdXZVVUs2aDN3eXhpT1FRTmpYVlJwSnRz?oc=5",
       "source": "247Sports — Purdue team feed",
@@ -129,6 +129,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1wFBVV95cUxPcmd1QWI0d0lEWUhBZEtYUXV3N2pDdTRHSDhNcFhJZ2Qxa3ZyaWRyWTBHV1ZtSHl1M1BlVkVOYkJ5RDdoWG9CdUxjZU9oWDlISjJDSFBSNGRSbkJVYzdXMjA0SU1maHJWYmJrV1lQVkpxVmxIbWotUHp3Mi0tX0MzOXN2RFc1UFFkeE05bHQ1S2JJeHRSWkR4Y0JYX3RDTlJCYzRmZ3Z0cGpkOTRTckY0ZGdlbUpSWVpuWHhleW4tSC1oY1E3TU85ZVptZTB0aXRISUJPdGdfRQ?oc=5\" target=\"_blank\">Purdue Boilermakers 2005 Women's Basketball Roster</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
       "published": "2026-06-20T23:38:10+00:00",
       "published_ts": 1781998690
+    },
+    {
+      "title": "Purdue 2016 Basketball Commits - 247Sports",
+      "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNYzhOUWxhOE1hbTRMc19FRk13LVN1dTBXOUhuU3VFRWhrUk9xTUpCN1lUSW9iVldyZkZreEFRWTEzZloxY3BDTlVsRzJtcXhmN1FicmNXdjJyYzVTUlVMMHJHY3VxdmwxU1M4N194MnBYejlYZWRORXlyVUdFbWtGTXNIMmFhQWs1R1RGMTdnZXk?oc=5",
+      "source": "247Sports — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMikAFBVV95cUxNYzhOUWxhOE1hbTRMc19FRk13LVN1dTBXOUhuU3VFRWhrUk9xTUpCN1lUSW9iVldyZkZreEFRWTEzZloxY3BDTlVsRzJtcXhmN1FicmNXdjJyYzVTUlVMMHJHY3VxdmwxU1M4N194MnBYejlYZWRORXlyVUdFbWtGTXNIMmFhQWs1R1RGMTdnZXk?oc=5\" target=\"_blank\">Purdue 2016 Basketball Commits</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
+      "published": "2026-06-20T20:42:10+00:00",
+      "published_ts": 1781988130
     },
     {
       "title": "WILL BUY: used boiler, 150 lb pressure, 150 hp, 3-5 m BTU (diesel or propane)",
@@ -227,14 +235,6 @@
       "published_ts": 1781857200
     },
     {
-      "title": "Purdue Basketball is recruiting at a very high level by both internal and external standards - On3",
-      "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxPZFNKYXFJMGpIbTBHampXRk1kNXI3WUJHMmFxNmpFT3FvMldGRTZkdXRTNFZYNkZjMDZqU2Q3cEhlZDMyYWpjR0czWlBibHk2SXdLR2Z5QzQzVUh3OVVHMzJDUUc5b05XOW1tRTItMWR5ejhLWVJHR19GOFBTNzhXUTltNUdaMzY2S1o3blRiZFZNY3ZQWUZDdUJUR2huSUlBcG9Yc0VvUFUtQXVVWkwyejJJa0lPZEo4bmc?oc=5",
-      "source": "Matt Painter — news",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiugFBVV95cUxPZFNKYXFJMGpIbTBHampXRk1kNXI3WUJHMmFxNmpFT3FvMldGRTZkdXRTNFZYNkZjMDZqU2Q3cEhlZDMyYWpjR0czWlBibHk2SXdLR2Z5QzQzVUh3OVVHMzJDUUc5b05XOW1tRTItMWR5ejhLWVJHR19GOFBTNzhXUTltNUdaMzY2S1o3blRiZFZNY3ZQWUZDdUJUR2huSUlBcG9Yc0VvUFUtQXVVWkwyejJJa0lPZEo4bmc?oc=5\" target=\"_blank\">Purdue Basketball is recruiting at a very high level by both internal and external standards</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
-      "published": "2026-06-19T07:54:31+00:00",
-      "published_ts": 1781855671
-    },
-    {
       "title": "Where 2027 Purdue Basketball Commit Isaiah Hill Lands in Updated Recruiting Rankings",
       "link": "https://www.reddit.com/r/Boilermakers/comments/1u9frwh/where_2027_purdue_basketball_commit_isaiah_hill/",
       "source": "Reddit — r/Boilermakers",
@@ -323,14 +323,6 @@
       "published_ts": 1781726460
     },
     {
-      "title": "Purdue Boilermakers 2026 College Basketball Transfer Portal Position Rankings - 247Sports",
-      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNRWhVNkNxYkVVUF9CLTlxM1hmUElPcDhuNTBQaTFlaU9rb2VMMjJyd1lOdlA1THFWXy02WjVpSnJma2Z6TVlJUkVXVWVJeUFta0FpeWpnUWl4T0VvQmdJaHZPYjNOTjM3LUpQWl9jcE9DS0JPdUFjaVN2dnFPeVhOUDRBOGE2OS1ENGhibnM1WE5adGc3?oc=5",
-      "source": "247Sports — Purdue team feed",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMilAFBVV95cUxNRWhVNkNxYkVVUF9CLTlxM1hmUElPcDhuNTBQaTFlaU9rb2VMMjJyd1lOdlA1THFWXy02WjVpSnJma2Z6TVlJUkVXVWVJeUFta0FpeWpnUWl4T0VvQmdJaHZPYjNOTjM3LUpQWl9jcE9DS0JPdUFjaVN2dnFPeVhOUDRBOGE2OS1ENGhibnM1WE5adGc3?oc=5\" target=\"_blank\">Purdue Boilermakers 2026 College Basketball Transfer Portal Position Rankings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
-      "published": "2026-06-17T20:01:00+00:00",
-      "published_ts": 1781726460
-    },
-    {
       "title": "Big Ten men’s basketball 2026-27 outlooks: Purdue - The Daily Hoosier",
       "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNX1pSdDVVdDVyWXdPX2xTNkNZSlFXRnBpR2kzWmFJeE02SFRDdXI4cWtoLUpyS1hHRjF4ejM2eGlBWGRrcHRHRk9OTEZ0TjJvZ25fX083MnRUS01JZDg3aUlzOC1oVUFNNE9NMFNwZ3VWRnRjaDV4ajBZLUY1X3doZDk2ci04OEU?oc=5",
       "source": "Google News — Purdue Basketball",
@@ -401,6 +393,14 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMivAFBVV95cUxPcXdiQUNIRlBsWmVxYlNYMm82cDRlOHZrNlhCT1J2RjgxYlBic1ZCSjE5RWszN0V0cUVCNnRIUkRJazJ4SERvTmtDZXRPUktxZVZ0OUVHYVFDUnRCZGVhaWlWUDdtX1VXSXBDeHR1bEprNTVvYUU5encyN2tsMU9yaTJpMnA1UzgzeW9ITkJVcTV5Z21vd2xrX0Y1T09VUl9oNzZVN3V6VDdKODFMNVg4ZVlaVW1UYnZscU84Zw?oc=5\" target=\"_blank\">2028 Hybrid Titus Moore Goes In-Depth On Iowa Basketball Offer, Unofficial Visit To Iowa City</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
       "published": "2026-06-15T18:59:00+00:00",
       "published_ts": 1781549940
+    },
+    {
+      "title": "Top 40 Prospect in 2028 Class Takes Visit to Purdue Basketball - Sports Illustrated",
+      "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPNVVEeHA0RVJoOGwwWFZtU1ZSajBWLXA2Z1JDekhEZHFuc1VZcjlrTFBRMHNXZTNlUTA2VTNaTTI5Z0E5T3ZxTzJvNFdfU2NERWFIQlhRX19fUWhjejlvV3RMbzc1U2NNZHc1aDdlMEtMSjNzTkQzOVQ3ajllQmJIaXNfYjB4WXp6alotOVExbHJveTZBaTJUVVcyLUFjenF4aTU4OE1EcU1FWG40UzlUemRB?oc=5",
+      "source": "Sports Illustrated — Purdue (MBB search)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMisgFBVV95cUxPNVVEeHA0RVJoOGwwWFZtU1ZSajBWLXA2Z1JDekhEZHFuc1VZcjlrTFBRMHNXZTNlUTA2VTNaTTI5Z0E5T3ZxTzJvNFdfU2NERWFIQlhRX19fUWhjejlvV3RMbzc1U2NNZHc1aDdlMEtMSjNzTkQzOVQ3ajllQmJIaXNfYjB4WXp6alotOVExbHJveTZBaTJUVVcyLUFjenF4aTU4OE1EcU1FWG40UzlUemRB?oc=5\" target=\"_blank\">Top 40 Prospect in 2028 Class Takes Visit to Purdue Basketball</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sports Illustrated</font>",
+      "published": "2026-06-15T16:38:41+00:00",
+      "published_ts": 1781541521
     }
   ]
 }
