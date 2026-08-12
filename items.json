@@ -1,15 +1,7 @@
 {
-  "updated": "2026-08-12T21:45:38.981673+00:00",
+  "updated": "2026-08-12T22:40:41.641218+00:00",
   "count": 50,
   "items": [
-    {
-      "title": "Staff Roundtable: Purdue’s Hire of Tommy McClelland",
-      "link": "https://www.hammerandrails.com/football/60659/staff-roundtable-purdues-hire-of-tommy-mcclelland",
-      "source": "Hammer & Rails (SB Nation)",
-      "summary": "We had big news in the Purdue universe of late but of course you all know this. So, I wanted to send out an email to the staff to see what they thought of this hire. Yes, it’s new, yes it’s early, no we can’t know for sure where this will end but it’s time [&#8230;]",
-      "published": "2026-08-12T20:17:51+00:00",
-      "published_ts": 1786565871
-    },
     {
       "title": "Sources: Miami basketball coach Jai Lucas gets extension, raise - ESPN",
       "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPMTF4TDZCN0JranIxNVZRRXp3OXZLbmJVNjFhT3ZQZlVMekR5RG53U2V6bmNDbzVIemtxaGxacFlYR0dxd0U0ckpEQkExZ1ByNmhZU0hpU213Tk1yUjZCeVRFNGFnbm5oYTU5NE5Fa2h5SW9mZWYzNFJxbVpPXzBpN1pXWDk0dnU2LVZKX055TGVaUHVRNmFDdmlHUnlqWU5hWkg5bC1sYW10dXlKTWplS09zZnd3N2tYZUhNX0dKWnY5V0k?oc=5",
@@ -291,6 +283,14 @@
       "published_ts": 1786033223
     },
     {
+      "title": "New Purdue Athletic Director Tommy McClelland Introductory Press Conference: An Open Thread",
+      "link": "https://www.hammerandrails.com/general/60563/new-purdue-athletic-director-tommy-mcclelland-introductory-press-conference-an-open-thread",
+      "source": "Hammer & Rails (SB Nation)",
+      "summary": "You never get a second chance to make a first impression. Or so the saying goes. Well, today is an opportunity for a first impression for newly announced Purdue Athletic Director Tommy McClelland. He landed in West Lafayette yesterday and will officially be introduced as the next man for the job at an introductory press [&#8230;]",
+      "published": "2026-08-06T13:35:00+00:00",
+      "published_ts": 1786023300
+    },
+    {
       "title": "GoldandBlack.com video: Purdue coach Barry Odom before first fall camp practice - On3",
       "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPM2thM3AtelpqSGJvYlMyTWdyTTVkWElSZnV5WnU2Qkt1cUIxd2xWT0RWM0VPY3VsUlpNZVZIeFBFTDBSWHZOd3JmNTB3LS1pR1BRVTg4cGxGR2dpUXFPZlRJR2VROUViamRjUXBaRERnckVNRFRENmNqbXloS2hIVl9RUUhDUXFLNkJQOE90VnZNaDZwbzk0YnFLRFcyb3FRTE1rZTBDNHU1UkdqSnNvdGJ0Mnk5Znh6Z3k4M2UwdDkzNWpXTWU3MWFn?oc=5",
       "source": "On3 — Purdue team feed",
@@ -379,14 +379,6 @@
       "published_ts": 1785740400
     },
     {
-      "title": "Top players who have sued to return to college basketball after courts rule recent seniors can play fifth year - CBS Sports",
-      "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNLVVFSnNDbjRoVldnM1VQZ3hwZXdEMkhXSldBcVVEV2d3ZDNnazFVa1RKQkFSTjFEenhjQlpHeFVFdzNFN003S3dxZ0tsM2NWU3JUYVBUbTJFdkVZMTJ1U3VTb0JCZkZZVFFwSDZCZllRZ2RiQThJdExWZGpKZW5KSmdLQmItSE85WDZpRkRyLVV4cWd1U09YQ3gzOVlMRUREazBtN3RtVFZZVGFPMnZ0WWU0NA?oc=5",
-      "source": "CBS Sports — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiswFBVV95cUxNLVVFSnNDbjRoVldnM1VQZ3hwZXdEMkhXSldBcVVEV2d3ZDNnazFVa1RKQkFSTjFEenhjQlpHeFVFdzNFN003S3dxZ0tsM2NWU3JUYVBUbTJFdkVZMTJ1U3VTb0JCZkZZVFFwSDZCZllRZ2RiQThJdExWZGpKZW5KSmdLQmItSE85WDZpRkRyLVV4cWd1U09YQ3gzOVlMRUREazBtN3RtVFZZVGFPMnZ0WWU0NA?oc=5\" target=\"_blank\">Top players who have sued to return to college basketball after courts rule recent seniors can play fifth year</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">CBS Sports</font>",
-      "published": "2026-08-03T07:00:00+00:00",
-      "published_ts": 1785740400
-    },
-    {
       "title": "Purdue All-American Braden Smith will not explore return to college basketball after new eligibility ruling - CBS Sports",
       "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOM1dmYS1TU3RyY2xDSUVRU3d4YkRYeFJ2SldlSDBpNlRzQlQxeXN2VFpQSEtkZ3c4N0JQVGdaVWNPbXYyMGZxR1JYRi1QVXBsM0pmSV9nMEFqc25ldDJjZ2ZSM2JUYk1NRDhCSUctUXNCNFZfN0dkNUkwQjljbllEaGlHOFQ1N2x4WktTZnlJM1pMUFRuZTNjeDJpUmQ2X3VJY0VCOWVxcmFoZVRs?oc=5",
       "source": "CBS Sports — Purdue (MBB search)",
@@ -401,6 +393,14 @@
       "summary": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Boilermakers/comments/1vd1mgd/luke_ertel_autograph_signing_indiana_state_fair/\"> <img alt=\"Luke Ertel Autograph Signing @ Indiana State Fair\" src=\"https://preview.redd.it/thyuck7vhugh1.jpeg?width=640&amp;crop=smart&amp;auto=webp&amp;s=0666e41493f5853168c6d8001ced55432fb3da75\" title=\"Luke Ertel Autograph Signing @ Indiana State Fair\" /> </a> </td><td> &#32; submitted by &#32; <a href=\"https://www.reddit.com/user/ScienceMovies\"> /u/ScienceMovies </a> <br /> <span><a href=\"https://i.redd.it/thyuck7vhugh1.jpeg\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/Boilermakers/comments/1vd1mgd/luke_ertel_autograph_signing_indiana_state_fair/\">[comments]</a></span> </td></tr></table>",
       "published": "2026-08-01T23:08:44+00:00",
       "published_ts": 1785625724
+    },
+    {
+      "title": "Matt Painter Points to Two Key Areas For Improvement After Purdue's Summer Trip",
+      "link": "https://www.reddit.com/r/Boilermakers/comments/1vcrfjc/matt_painter_points_to_two_key_areas_for/",
+      "source": "Reddit — r/Boilermakers",
+      "summary": "<table> <tr><td> <a href=\"https://www.reddit.com/r/Boilermakers/comments/1vcrfjc/matt_painter_points_to_two_key_areas_for/\"> <img alt=\"Matt Painter Points to Two Key Areas For Improvement After Purdue's Summer Trip\" src=\"https://external-preview.redd.it/av0ovIU0Eqg81VGmKBjGFlNeutx6LjPQV67963Ui2aU.jpeg?width=640&amp;crop=smart&amp;auto=webp&amp;s=fefdc44b4d09687750a684e573e49589e6d1d3f9\" title=\"Matt Painter Points to Two Key Areas For Improvement After Purdue's Summer Trip\" /> </a> </td><td> &#32; submitted by &#32; <a href=\"https://www.reddit.com/user/Dschutte2023\"> /u/Dschutte2023 </a> <br /> <span><a href=\"https://www.si.com/college/purdue/basketball/matt-painter-points-two-key-areas-improvement-after-purdue-summer-trip\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/Boilermakers/comments/1vcrfjc/matt_painter_points_to_two_key_areas_for/\">[comments]</a></span> </td></tr></table>",
+      "published": "2026-08-01T16:13:20+00:00",
+      "published_ts": 1785600800
     }
   ]
 }
