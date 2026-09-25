@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-25T00:40:45.069106+00:00",
+  "updated": "2026-09-25T05:54:55.699430+00:00",
   "count": 50,
   "items": [
     {
@@ -57,14 +57,6 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMiswFBVV95cUxPVmpadWdMVnZHaDltWkt4Nmd3QnpyN0xjWE03R0hfTl8zQ1NEcDRtOGV3SmprMG5Zc19nWXZpbmVMZnpoazF1OVBwbUFMdm9leEpIV0RvRHhsaFUzUS1YX2x5RHpmS3NLa19sX1lQanZSUTJTYk53dVg4SnZUS1ZwazN0OE9VNFp0R1N6d2RJcEM4LXJ6VS13RXdkeEZVMnJSZl9HcWVuOVdDTWdOTmJ5eVZOOA?oc=5\" target=\"_blank\">College basketball offseason winners and losers: Louisville, Will Wade, NCAA eligibility headline summer drama</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">CBS Sports</font>",
       "published": "2026-09-23T14:35:00+00:00",
       "published_ts": 1790174100
-    },
-    {
-      "title": "Softball to Compete in Puerto Vallarta Challenge",
-      "link": "http://www.bing.com/news/apiclick.aspx?ref=FexRss&aid=&tid=6ab5c30a50424bcda70a09f6cd69302a&url=https%3a%2f%2fpurduesports.com%2fnews%2f2026%2f09%2f23%2fsoftball-to-compete-in-puerto-vallarta-challenge&c=14606402378628400991&mkt=en-us",
-      "source": "PurdueSports.com — “Men’s Basketball”",
-      "summary": "Purdue will open the season competing in the prestigious Puerto Vallarta Challenge in Puerto Vallarta, Mexico from Feb. 11-13. The Boilers will be competing ...",
-      "published": "2026-09-23T11:59:00+00:00",
-      "published_ts": 1790164740
     },
     {
       "title": "Illini Inquirer AM: Illini MBB to host another top-25 prospect; Orange Krush tickets sell out in record time - 247Sports",
@@ -251,20 +243,12 @@
       "published_ts": 1789940671
     },
     {
-      "title": "REVEALED: Purdue Basketball's 2026-27 Schedule BREAKDOWN – Can Matt Painter's Young Squad SURVIVE? - WCNC",
+      "title": "REVEALED: Purdue Basketball's 2026-27 Schedule BREAKDOWN – Can Matt Painter's Young Squad SURVIVE? - wcnc.com",
       "link": "https://news.google.com/rss/articles/CBMirwJBVV95cUxPV2c1R2RzdHdRQ256dVpQb2xlYUZoZDE3ckxBYjNZU0VzVklvUmFrNXI3MlJVQVMwQ3JhTm1rRjU4aTZHcDNfU0lyYkFmVUJSQkdhSUNseDFoOEs3MzZZQ2hLbmd6MjgtVEhRd2J5NmVGRUdwN0dhYmljeExYdURydjhBaEZvV0ZrVmVjdmxIOWJnYkVfRnNOZlplVmpCZXFabzItb0VuVktIb3VvS29OZXF4MlEtQThZQWhKaE80M3N4c0U4Rk93aDlncHJKc2k0VzNxaTQ2QzVRV3Y4ajl6MlprZ3hoNTYwME5fcWVnV3NxdTBZZzJGdVEtdjh4dzA3UEcxOWQ3MVQ2bHBkS05aUjhaZk9PSGlNQnM2dXJjNDVabFl3YzduZDlTV2hPcDg?oc=5",
       "source": "Matt Painter — news",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMirwJBVV95cUxPV2c1R2RzdHdRQ256dVpQb2xlYUZoZDE3ckxBYjNZU0VzVklvUmFrNXI3MlJVQVMwQ3JhTm1rRjU4aTZHcDNfU0lyYkFmVUJSQkdhSUNseDFoOEs3MzZZQ2hLbmd6MjgtVEhRd2J5NmVGRUdwN0dhYmljeExYdURydjhBaEZvV0ZrVmVjdmxIOWJnYkVfRnNOZlplVmpCZXFabzItb0VuVktIb3VvS29OZXF4MlEtQThZQWhKaE80M3N4c0U4Rk93aDlncHJKc2k0VzNxaTQ2QzVRV3Y4ajl6MlprZ3hoNTYwME5fcWVnV3NxdTBZZzJGdVEtdjh4dzA3UEcxOWQ3MVQ2bHBkS05aUjhaZk9PSGlNQnM2dXJjNDVabFl3YzduZDlTV2hPcDg?oc=5\" target=\"_blank\">REVEALED: Purdue Basketball's 2026-27 Schedule BREAKDOWN – Can Matt Painter's Young Squad SURVIVE?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">WCNC</font>",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMirwJBVV95cUxPV2c1R2RzdHdRQ256dVpQb2xlYUZoZDE3ckxBYjNZU0VzVklvUmFrNXI3MlJVQVMwQ3JhTm1rRjU4aTZHcDNfU0lyYkFmVUJSQkdhSUNseDFoOEs3MzZZQ2hLbmd6MjgtVEhRd2J5NmVGRUdwN0dhYmljeExYdURydjhBaEZvV0ZrVmVjdmxIOWJnYkVfRnNOZlplVmpCZXFabzItb0VuVktIb3VvS29OZXF4MlEtQThZQWhKaE80M3N4c0U4Rk93aDlncHJKc2k0VzNxaTQ2QzVRV3Y4ajl6MlprZ3hoNTYwME5fcWVnV3NxdTBZZzJGdVEtdjh4dzA3UEcxOWQ3MVQ2bHBkS05aUjhaZk9PSGlNQnM2dXJjNDVabFl3YzduZDlTV2hPcDg?oc=5\" target=\"_blank\">REVEALED: Purdue Basketball's 2026-27 Schedule BREAKDOWN – Can Matt Painter's Young Squad SURVIVE?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">wcnc.com</font>",
       "published": "2026-09-20T19:59:00+00:00",
       "published_ts": 1789934340
-    },
-    {
-      "title": "Purdue 38  UCLA 52: Trouble Bruin?",
-      "link": "https://www.hammerandrails.com/purdue-football/61227/purdue-38-ucla-52-trouble-bruin",
-      "source": "Hammer & Rails (SB Nation)",
-      "summary": "We are in season 3 of the Big Ten money grab that was adding four teams from the west coast and that means Purdue, a team that is located in the Eastern time zone, had to start a game at 11:07 PM ET. I know I took an afternoon nap in order to stay up [&#8230;]",
-      "published": "2026-09-20T15:00:06+00:00",
-      "published_ts": 1789916406
     },
     {
       "title": "Quotes That Matter From Barry Odom Following Purdue's 52-38 Loss to UCLA - Sports Illustrated",
@@ -371,14 +355,6 @@
       "published_ts": 1789675465
     },
     {
-      "title": "5 takeaways from Indiana men’s basketball’s Big Ten schedule - Yahoo Sports",
-      "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQQmJNMm9hbGxrX2lZaTZOZldpZmdPYThNSzBXOVFXX1g5RmVIeFRnRFdQM2hfal90QUZpRHVQMTMtaF9LMEpWbFpRbG9nMExqbUk0d0hZVDJHZ2VYdm9aT0hwLVNuTTRIeEtxSGFpN005bWdpendYb00tWFdBMHBxYWt0MGpteUVvcXA4?oc=5",
-      "source": "Yahoo Sports — Purdue (MBB search)",
-      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxQQmJNMm9hbGxrX2lZaTZOZldpZmdPYThNSzBXOVFXX1g5RmVIeFRnRFdQM2hfal90QUZpRHVQMTMtaF9LMEpWbFpRbG9nMExqbUk0d0hZVDJHZ2VYdm9aT0hwLVNuTTRIeEtxSGFpN005bWdpendYb00tWFdBMHBxYWt0MGpteUVvcXA4?oc=5\" target=\"_blank\">5 takeaways from Indiana men’s basketball’s Big Ten schedule</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>",
-      "published": "2026-09-17T19:30:00+00:00",
-      "published_ts": 1789673400
-    },
-    {
       "title": "These 4-Game Stretches Will Give Purdue Basketball the Most Trouble in 2026-27",
       "link": "https://www.reddit.com/r/Boilermakers/comments/1wj2b4g/these_4game_stretches_will_give_purdue_basketball/",
       "source": "Reddit — r/Boilermakers",
@@ -401,6 +377,30 @@
       "summary": "<a href=\"https://news.google.com/rss/articles/CBMijgFBVV95cUxQM2J3bjUxajVWMjRQclJKUFdkTklkTGprOU1hNXpvN0ZzSzBDU2RYN3E2XzlHMlRXTTFpXzBGVjRBOThEakpPSFVKVTd4MHpDRFJGc3NoTGQtZEZzOUVjMVg3N2Z0NG1JYjM1b29tUkFKcUoyQWJTR3dwQ00wdW8xN0NoVmtVLXppd3pnVldR?oc=5\" target=\"_blank\">Purdue All Time Infielder Recruits</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
       "published": "2026-09-17T16:30:01+00:00",
       "published_ts": 1789662601
+    },
+    {
+      "title": "Purdue 2029 Basketball Offers in Michigan - 247Sports",
+      "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxOZ1VYOExRTWRQNFNSTmw1Z3NqM0JkbkJzR084RkNybW5EeUY4Zi1oa2RVMHZsakdjeGVlMklEYUp1bXhJLWZ1NGJLRmY2T0xyZTl6clVaaGJYUjBkQU5fQnBFaHNEM2hJRzYyRkZRcE9pUmhCU1VkSXdTTGpkQ1o4SGl2Znd1WmtmT05J?oc=5",
+      "source": "247Sports — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxOZ1VYOExRTWRQNFNSTmw1Z3NqM0JkbkJzR084RkNybW5EeUY4Zi1oa2RVMHZsakdjeGVlMklEYUp1bXhJLWZ1NGJLRmY2T0xyZTl6clVaaGJYUjBkQU5fQnBFaHNEM2hJRzYyRkZRcE9pUmhCU1VkSXdTTGpkQ1o4SGl2Znd1WmtmT05J?oc=5\" target=\"_blank\">Purdue 2029 Basketball Offers in Michigan</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">247Sports</font>",
+      "published": "2026-09-17T14:24:32+00:00",
+      "published_ts": 1789655072
+    },
+    {
+      "title": "Boiler Alert! The Men’s Basketball Schedule is Complete & Football Heads to UCLA - Yahoo Sports",
+      "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxOVkI3cEpQdDlwRmV1R3NNZWNibl92THJUbF9yd3BYbTVQdXgwOWV2eFhwU2pGdFY0SEM4UlY2OEFuNFlFU3VtaDBaY2RhcU56SHktOXRsTUFyTkFubzVmQV9BY28yazRjcFE2SnVQNjVabWZINkROVzVtOHhNUUdnQ1FpRDVZRmlObXc3Z2RB?oc=5",
+      "source": "Yahoo Sports — Purdue (MBB search)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMijgFBVV95cUxOVkI3cEpQdDlwRmV1R3NNZWNibl92THJUbF9yd3BYbTVQdXgwOWV2eFhwU2pGdFY0SEM4UlY2OEFuNFlFU3VtaDBaY2RhcU56SHktOXRsTUFyTkFubzVmQV9BY28yazRjcFE2SnVQNjVabWZINkROVzVtOHhNUUdnQ1FpRDVZRmlObXc3Z2RB?oc=5\" target=\"_blank\">Boiler Alert! The Men’s Basketball Schedule is Complete & Football Heads to UCLA</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Sports</font>",
+      "published": "2026-09-17T10:54:02+00:00",
+      "published_ts": 1789642442
+    },
+    {
+      "title": "Purdue Basketball's full 2026-2027 schedule revealed - On3",
+      "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPUzMzRUhTZWdVZnNzNW5HeExGTVBGcktTWjFxNFBHRi1VQVVIbExCMXI5YWh2eGYyVC1RX21Od2ZfODVDQmUzTFVjTUQ2SF9RRTZBT25jR0QzQ0otNmg3QzRIQ1lLMXJiWm16bEQtUzMwam9vM1NSYkxaT2Y1Y3R1WEVxZXFHN003WW9GaThOem1xbnBaZkVIVktmQzE4ZzJDSDlpQXJn?oc=5",
+      "source": "On3 — Purdue team feed",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipgFBVV95cUxPUzMzRUhTZWdVZnNzNW5HeExGTVBGcktTWjFxNFBHRi1VQVVIbExCMXI5YWh2eGYyVC1RX21Od2ZfODVDQmUzTFVjTUQ2SF9RRTZBT25jR0QzQ0otNmg3QzRIQ1lLMXJiWm16bEQtUzMwam9vM1NSYkxaT2Y1Y3R1WEVxZXFHN003WW9GaThOem1xbnBaZkVIVktmQzE4ZzJDSDlpQXJn?oc=5\" target=\"_blank\">Purdue Basketball's full 2026-2027 schedule revealed</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">On3</font>",
+      "published": "2026-09-17T00:56:43+00:00",
+      "published_ts": 1789606603
     }
   ]
 }
